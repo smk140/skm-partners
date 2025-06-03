@@ -27,7 +27,7 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("adminAuth")
         localStorage.removeItem("adminLoginTime")
         sessionStorage.removeItem("adminSession")
-        router.push("/admin/login")
+        router.push("/management-portal-secure-access-2025/login")
       } else {
         // 인증된 사용자의 관리자 패널 접속 로그
         const currentPage = window.location.pathname

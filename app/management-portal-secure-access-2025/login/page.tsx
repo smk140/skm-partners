@@ -106,18 +106,15 @@ export default function AdminLoginPage() {
         router.push("/admin/dashboard")
       } else {
         // 로그인 실패 처리
-        const response = await fetch("/api/admin/login-failure", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: formData.username,
-            ...getClientInfo(),
-          }),
+        setFailureCount((prev) => prev + 1)
+
+        toast({
+          title: "로그인 실패",
+          description: `아이디 또는 비밀번호가 올바르지 않습니다. (${failureCount + 1}/3)`,
+          variant: "destructive",
         })
 
-        const result = await response.json()
-
-        if (result.blocked) {
+        if (failureCount + 1 >= 3) {
           toast({
             title: "계정 차단",
             description: `로그인 3회 실패로 인해 IP가 차단되었습니다.`,
@@ -128,13 +125,6 @@ export default function AdminLoginPage() {
           setTimeout(() => {
             router.push("/blocked")
           }, 2000)
-        } else {
-          setFailureCount(result.attempts)
-          toast({
-            title: "로그인 실패",
-            description: `아이디 또는 비밀번호가 올바르지 않습니다. (${result.attempts}/3)`,
-            variant: "destructive",
-          })
         }
       }
     } catch (error) {

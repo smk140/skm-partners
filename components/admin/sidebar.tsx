@@ -8,42 +8,42 @@ const menuItems = [
   {
     title: "대시보드",
     icon: Home,
-    path: "/management-portal-secure-access-2025/dashboard",
+    path: "/admin/dashboard",
   },
   {
     title: "문의 관리",
     icon: MessageSquare,
-    path: "/management-portal-secure-access-2025/inquiries",
+    path: "/admin/inquiries",
   },
   {
     title: "부동산 관리",
     icon: Building2,
-    path: "/management-portal-secure-access-2025/real-estate",
+    path: "/admin/real-estate",
   },
   {
     title: "회사 정보",
     icon: Users,
-    path: "/management-portal-secure-access-2025/company",
+    path: "/admin/company",
   },
   {
     title: "보안 관리",
     icon: Shield,
-    path: "/management-portal-secure-access-2025/security",
+    path: "/admin/security",
   },
   {
     title: "시스템 로그",
     icon: Eye,
-    path: "/management-portal-secure-access-2025/logs",
+    path: "/admin/logs",
   },
   {
     title: "사이트 설정",
     icon: Settings,
-    path: "/management-portal-secure-access-2025/settings",
+    path: "/admin/settings",
   },
   {
     title: "디스코드 테스트",
     icon: MessageCircle,
-    path: "/management-portal-secure-access-2025/test-discord",
+    path: "/admin/test-discord",
   },
 ]
 
@@ -52,23 +52,6 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   const checkAuthAndNavigate = (path: string) => {
-    // 개인정보 동의 쿠키 확인
-    const consentCookie = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("admin-privacy-consent="))
-      ?.split("=")[1]
-
-    const sessionCookie = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("admin-session-id="))
-      ?.split("=")[1]
-
-    if (!consentCookie || consentCookie !== "true" || !sessionCookie) {
-      // 동의하지 않은 경우 메인 관리자 페이지로 리디렉션
-      router.push("/management-portal-secure-access-2025")
-      return
-    }
-
     // 인증 상태 확인
     const adminAuth = localStorage.getItem("adminAuth")
     const adminSession = sessionStorage.getItem("adminSession")
