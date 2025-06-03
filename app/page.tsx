@@ -1,11 +1,16 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Building, CableCarIcon as Elevator, FlameIcon as Fire, MapPin, CheckCircle2 } from "lucide-react"
+import { getCompanyData } from "@/lib/file-db"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
-export default function Home() {
+export default async function Home() {
+  // 회사 정보 가져오기
+  const companyData = getCompanyData()
+  const { info: companyInfo } = companyData
+
   return (
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
@@ -25,7 +30,7 @@ export default function Home() {
             스마트 건물 관리 솔루션
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-xl">
-            청소, 소방, 엘리베이터 관리까지 - 건물 가치를 높이는 SKM파트너스의 원스톱 서비스
+            청소, 소방, 엘리베이터 관리까지 - 건물 가치를 높이는 {companyInfo.name}의 원스톱 서비스
           </p>
           <Button
             size="lg"
@@ -43,8 +48,8 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">서비스 소개</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              SKM파트너스는 건물 관리의 모든 영역에서 전문적인 서비스를 제공합니다. 청소부터 소방, 엘리베이터 관리까지
-              건물 관리의 A부터 Z까지 책임집니다.
+              {companyInfo.name}는 건물 관리의 모든 영역에서 전문적인 서비스를 제공합니다. 청소부터 소방, 엘리베이터
+              관리까지 건물 관리의 A부터 Z까지 책임집니다.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -133,7 +138,8 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">부동산 서비스</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              SKM파트너스는 공실 임대 대행 전문 서비스를 제공합니다. 건물주님을 대신하여 최적의 임차인을 찾아드립니다.
+              {companyInfo.name}는 공실 임대 대행 전문 서비스를 제공합니다. 건물주님을 대신하여 최적의 임차인을
+              찾아드립니다.
             </p>
           </div>
 
@@ -141,8 +147,8 @@ export default function Home() {
             <div>
               <h3 className="text-2xl font-bold mb-6 text-blue-600">임차인을 대신 찾아드립니다</h3>
               <p className="text-slate-600 mb-6">
-                건물 소유주님의 소중한 자산, 공실로 인한 손실이 걱정되시나요? SKM파트너스의 공실 임대 대행 서비스를 통해
-                최적의 임차인을 빠르게 연결해 드립니다.
+                건물 소유주님의 소중한 자산, 공실로 인한 손실이 걱정되시나요? {companyInfo.name}의 공실 임대 대행
+                서비스를 통해 최적의 임차인을 빠르게 연결해 드립니다.
               </p>
 
               <div className="space-y-4 mb-6">
@@ -231,7 +237,7 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">전문적인 건물 관리 서비스가 필요하신가요?</h2>
           <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            SKM파트너스와 함께 건물 관리의 모든 고민을 해결하세요.
+            {companyInfo.name}와 함께 건물 관리의 모든 고민을 해결하세요.
           </p>
           <Button
             size="lg"

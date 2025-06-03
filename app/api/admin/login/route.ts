@@ -1,45 +1,83 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { sendDiscordNotification } from "@/lib/discord"
 
-// 임시 관리자 계정
-const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "skm2024!@#",
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { username, password } = body
+    const { username, password } = await request.json()
 
-    console.log("Login attempt:", { username, password: password ? "***" : "empty" })
+    console.log("Login attempt:", { username })
 
-    // 자격 증명 확인
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      console.log("Login successful")
+    // 하드코딩된 관리자 계정 확인
+    if (username === "admin" && password === "skm2024!@#") {
+      // 로그인 성공 - Discord 알림 발송
+      try {
+        await sendDiscordNotification({
+          title: "🔐 관리자 로그인 성공",
+          description: `관리자가 시스템에 로그인했습니다.`,
+          color: 0x00ff00,
+          fields: [
+            {
+              name: "시간",
+              value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+              inline: true,
+            },
+            {
+              name: "사용자",
+              value: username,
+              inline: true,
+            },
+          ],
+        })
+      } catch (discordError) {
+        console.error("Discord notification failed:", discordError)
+      }
 
       return NextResponse.json({
         success: true,
         message: "로그인 성공",
-        user: { username },
+        user: {
+          username: "admin",
+          role: "admin",
+        },
       })
     } else {
-      console.log("Login failed - invalid credentials")
+      // 로그인 실패 - Discord 알림 발송
+      try {
+        await sendDiscordNotification({
+          title: "⚠️ 관리자 로그인 실패",
+          description: `잘못된 로그인 시도가 감지되었습니다.`,
+          color: 0xff0000,
+          fields: [
+            {
+              name: "시간",
+              value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+              inline: true,
+            },
+            {
+              name: "시도한 사용자명",
+              value: username,
+              inline: true,
+            },
+          ],
+        })
+      } catch (discordError) {
+        console.error("Discord notification failed:", discordError)
+      }
 
       return NextResponse.json(
         {
           success: false,
-          message: "잘못된 사용자명 또는 비밀번호입니다.",
+          message: "아이디 또는 비밀번호가 올바르지 않습니다.",
         },
         { status: 401 },
       )
     }
   } catch (error) {
-    console.error("Login API error:", error)
-
+    console.error("Login error:", error)
     return NextResponse.json(
       {
         success: false,
-        message: "로그인 중 오류가 발생했습니다.",
+        message: "서버 오류가 발생했습니다.",
       },
       { status: 500 },
     )

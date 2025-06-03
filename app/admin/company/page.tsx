@@ -1,24 +1,14 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { Save, User, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Toaster } from "@/components/ui/toaster"
+import { Plus, Trash2, Save, RefreshCw } from "lucide-react"
 
 interface CompanyInfo {
   name: string
@@ -33,7 +23,7 @@ interface Executive {
   name: string
   position: string
   bio: string
-  image_url?: string
+  image_url: string | null
   order_index: number
 }
 
@@ -45,55 +35,63 @@ interface SuccessCase {
   after_status: string
   period: string
   details: string
-  image_url?: string
+  image_url: string | null
 }
 
-export default function AdminCompanyPage() {
+export default function CompanyManagementPage() {
   const { toast } = useToast()
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: "SKM파트너스",
-    address: "서울특별시 강남구 테헤란로 123, 4층",
-    phone: "02-123-4567",
-    email: "bykim@skm.kr",
-    description:
-      "SKM파트너스는 건물 관리와 부동산 임대 대행 전문 기업으로, 고객의 자산 가치를 높이는 최고의 파트너입니다.",
-  })
-
-  const [executives, setExecutives] = useState<Executive[]>([])
-  const [successCases, setSuccessCases] = useState<SuccessCase[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<{ type: string; id: number } | null>(null)
 
+  // 회사 기본 정보
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    description: "",
+  })
+
+  // 임원 정보
+  const [executives, setExecutives] = useState<Executive[]>([])
+
+  // 성공 사례
+  const [successCases, setSuccessCases] = useState<SuccessCase[]>([])
+
+  // 데이터 로드
   useEffect(() => {
-    fetchData()
+    loadCompanyData()
   }, [])
 
-  const fetchData = async () => {
+  const loadCompanyData = async () => {
     setIsLoading(true)
     try {
+      console.log("Loading company data...")
       const response = await fetch("/api/admin/company")
+
       if (!response.ok) {
-        throw new Error("데이터를 불러오는데 실패했습니다.")
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
       const data = await response.json()
+      console.log("Loaded company data:", data)
 
-      setCompanyInfo(
-        data.companyInfo || {
-          name: "SKM파트너스",
-          address: "서울특별시 강남구 테헤란로 123, 4층",
-          phone: "02-123-4567",
-          email: "bykim@skm.kr",
-          description:
-            "SKM파트너스는 건물 관리와 부동산 임대 대행 전문 기업으로, 고객의 자산 가치를 높이는 최고의 파트너입니다.",
-        },
-      )
+      if (data.companyInfo) {
+        setCompanyInfo(data.companyInfo)
+      }
+      if (data.executives) {
+        setExecutives(data.executives)
+      }
+      if (data.successCases) {
+        setSuccessCases(data.successCases)
+      }
 
-      setExecutives(data.executives || [])
-      setSuccessCases(data.successCases || [])
+      toast({
+        title: "데이터 로드 완료",
+        description: "회사 정보를 성공적으로 불러왔습니다.",
+      })
     } catch (error) {
-      console.error("데이터 로드 실패:", error)
+      console.error("Failed to load company data:", error)
       toast({
         title: "데이터 로드 실패",
         description: "회사 정보를 불러오는데 실패했습니다.",
@@ -104,23 +102,12 @@ export default function AdminCompanyPage() {
     }
   }
 
-  const handleCompanyInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setCompanyInfo((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleExecutiveChange = (id: number, field: string, value: string) => {
-    setExecutives((prev) => prev.map((exec) => (exec.id === id ? { ...exec, [field]: value } : exec)))
-  }
-
-  const handleSuccessCaseChange = (id: number, field: string, value: string) => {
-    setSuccessCases((prev) => prev.map((caseItem) => (caseItem.id === id ? { ...caseItem, [field]: value } : caseItem)))
-  }
-
-  const handleSaveCompanyInfo = async () => {
+  // 회사 기본 정보 저장
+  const saveCompanyInfo = async () => {
     setIsSaving(true)
-
     try {
+      console.log("Saving company info:", companyInfo)
+
       const response = await fetch("/api/admin/company", {
         method: "PUT",
         headers: {
@@ -132,19 +119,22 @@ export default function AdminCompanyPage() {
         }),
       })
 
+      const result = await response.json()
+      console.log("Save result:", result)
+
       if (!response.ok) {
-        throw new Error("회사 정보 저장에 실패했습니다.")
+        throw new Error(result.error || "저장에 실패했습니다.")
       }
 
       toast({
         title: "저장 완료",
-        description: "회사 정보가 성공적으로 저장되었습니다.",
+        description: "회사 기본 정보가 성공적으로 저장되었습니다.",
       })
     } catch (error) {
-      console.error("저장 실패:", error)
+      console.error("Failed to save company info:", error)
       toast({
         title: "저장 실패",
-        description: "회사 정보 저장 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
@@ -152,10 +142,12 @@ export default function AdminCompanyPage() {
     }
   }
 
-  const handleSaveExecutives = async () => {
+  // 임원 정보 저장
+  const saveExecutives = async () => {
     setIsSaving(true)
-
     try {
+      console.log("Saving executives:", executives)
+
       const response = await fetch("/api/admin/company", {
         method: "PUT",
         headers: {
@@ -167,8 +159,11 @@ export default function AdminCompanyPage() {
         }),
       })
 
+      const result = await response.json()
+      console.log("Save executives result:", result)
+
       if (!response.ok) {
-        throw new Error("임원 정보 저장에 실패했습니다.")
+        throw new Error(result.error || "저장에 실패했습니다.")
       }
 
       toast({
@@ -176,10 +171,10 @@ export default function AdminCompanyPage() {
         description: "임원 정보가 성공적으로 저장되었습니다.",
       })
     } catch (error) {
-      console.error("저장 실패:", error)
+      console.error("Failed to save executives:", error)
       toast({
         title: "저장 실패",
-        description: "임원 정보 저장 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
@@ -187,10 +182,12 @@ export default function AdminCompanyPage() {
     }
   }
 
-  const handleSaveSuccessCases = async () => {
+  // 성공 사례 저장
+  const saveSuccessCases = async () => {
     setIsSaving(true)
-
     try {
+      console.log("Saving success cases:", successCases)
+
       const response = await fetch("/api/admin/company", {
         method: "PUT",
         headers: {
@@ -202,8 +199,11 @@ export default function AdminCompanyPage() {
         }),
       })
 
+      const result = await response.json()
+      console.log("Save success cases result:", result)
+
       if (!response.ok) {
-        throw new Error("성공 사례 저장에 실패했습니다.")
+        throw new Error(result.error || "저장에 실패했습니다.")
       }
 
       toast({
@@ -211,10 +211,10 @@ export default function AdminCompanyPage() {
         description: "성공 사례가 성공적으로 저장되었습니다.",
       })
     } catch (error) {
-      console.error("저장 실패:", error)
+      console.error("Failed to save success cases:", error)
       toast({
         title: "저장 실패",
-        description: "성공 사례 저장 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     } finally {
@@ -222,475 +222,343 @@ export default function AdminCompanyPage() {
     }
   }
 
-  const handleAddExecutive = () => {
-    // 임시 ID는 음수로 설정 (저장 시 새로운 ID로 대체됨)
-    const newId = executives.length > 0 ? Math.min(...executives.map((e) => e.id)) - 1 : -1
-    setExecutives([
-      ...executives,
-      {
-        id: newId,
-        name: "",
-        position: "",
-        bio: "",
-        order_index: executives.length + 1,
-      },
-    ])
-  }
-
-  const handleAddSuccessCase = () => {
-    // 임시 ID는 음수로 설정 (저장 시 새로운 ID로 대체됨)
-    const newId = successCases.length > 0 ? Math.min(...successCases.map((c) => c.id)) - 1 : -1
-    setSuccessCases([
-      ...successCases,
-      {
-        id: newId,
-        title: "",
-        location: "",
-        before_status: "",
-        after_status: "",
-        period: "",
-        details: "",
-      },
-    ])
-  }
-
-  const handleDeleteItem = async () => {
-    if (!itemToDelete) return
-
-    try {
-      const { type, id } = itemToDelete
-
-      const response = await fetch(`/api/admin/company?type=${type}&id=${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("삭제에 실패했습니다.")
-      }
-
-      if (type === "executive") {
-        setExecutives(executives.filter((exec) => exec.id !== id))
-      } else if (type === "success-case") {
-        setSuccessCases(successCases.filter((caseItem) => caseItem.id !== id))
-      }
-
-      toast({
-        title: "삭제 완료",
-        description: type === "executive" ? "임원 정보가 삭제되었습니다." : "성공 사례가 삭제되었습니다.",
-      })
-    } catch (error) {
-      console.error("삭제 실패:", error)
-      toast({
-        title: "삭제 실패",
-        description: "항목 삭제 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsDeleteDialogOpen(false)
-      setItemToDelete(null)
+  // 임원 추가
+  const addExecutive = () => {
+    const newExecutive: Executive = {
+      id: Date.now(),
+      name: "",
+      position: "",
+      bio: "",
+      image_url: null,
+      order_index: executives.length + 1,
     }
+    setExecutives([...executives, newExecutive])
   }
 
-  const confirmDelete = (type: string, id: number) => {
-    setItemToDelete({ type, id })
-    setIsDeleteDialogOpen(true)
+  // 임원 삭제
+  const removeExecutive = (id: number) => {
+    setExecutives(executives.filter((exec) => exec.id !== id))
+  }
+
+  // 성공 사례 추가
+  const addSuccessCase = () => {
+    const newCase: SuccessCase = {
+      id: Date.now(),
+      title: "",
+      location: "",
+      before_status: "",
+      after_status: "",
+      period: "",
+      details: "",
+      image_url: null,
+    }
+    setSuccessCases([...successCases, newCase])
+  }
+
+  // 성공 사례 삭제
+  const removeSuccessCase = (id: number) => {
+    setSuccessCases(successCases.filter((caseItem) => caseItem.id !== id))
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">회사 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">회사 정보 관리</h1>
-        <p className="text-slate-600 mt-2">회사 정보, 임원 소개, 성공 사례 등을 관리할 수 있습니다.</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">회사 정보 관리</h1>
+          <p className="text-gray-600 mt-1">회사의 기본 정보, 임원진, 성공 사례를 관리합니다</p>
+        </div>
+        <Button onClick={loadCompanyData} variant="outline" className="flex items-center gap-2">
+          <RefreshCw className="h-4 w-4" />
+          새로고침
+        </Button>
       </div>
 
-      <Tabs defaultValue="company-info">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="company-info">회사 정보</TabsTrigger>
-          <TabsTrigger value="executives">임원 소개</TabsTrigger>
-          <TabsTrigger value="success-cases">성공 사례</TabsTrigger>
-        </TabsList>
+      {/* 회사 기본 정보 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>회사 기본 정보</CardTitle>
+          <CardDescription>회사의 기본적인 정보를 관리합니다</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="company-name">회사명</Label>
+              <Input
+                id="company-name"
+                value={companyInfo.name}
+                onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
+                placeholder="SKM파트너스"
+              />
+            </div>
+            <div>
+              <Label htmlFor="company-phone">전화번호</Label>
+              <Input
+                id="company-phone"
+                value={companyInfo.phone}
+                onChange={(e) => setCompanyInfo({ ...companyInfo, phone: e.target.value })}
+                placeholder="02-123-4567"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="company-email">이메일</Label>
+              <Input
+                id="company-email"
+                type="email"
+                value={companyInfo.email}
+                onChange={(e) => setCompanyInfo({ ...companyInfo, email: e.target.value })}
+                placeholder="bykim@skm.kr"
+              />
+            </div>
+            <div>
+              <Label htmlFor="company-address">주소</Label>
+              <Input
+                id="company-address"
+                value={companyInfo.address}
+                onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })}
+                placeholder="서울특별시 강남구 테헤란로 123, 4층"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="company-description">회사 소개</Label>
+            <Textarea
+              id="company-description"
+              value={companyInfo.description}
+              onChange={(e) => setCompanyInfo({ ...companyInfo, description: e.target.value })}
+              placeholder="회사에 대한 간단한 소개를 입력하세요"
+              rows={4}
+            />
+          </div>
+          <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
+            <Save className="h-4 w-4" />
+            {isSaving ? "저장 중..." : "기본 정보 저장"}
+          </Button>
+        </CardContent>
+      </Card>
 
-        {/* 회사 정보 탭 */}
-        <TabsContent value="company-info">
-          <Card>
-            <CardHeader>
-              <CardTitle>기본 정보</CardTitle>
-              <CardDescription>웹사이트에 표시되는 회사의 기본 정보를 관리합니다.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="company-name">회사명</Label>
-                <Input id="company-name" name="name" value={companyInfo.name} onChange={handleCompanyInfoChange} />
+      {/* 임원 정보 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>임원 정보</CardTitle>
+              <CardDescription>회사 임원진의 정보를 관리합니다</CardDescription>
+            </div>
+            <Button onClick={addExecutive} variant="outline" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              임원 추가
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {executives.map((executive, index) => (
+            <div key={executive.id} className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">임원 #{index + 1}</h4>
+                <Button
+                  onClick={() => removeExecutive(executive.id)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company-address">주소</Label>
-                <Input
-                  id="company-address"
-                  name="address"
-                  value={companyInfo.address}
-                  onChange={handleCompanyInfoChange}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company-phone">전화번호</Label>
-                  <Input id="company-phone" name="phone" value={companyInfo.phone} onChange={handleCompanyInfoChange} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>이름</Label>
+                  <Input
+                    value={executive.name}
+                    onChange={(e) => {
+                      const updated = executives.map((exec) =>
+                        exec.id === executive.id ? { ...exec, name: e.target.value } : exec,
+                      )
+                      setExecutives(updated)
+                    }}
+                    placeholder="김대표"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company-email">이메일</Label>
-                  <Input id="company-email" name="email" value={companyInfo.email} onChange={handleCompanyInfoChange} />
+                <div>
+                  <Label>직책</Label>
+                  <Input
+                    value={executive.position}
+                    onChange={(e) => {
+                      const updated = executives.map((exec) =>
+                        exec.id === executive.id ? { ...exec, position: e.target.value } : exec,
+                      )
+                      setExecutives(updated)
+                    }}
+                    placeholder="대표이사"
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company-description">회사 소개</Label>
+              <div>
+                <Label>소개</Label>
                 <Textarea
-                  id="company-description"
-                  name="description"
-                  value={companyInfo.description}
-                  onChange={handleCompanyInfoChange}
-                  rows={4}
+                  value={executive.bio}
+                  onChange={(e) => {
+                    const updated = executives.map((exec) =>
+                      exec.id === executive.id ? { ...exec, bio: e.target.value } : exec,
+                    )
+                    setExecutives(updated)
+                  }}
+                  placeholder="임원에 대한 간단한 소개를 입력하세요"
+                  rows={3}
                 />
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSaveCompanyInfo} disabled={isSaving}>
-                {isSaving ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    저장 중...
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <Save className="mr-2 h-4 w-4" />
-                    저장하기
-                  </div>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+            </div>
+          ))}
+          {executives.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>등록된 임원이 없습니다. 임원을 추가해보세요.</p>
+            </div>
+          )}
+          <Button onClick={saveExecutives} disabled={isSaving} className="flex items-center gap-2">
+            <Save className="h-4 w-4" />
+            {isSaving ? "저장 중..." : "임원 정보 저장"}
+          </Button>
+        </CardContent>
+      </Card>
 
-        {/* 임원 소개 탭 */}
-        <TabsContent value="executives">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>임원 소개</CardTitle>
-                <CardDescription>회사 소개 페이지에 표시되는 임원 정보를 관리합니다.</CardDescription>
-              </div>
-              <Button onClick={handleAddExecutive} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="mr-2 h-4 w-4" />
-                임원 추가
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {executives.length === 0 ? (
-                <div className="text-center py-8 border rounded-lg border-dashed">
-                  <User className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-500 mb-4">등록된 임원 정보가 없습니다.</p>
-                  <Button onClick={handleAddExecutive} className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="mr-2 h-4 w-4" />
-                    임원 추가하기
-                  </Button>
-                </div>
-              ) : (
-                executives.map((executive) => (
-                  <div key={executive.id} className="border rounded-lg p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="relative h-16 w-16 rounded-full overflow-hidden bg-slate-100">
-                          {executive.image_url ? (
-                            <img
-                              src={executive.image_url || "/placeholder.svg"}
-                              alt={executive.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <User className="h-8 w-8 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-slate-400" />
-                          )}
-                        </div>
-                        <div className="font-medium">{executive.name || "이름 미입력"}</div>
-                      </div>
-                      {executive.id > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => confirmDelete("executive", executive.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`executive-name-${executive.id}`}>이름</Label>
-                        <Input
-                          id={`executive-name-${executive.id}`}
-                          value={executive.name}
-                          onChange={(e) => handleExecutiveChange(executive.id, "name", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`executive-position-${executive.id}`}>직책</Label>
-                        <Input
-                          id={`executive-position-${executive.id}`}
-                          value={executive.position}
-                          onChange={(e) => handleExecutiveChange(executive.id, "position", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`executive-bio-${executive.id}`}>소개</Label>
-                      <Textarea
-                        id={`executive-bio-${executive.id}`}
-                        value={executive.bio}
-                        onChange={(e) => handleExecutiveChange(executive.id, "bio", e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`executive-image-${executive.id}`}>이미지 URL</Label>
-                      <Input
-                        id={`executive-image-${executive.id}`}
-                        value={executive.image_url || ""}
-                        onChange={(e) => handleExecutiveChange(executive.id, "image_url", e.target.value)}
-                        placeholder="이미지 URL을 입력하세요"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`executive-order-${executive.id}`}>표시 순서</Label>
-                      <Input
-                        id={`executive-order-${executive.id}`}
-                        type="number"
-                        value={executive.order_index}
-                        onChange={(e) => handleExecutiveChange(executive.id, "order_index", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSaveExecutives} disabled={isSaving}>
-                {isSaving ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    저장 중...
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <Save className="mr-2 h-4 w-4" />
-                    저장하기
-                  </div>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        {/* 성공 사례 탭 */}
-        <TabsContent value="success-cases">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>성공 사례</CardTitle>
-                <CardDescription>부동산 페이지에 표시되는 성공 사례를 관리합니다.</CardDescription>
-              </div>
-              <Button onClick={handleAddSuccessCase} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="mr-2 h-4 w-4" />
-                성공 사례 추가
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {successCases.length === 0 ? (
-                <div className="text-center py-8 border rounded-lg border-dashed">
-                  <User className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-500 mb-4">등록된 성공 사례가 없습니다.</p>
-                  <Button onClick={handleAddSuccessCase} className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="mr-2 h-4 w-4" />
-                    성공 사례 추가하기
-                  </Button>
-                </div>
-              ) : (
-                successCases.map((caseItem) => (
-                  <div key={caseItem.id} className="border rounded-lg p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium">{caseItem.title || "제목 미입력"}</div>
-                      {caseItem.id > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => confirmDelete("success-case", caseItem.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`case-title-${caseItem.id}`}>제목</Label>
-                        <Input
-                          id={`case-title-${caseItem.id}`}
-                          value={caseItem.title}
-                          onChange={(e) => handleSuccessCaseChange(caseItem.id, "title", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`case-location-${caseItem.id}`}>위치</Label>
-                        <Input
-                          id={`case-location-${caseItem.id}`}
-                          value={caseItem.location}
-                          onChange={(e) => handleSuccessCaseChange(caseItem.id, "location", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`case-before-${caseItem.id}`}>이전 상태</Label>
-                        <Input
-                          id={`case-before-${caseItem.id}`}
-                          value={caseItem.before_status}
-                          onChange={(e) => handleSuccessCaseChange(caseItem.id, "before_status", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`case-after-${caseItem.id}`}>이후 상태</Label>
-                        <Input
-                          id={`case-after-${caseItem.id}`}
-                          value={caseItem.after_status}
-                          onChange={(e) => handleSuccessCaseChange(caseItem.id, "after_status", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`case-period-${caseItem.id}`}>기간</Label>
-                        <Input
-                          id={`case-period-${caseItem.id}`}
-                          value={caseItem.period}
-                          onChange={(e) => handleSuccessCaseChange(caseItem.id, "period", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`case-details-${caseItem.id}`}>상세 설명</Label>
-                      <Textarea
-                        id={`case-details-${caseItem.id}`}
-                        value={caseItem.details}
-                        onChange={(e) => handleSuccessCaseChange(caseItem.id, "details", e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor={`case-image-${caseItem.id}`}>이미지 URL</Label>
-                      <Input
-                        id={`case-image-${caseItem.id}`}
-                        value={caseItem.image_url || ""}
-                        onChange={(e) => handleSuccessCaseChange(caseItem.id, "image_url", e.target.value)}
-                        placeholder="이미지 URL을 입력하세요"
-                      />
-                    </div>
-                  </div>
-                ))
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleSaveSuccessCases} disabled={isSaving}>
-                {isSaving ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    저장 중...
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <Save className="mr-2 h-4 w-4" />
-                    저장하기
-                  </div>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* 삭제 확인 다이얼로그 */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>삭제 확인</DialogTitle>
-            <DialogDescription>
-              {itemToDelete?.type === "executive"
-                ? "이 임원 정보를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-                : "이 성공 사례를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              취소
+      {/* 성공 사례 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>성공 사례</CardTitle>
+              <CardDescription>회사의 성공 사례를 관리합니다</CardDescription>
+            </div>
+            <Button onClick={addSuccessCase} variant="outline" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              사례 추가
             </Button>
-            <Button variant="destructive" onClick={handleDeleteItem}>
-              삭제
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {successCases.map((successCase, index) => (
+            <div key={successCase.id} className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">성공 사례 #{index + 1}</h4>
+                <Button
+                  onClick={() => removeSuccessCase(successCase.id)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>제목</Label>
+                  <Input
+                    value={successCase.title}
+                    onChange={(e) => {
+                      const updated = successCases.map((caseItem) =>
+                        caseItem.id === successCase.id ? { ...caseItem, title: e.target.value } : caseItem,
+                      )
+                      setSuccessCases(updated)
+                    }}
+                    placeholder="강남 오피스 빌딩"
+                  />
+                </div>
+                <div>
+                  <Label>위치</Label>
+                  <Input
+                    value={successCase.location}
+                    onChange={(e) => {
+                      const updated = successCases.map((caseItem) =>
+                        caseItem.id === successCase.id ? { ...caseItem, location: e.target.value } : caseItem,
+                      )
+                      setSuccessCases(updated)
+                    }}
+                    placeholder="서울 강남구"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>개선 전</Label>
+                  <Input
+                    value={successCase.before_status}
+                    onChange={(e) => {
+                      const updated = successCases.map((caseItem) =>
+                        caseItem.id === successCase.id ? { ...caseItem, before_status: e.target.value } : caseItem,
+                      )
+                      setSuccessCases(updated)
+                    }}
+                    placeholder="공실률 35%"
+                  />
+                </div>
+                <div>
+                  <Label>개선 후</Label>
+                  <Input
+                    value={successCase.after_status}
+                    onChange={(e) => {
+                      const updated = successCases.map((caseItem) =>
+                        caseItem.id === successCase.id ? { ...caseItem, after_status: e.target.value } : caseItem,
+                      )
+                      setSuccessCases(updated)
+                    }}
+                    placeholder="공실률 5%"
+                  />
+                </div>
+                <div>
+                  <Label>기간</Label>
+                  <Input
+                    value={successCase.period}
+                    onChange={(e) => {
+                      const updated = successCases.map((caseItem) =>
+                        caseItem.id === successCase.id ? { ...caseItem, period: e.target.value } : caseItem,
+                      )
+                      setSuccessCases(updated)
+                    }}
+                    placeholder="4개월"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>상세 설명</Label>
+                <Textarea
+                  value={successCase.details}
+                  onChange={(e) => {
+                    const updated = successCases.map((caseItem) =>
+                      caseItem.id === successCase.id ? { ...caseItem, details: e.target.value } : caseItem,
+                    )
+                    setSuccessCases(updated)
+                  }}
+                  placeholder="성공 사례에 대한 상세한 설명을 입력하세요"
+                  rows={3}
+                />
+              </div>
+            </div>
+          ))}
+          {successCases.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>등록된 성공 사례가 없습니다. 성공 사례를 추가해보세요.</p>
+            </div>
+          )}
+          <Button onClick={saveSuccessCases} disabled={isSaving} className="flex items-center gap-2">
+            <Save className="h-4 w-4" />
+            {isSaving ? "저장 중..." : "성공 사례 저장"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Toaster />
     </div>
   )
 }
