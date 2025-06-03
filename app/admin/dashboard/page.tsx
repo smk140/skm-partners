@@ -4,121 +4,165 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Users,
-  Building,
-  MessageSquare,
-  Shield,
-  TrendingUp,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Activity,
-} from "lucide-react"
+import { Users, Building, MessageSquare, Shield, Activity, Clock, LogOut } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface DashboardStats {
   totalInquiries: number
-  totalRealEstate: number
-  totalVacancies: number
-  blockedIPs: number
-  recentActivity: Array<{
-    id: string
-    type: string
-    message: string
-    timestamp: string
-    status: "success" | "warning" | "error"
-  }>
+  totalProperties: number
+  recentLogins: number
+  systemStatus: string
+  pendingInquiries: number
+  activeProperties: number
+}
+
+interface RecentActivity {
+  id: number
+  type: string
+  message: string
+  timestamp: string
+  status: "success" | "warning" | "info"
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalInquiries: 0,
-    totalRealEstate: 0,
-    totalVacancies: 0,
-    blockedIPs: 0,
-    recentActivity: [],
+    totalProperties: 0,
+    recentLogins: 0,
+    systemStatus: "로딩중",
+    pendingInquiries: 0,
+    activeProperties: 0,
   })
-  const [loading, setLoading] = useState(true)
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // 대시보드 데이터 로드
-    const loadDashboardData = async () => {
-      try {
-        // 실제 API 호출로 대체 가능
-        setStats({
-          totalInquiries: 45,
-          totalRealEstate: 12,
-          totalVacancies: 8,
-          blockedIPs: 3,
-          recentActivity: [
-            {
-              id: "1",
-              type: "inquiry",
-              message: "새로운 상담 신청이 접수되었습니다",
-              timestamp: new Date().toISOString(),
-              status: "success",
-            },
-            {
-              id: "2",
-              type: "security",
-              message: "IP 주소가 자동 차단되었습니다",
-              timestamp: new Date(Date.now() - 300000).toISOString(),
-              status: "warning",
-            },
-            {
-              id: "3",
-              type: "login",
-              message: "관리자 로그인이 성공했습니다",
-              timestamp: new Date(Date.now() - 600000).toISOString(),
-              status: "success",
-            },
-          ],
-        })
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadDashboardData()
+    fetchDashboardData()
   }, [])
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <CheckCircle className="w-4 h-4 text-green-500" />
-      case "warning":
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />
-      case "error":
-        return <AlertTriangle className="w-4 h-4 text-red-500" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-500" />
+  const fetchDashboardData = async () => {
+    setIsLoading(true)
+    try {
+      // 실제 통계 데이터 가져오기
+      const [statsResponse, activitiesResponse] = await Promise.all([
+        fetch("/api/admin/dashboard-stats"),
+        fetch("/api/admin/recent-activities"),
+      ])
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json()
+        setStats(statsData)
+      }
+
+      if (activitiesResponse.ok) {
+        const activitiesData = await activitiesResponse.json()
+        setRecentActivities(activitiesData.activities || [])
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error)
+      // 기본값 설정
+      setStats({
+        totalInquiries: 0,
+        totalProperties: 0,
+        recentLogins: 0,
+        systemStatus: "오류",
+        pendingInquiries: 0,
+        activeProperties: 0,
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+  const handleLogout = () => {
+    localStorage.removeItem("adminAuth")
+    localStorage.removeItem("adminLoginTime")
+    sessionStorage.removeItem("adminSession")
+    document.cookie = "admin-privacy-consent=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    document.cookie = "admin-session-id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    router.push("/management-portal-secure-access-2025")
+  }
+
+  const quickActions = [
+    {
+      title: "문의 관리",
+      description: "고객 문의를 확인하고 관리합니다",
+      icon: MessageSquare,
+      href: "/admin/inquiries",
+      color: "bg-blue-500",
+      count: stats.pendingInquiries,
+    },
+    {
+      title: "부동산 관리",
+      description: "부동산 매물을 관리합니다",
+      icon: Building,
+      href: "/admin/real-estate",
+      color: "bg-green-500",
+      count: stats.activeProperties,
+    },
+    {
+      title: "회사 정보",
+      description: "회사 정보를 수정합니다",
+      icon: Users,
+      href: "/admin/company",
+      color: "bg-purple-500",
+      count: null,
+    },
+    {
+      title: "시스템 로그",
+      description: "시스템 접근 로그를 확인합니다",
+      icon: Shield,
+      href: "/admin/logs",
+      color: "bg-red-500",
+      count: stats.recentLogins,
+    },
+  ]
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "정상":
+        return "text-green-600 border-green-600"
+      case "경고":
+        return "text-yellow-600 border-yellow-600"
+      case "오류":
+        return "text-red-600 border-red-600"
+      default:
+        return "text-gray-600 border-gray-600"
+    }
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "inquiry":
+        return "🔵"
+      case "property":
+        return "🟢"
+      case "login":
+        return "🟡"
+      case "system":
+        return "🔴"
+      default:
+        return "⚪"
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-          <p className="text-gray-600 mt-1">SKM파트너스 관리 시스템에 오신 것을 환영합니다</p>
+          <p className="text-gray-600 mt-2">SKM파트너스 관리 시스템에 오신 것을 환영합니다</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            <Activity className="w-3 h-3 mr-1" />
-            시스템 정상
+        <div className="flex items-center gap-4">
+          <Badge variant="outline" className={getStatusColor(stats.systemStatus)}>
+            <Activity className="w-4 h-4 mr-1" />
+            시스템 {stats.systemStatus}
           </Badge>
+          <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            로그아웃
+          </Button>
         </div>
       </div>
 
@@ -132,121 +176,129 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalInquiries}</div>
             <p className="text-xs text-muted-foreground">
-              <TrendingUp className="inline w-3 h-3 mr-1" />
-              전월 대비 +12%
+              <span className="text-orange-600">대기중: {stats.pendingInquiries}</span>
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">부동산 매물</CardTitle>
+            <CardTitle className="text-sm font-medium">등록 매물</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRealEstate}</div>
-            <p className="text-xs text-muted-foreground">활성 매물 수</p>
+            <div className="text-2xl font-bold">{stats.totalProperties}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-600">활성: {stats.activeProperties}</span>
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">채용 공고</CardTitle>
+            <CardTitle className="text-sm font-medium">최근 로그인</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalVacancies}</div>
-            <p className="text-xs text-muted-foreground">진행 중인 채용</p>
+            <div className="text-2xl font-bold">{stats.recentLogins}</div>
+            <p className="text-xs text-muted-foreground">
+              <Clock className="inline w-3 h-3 mr-1" />
+              지난 24시간
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">차단된 IP</CardTitle>
+            <CardTitle className="text-sm font-medium">시스템 상태</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.blockedIPs}</div>
-            <p className="text-xs text-muted-foreground">보안 차단 목록</p>
+            <div className={`text-2xl font-bold ${stats.systemStatus === "정상" ? "text-green-600" : "text-red-600"}`}>
+              {stats.systemStatus}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {stats.systemStatus === "정상" ? "모든 서비스 정상 운영" : "시스템 점검 필요"}
+            </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* 빠른 작업 */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">빠른 작업</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center mb-2`}>
+                    <action.icon className="w-5 h-5 text-white" />
+                  </div>
+                  {action.count !== null && (
+                    <Badge variant="secondary" className="text-xs">
+                      {action.count}
+                    </Badge>
+                  )}
+                </div>
+                <CardTitle className="text-lg">{action.title}</CardTitle>
+                <CardDescription className="text-sm">{action.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full" onClick={() => router.push(action.href)}>
+                  바로가기
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* 최근 활동 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
             <CardTitle>최근 활동</CardTitle>
-            <CardDescription>시스템에서 발생한 최근 이벤트들</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-3">
-                  {getStatusIcon(activity.status)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{activity.message}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(activity.timestamp).toLocaleString("ko-KR", {
-                        timeZone: "Asia/Seoul",
-                      })}
-                    </p>
+            <CardDescription>시스템의 최근 활동 내역입니다</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchDashboardData}>
+            새로고침
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-sm text-gray-500 mt-2">데이터를 불러오는 중...</p>
+            </div>
+          ) : recentActivities.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">최근 활동이 없습니다.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-lg">{getActivityIcon(activity.type)}</div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.message}</p>
+                    <p className="text-xs text-gray-500">{activity.timestamp}</p>
                   </div>
+                  <Badge
+                    variant={
+                      activity.status === "success"
+                        ? "default"
+                        : activity.status === "warning"
+                          ? "secondary"
+                          : "outline"
+                    }
+                  >
+                    {activity.status === "success" ? "성공" : activity.status === "warning" ? "경고" : "정보"}
+                  </Badge>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>빠른 작업</CardTitle>
-            <CardDescription>자주 사용하는 관리 기능들</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" className="h-20 flex flex-col">
-                <MessageSquare className="w-6 h-6 mb-2" />
-                <span className="text-sm">문의 관리</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
-                <Building className="w-6 h-6 mb-2" />
-                <span className="text-sm">부동산 관리</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
-                <Users className="w-6 h-6 mb-2" />
-                <span className="text-sm">채용 관리</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex flex-col">
-                <Shield className="w-6 h-6 mb-2" />
-                <span className="text-sm">보안 관리</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 시스템 정보 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>시스템 정보</CardTitle>
-          <CardDescription>현재 시스템 상태 및 정보</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-gray-600">마지막 업데이트: {new Date().toLocaleDateString("ko-KR")}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-gray-600">서버 상태: 정상</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Shield className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-gray-600">보안 시스템: 활성</span>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

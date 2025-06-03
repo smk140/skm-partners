@@ -21,19 +21,34 @@ export default function AdminLoginPage() {
     password: "",
   })
 
-  // 이미 로그인되어 있는지 확인
+  // 개인정보 동의 확인
   useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = localStorage.getItem("adminAuth")
-      const adminSession = sessionStorage.getItem("adminSession")
+    const consentCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("admin-privacy-consent="))
+      ?.split("=")[1]
 
-      if (adminAuth === "true" && adminSession === "active") {
-        console.log("Already logged in, redirecting to admin dashboard")
-        router.push("/admin/dashboard")
-      }
+    const sessionCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("admin-session-id="))
+      ?.split("=")[1]
+
+    console.log("Checking consent:", { consentCookie, sessionCookie })
+
+    if (!consentCookie || consentCookie !== "true" || !sessionCookie) {
+      console.log("No consent found, redirecting to consent page")
+      router.push("/management-portal-secure-access-2025")
+      return
     }
 
-    checkAuth()
+    // 이미 로그인되어 있는지 확인
+    const adminAuth = localStorage.getItem("adminAuth")
+    const adminSession = sessionStorage.getItem("adminSession")
+
+    if (adminAuth === "true" && adminSession === "active") {
+      console.log("Already logged in, redirecting to admin dashboard")
+      router.push("/admin/dashboard")
+    }
   }, [router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,32 +63,37 @@ export default function AdminLoginPage() {
     try {
       console.log("Attempting login with:", { username: formData.username })
 
-      // 하드코딩된 자격 증명 확인 (실제로는 API 호출해야 함)
-      if (formData.username === "admin" && formData.password === "skm2024!@#") {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
         // 로그인 성공
         localStorage.setItem("adminAuth", "true")
         localStorage.setItem("adminLoginTime", Date.now().toString())
         sessionStorage.setItem("adminSession", "active")
-
-        // 개인정보 동의 쿠키 설정 (이미 동의한 것으로 간주)
-        document.cookie = "admin-privacy-consent=true; path=/; max-age=86400"
-
-        // 세션 ID 쿠키 설정
-        const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
-        document.cookie = `admin-session-id=${sessionId}; path=/; max-age=86400`
 
         toast({
           title: "로그인 성공",
           description: "관리자 대시보드로 이동합니다.",
         })
 
-        // 관리자 대시보드로 직접 이동
+        // 관리자 대시보드로 이동
         router.push("/admin/dashboard")
       } else {
         // 로그인 실패
         toast({
           title: "로그인 실패",
-          description: "아이디 또는 비밀번호가 올바르지 않습니다.",
+          description: data.message || "로그인에 실패했습니다.",
           variant: "destructive",
         })
       }
