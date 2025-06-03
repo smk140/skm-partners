@@ -1,15 +1,42 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, Building, CableCarIcon as Elevator, FlameIcon as Fire, MapPin, CheckCircle2 } from "lucide-react"
-import { getCompanyData } from "@/lib/file-db"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
-export default async function Home() {
-  // 회사 정보 가져오기
-  const companyData = getCompanyData()
-  const { info: companyInfo } = companyData
+interface CompanyInfo {
+  name: string
+  address: string
+  phone: string
+  email: string
+  description: string
+}
+
+export default function Home() {
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    name: "SKM파트너스",
+    address: "",
+    phone: "",
+    email: "",
+    description: "",
+  })
+
+  useEffect(() => {
+    fetch("/api/company")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.info) {
+          setCompanyInfo(data.info)
+        }
+      })
+      .catch((error) => {
+        console.error("회사 정보 로드 실패:", error)
+      })
+  }, [])
 
   return (
     <main className="flex min-h-screen flex-col">
