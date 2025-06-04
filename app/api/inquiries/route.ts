@@ -1,126 +1,82 @@
 import { NextResponse } from "next/server"
+import { sql } from "@vercel/postgres"
 import { getInquiriesData, saveInquiriesData, generateId } from "@/lib/file-db"
-import { sendDiscordNotification } from "@/lib/discord"
 
-// 문의 목록 조회
+// 문의 조회
 export async function GET() {
   try {
-    const data = getInquiriesData()
-    return NextResponse.json({
-      inquiries: data.inquiries || [],
-      total: data.inquiries?.length || 0,
-    })
+    // 실제 데이터베이스에서 문의 조회
+    const result = await sql`
+      SELECT * FROM inquiries 
+      ORDER BY created_at DESC
+    `
+
+    return NextResponse.json({ inquiries: result.rows })
   } catch (error) {
-    console.error("문의 조회 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
+    console.error("문의 조회 실패:", error)
+
+    // 데이터베이스 연결 실패 시 파일 기반 백업 데이터 사용
+    try {
+      const data = getInquiriesData()
+      return NextResponse.json({ inquiries: data.inquiries || [] })
+    } catch (backupError) {
+      console.error("백업 데이터 조회 실패:", backupError)
+      return NextResponse.json({ error: "문의 조회에 실패했습니다.", inquiries: [] }, { status: 500 })
+    }
   }
 }
 
-// 새 문의 추가
+// 문의 등록
 export async function POST(request: Request) {
   try {
-    const { name, email, phone, service, message } = await request.json()
+    const body = await request.json()
+    const { name, email, phone, message, type } = body
 
-    // 입력 검증
-    if (!name || !email || !service || !message) {
+    // 필수 필드 검증
+    if (!name || !phone || !message) {
       return NextResponse.json({ error: "필수 정보가 누락되었습니다." }, { status: 400 })
     }
 
-    const data = getInquiriesData()
-    const newInquiry = {
-      id: generateId(data.inquiries || []),
-      name,
-      email,
-      phone: phone || "",
-      service,
-      message,
-      status: "pending",
-      created_at: new Date().toISOString(),
-    }
-
-    data.inquiries = data.inquiries || []
-    data.inquiries.push(newInquiry)
-
-    const success = saveInquiriesData(data)
-
-    if (!success) {
-      return NextResponse.json({ error: "문의 저장에 실패했습니다." }, { status: 500 })
-    }
-
-    // Discord 알림 발송
+    // 데이터베이스에 저장
     try {
-      await sendDiscordNotification({
-        title: "📝 새로운 문의 접수",
-        description: `새로운 고객 문의가 접수되었습니다.`,
-        color: 0x0099ff,
-        fields: [
-          {
-            name: "고객명",
-            value: name,
-            inline: true,
-          },
-          {
-            name: "서비스",
-            value: service,
-            inline: true,
-          },
-          {
-            name: "이메일",
-            value: email,
-            inline: true,
-          },
-          {
-            name: "문의 내용",
-            value: message.length > 100 ? message.substring(0, 100) + "..." : message,
-            inline: false,
-          },
-        ],
+      const result = await sql`
+        INSERT INTO inquiries (name, email, phone, message, type, status)
+        VALUES (${name}, ${email || null}, ${phone}, ${message}, ${type || "일반"}, 'new')
+        RETURNING *
+      `
+
+      return NextResponse.json({
+        success: true,
+        message: "문의가 성공적으로 등록되었습니다.",
+        inquiry: result.rows[0],
       })
-    } catch (discordError) {
-      console.error("Discord 알림 발송 실패:", discordError)
-    }
+    } catch (dbError) {
+      console.error("데이터베이스 저장 실패:", dbError)
 
-    return NextResponse.json({
-      success: true,
-      inquiry: newInquiry,
-    })
+      // 데이터베이스 저장 실패 시 파일에 백업
+      const data = getInquiriesData()
+      const newInquiry = {
+        id: generateId(data.inquiries),
+        name,
+        email: email || null,
+        phone,
+        message,
+        type: type || "일반",
+        status: "new",
+        created_at: new Date().toISOString(),
+      }
+
+      data.inquiries.push(newInquiry)
+      saveInquiriesData(data)
+
+      return NextResponse.json({
+        success: true,
+        message: "문의가 성공적으로 등록되었습니다. (백업 저장)",
+        inquiry: newInquiry,
+      })
+    }
   } catch (error) {
-    console.error("문의 추가 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
-  }
-}
-
-// 문의 상태 업데이트
-export async function PUT(request: Request) {
-  try {
-    const { id, status } = await request.json()
-
-    if (!id || !status) {
-      return NextResponse.json({ error: "ID와 상태가 필요합니다." }, { status: 400 })
-    }
-
-    const data = getInquiriesData()
-    const inquiryIndex = data.inquiries?.findIndex((inquiry: any) => inquiry.id === id)
-
-    if (inquiryIndex === -1 || inquiryIndex === undefined) {
-      return NextResponse.json({ error: "문의를 찾을 수 없습니다." }, { status: 404 })
-    }
-
-    data.inquiries[inquiryIndex].status = status
-    data.inquiries[inquiryIndex].updated_at = new Date().toISOString()
-
-    const success = saveInquiriesData(data)
-
-    if (!success) {
-      return NextResponse.json({ error: "상태 업데이트에 실패했습니다." }, { status: 500 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      inquiry: data.inquiries[inquiryIndex],
-    })
-  } catch (error) {
-    console.error("문의 상태 업데이트 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
+    console.error("문의 등록 실패:", error)
+    return NextResponse.json({ error: "문의 등록에 실패했습니다." }, { status: 500 })
   }
 }

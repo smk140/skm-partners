@@ -14,10 +14,10 @@ interface CompanyInfo {
   phone: string
   email: string
   description: string
-  site_images: {
-    hero_about: string
-    company_building: string
-    team_photo: string
+  site_images?: {
+    hero_about?: string
+    company_building?: string
+    team_photo?: string
   }
 }
 
@@ -36,15 +36,13 @@ export default function AboutPage() {
     phone: "",
     email: "",
     description: "",
-    site_images: {
-      hero_about: "",
-      company_building: "",
-      team_photo: "",
-    },
+    site_images: {},
   })
   const [executives, setExecutives] = useState<Executive[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    setIsLoading(true)
     fetch("/api/company")
       .then((res) => res.json())
       .then((data) => {
@@ -58,7 +56,16 @@ export default function AboutPage() {
       .catch((error) => {
         console.error("회사 정보 로드 실패:", error)
       })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }, [])
+
+  // 이미지 URL이 유효한지 확인하는 함수
+  const getImageUrl = (url?: string, fallback = "/placeholder.svg") => {
+    if (!url) return fallback
+    return url.startsWith("/uploads/") || url.startsWith("http") ? url : fallback
+  }
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -67,8 +74,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <Image
           src={
-            companyInfo.site_images.hero_about ||
-            "/placeholder.svg?height=400&width=1200&text=About Us" ||
+            getImageUrl(companyInfo.site_images?.hero_about, "/placeholder.svg?height=400&width=1200&text=About Us") ||
             "/placeholder.svg"
           }
           alt="회사 소개"
@@ -129,9 +135,10 @@ export default function AboutPage() {
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <Image
                 src={
-                  companyInfo.site_images.company_building ||
-                  "/placeholder.svg?height=400&width=600&text=Company Image" ||
-                  "/placeholder.svg"
+                  getImageUrl(
+                    companyInfo.site_images?.company_building,
+                    "/placeholder.svg?height=400&width=600&text=Company Image",
+                  ) || "/placeholder.svg"
                 }
                 alt={companyInfo.name}
                 fill
@@ -175,7 +182,7 @@ export default function AboutPage() {
       )}
 
       {/* Team Photo Section */}
-      {companyInfo.site_images.team_photo && (
+      {companyInfo.site_images?.team_photo && (
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="text-center mb-8">
@@ -186,7 +193,7 @@ export default function AboutPage() {
             </div>
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl max-w-4xl mx-auto">
               <Image
-                src={companyInfo.site_images.team_photo || "/placeholder.svg"}
+                src={getImageUrl(companyInfo.site_images.team_photo) || "/placeholder.svg"}
                 alt="팀 단체 사진"
                 fill
                 className="object-cover"
@@ -207,9 +214,12 @@ export default function AboutPage() {
             size="lg"
             variant="outline"
             className="text-white border-white hover:bg-white hover:text-blue-600 group shadow-lg"
+            asChild
           >
-            지금 문의하기
-            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <Link href="/contact">
+              지금 문의하기
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
         </div>
       </section>

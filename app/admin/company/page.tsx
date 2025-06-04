@@ -17,7 +17,6 @@ interface CompanyInfo {
   slogan: string
   address: string
   phone: string
-  fax: string
   email: string
   website: string
   description: string
@@ -88,7 +87,6 @@ export default function CompanyManagementPage() {
     slogan: "",
     address: "",
     phone: "",
-    fax: "",
     email: "",
     website: "",
     description: "",
@@ -444,14 +442,13 @@ export default function CompanyManagementPage() {
       </div>
 
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic">기본 정보</TabsTrigger>
           <TabsTrigger value="contact">연락처</TabsTrigger>
           <TabsTrigger value="business">운영 정보</TabsTrigger>
           <TabsTrigger value="social">소셜 미디어</TabsTrigger>
           <TabsTrigger value="images">사이트 이미지</TabsTrigger>
           <TabsTrigger value="executives">임원진</TabsTrigger>
-          <TabsTrigger value="success">성공 사례</TabsTrigger>
         </TabsList>
 
         {/* 기본 정보 탭 */}
@@ -533,6 +530,7 @@ export default function CompanyManagementPage() {
                   value={companyInfo.logo_url || ""}
                   onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
                   label="회사 로고 이미지"
+                  description="웹사이트 상단에 표시되는 회사 로고입니다. 투명 배경의 PNG 파일을 권장합니다."
                 />
               </div>
 
@@ -602,7 +600,7 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 연락처 정보 탭 */}
+        {/* 연락처 정보 탭 (팩스 번호 제거) */}
         <TabsContent value="contact">
           <Card>
             <CardHeader>
@@ -624,18 +622,6 @@ export default function CompanyManagementPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="company-fax">팩스번호</Label>
-                  <Input
-                    id="company-fax"
-                    value={companyInfo.fax}
-                    onChange={(e) => setCompanyInfo({ ...companyInfo, fax: e.target.value })}
-                    placeholder="02-123-4568"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
                   <Label htmlFor="company-email">이메일</Label>
                   <Input
                     id="company-email"
@@ -645,15 +631,16 @@ export default function CompanyManagementPage() {
                     placeholder="bykim@skm.kr"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="company-website">웹사이트</Label>
-                  <Input
-                    id="company-website"
-                    value={companyInfo.website}
-                    onChange={(e) => setCompanyInfo({ ...companyInfo, website: e.target.value })}
-                    placeholder="https://skm.kr"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="company-website">웹사이트</Label>
+                <Input
+                  id="company-website"
+                  value={companyInfo.website}
+                  onChange={(e) => setCompanyInfo({ ...companyInfo, website: e.target.value })}
+                  placeholder="https://skm.kr"
+                />
               </div>
 
               <div>
@@ -849,7 +836,7 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 사이트 이미지 관리 탭 */}
+        {/* 사이트 이미지 관리 탭 - 이미지 설명 개선 */}
         <TabsContent value="images">
           <Card>
             <CardHeader>
@@ -862,7 +849,10 @@ export default function CompanyManagementPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label>메인 페이지 히어로 이미지</Label>
+                  <Label className="text-base font-medium">메인 페이지 히어로 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    메인 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x600px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.hero_main || ""}
                     onChange={(url) =>
@@ -872,11 +862,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="메인 페이지 배경 이미지"
+                    description="메인 페이지 상단 배경으로 사용됩니다"
                   />
                 </div>
 
                 <div>
-                  <Label>회사 소개 페이지 히어로 이미지</Label>
+                  <Label className="text-base font-medium">회사 소개 페이지 히어로 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    회사 소개 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.hero_about || ""}
                     onChange={(url) =>
@@ -886,11 +880,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="회사 소개 페이지 배경 이미지"
+                    description="회사 소개 페이지 상단 배경으로 사용됩니다"
                   />
                 </div>
 
                 <div>
-                  <Label>서비스 페이지 히어로 이미지</Label>
+                  <Label className="text-base font-medium">서비스 페이지 히어로 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    서비스 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.hero_services || ""}
                     onChange={(url) =>
@@ -900,11 +898,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="서비스 페이지 배경 이미지"
+                    description="서비스 페이지 상단 배경으로 사용됩니다"
                   />
                 </div>
 
                 <div>
-                  <Label>문의하기 페이지 히어로 이미지</Label>
+                  <Label className="text-base font-medium">문의하기 페이지 히어로 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    문의하기 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.hero_contact || ""}
                     onChange={(url) =>
@@ -914,11 +916,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="문의하기 페이지 배경 이미지"
+                    description="문의하기 페이지 상단 배경으로 사용됩니다"
                   />
                 </div>
 
                 <div>
-                  <Label>회사 건물 이미지</Label>
+                  <Label className="text-base font-medium">회사 건물 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    회사 소개 페이지에 표시되는 회사 건물 이미지입니다. 권장 크기: 800x600px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.company_building || ""}
                     onChange={(url) =>
@@ -928,11 +934,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="회사 건물 외관 이미지"
+                    description="회사 소개 페이지에 표시되는 건물 이미지입니다"
                   />
                 </div>
 
                 <div>
-                  <Label>팀 단체 사진</Label>
+                  <Label className="text-base font-medium">팀 단체 사진</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    회사 소개 페이지에 표시되는 팀 단체 사진입니다. 권장 크기: 1200x800px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.team_photo || ""}
                     onChange={(url) =>
@@ -942,11 +952,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="팀 단체 사진"
+                    description="회사 소개 페이지에 표시되는 팀 단체 사진입니다"
                   />
                 </div>
 
                 <div>
-                  <Label>사무실 내부 이미지</Label>
+                  <Label className="text-base font-medium">사무실 내부 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    회사 소개 또는 서비스 페이지에 표시되는 사무실 내부 이미지입니다. 권장 크기: 800x600px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.office_interior || ""}
                     onChange={(url) =>
@@ -956,11 +970,15 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="사무실 내부 이미지"
+                    description="회사 소개 또는 서비스 페이지에 표시되는 사무실 내부 이미지입니다"
                   />
                 </div>
 
                 <div>
-                  <Label>서비스 소개 이미지</Label>
+                  <Label className="text-base font-medium">서비스 소개 이미지</Label>
+                  <p className="text-sm text-gray-500 mb-2">
+                    서비스 페이지에 표시되는 서비스 소개 이미지입니다. 권장 크기: 800x600px
+                  </p>
                   <ImageUpload
                     value={companyInfo.site_images.service_showcase || ""}
                     onChange={(url) =>
@@ -970,6 +988,7 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="서비스 소개 이미지"
+                    description="서비스 페이지에 표시되는 서비스 소개 이미지입니다"
                   />
                 </div>
               </div>
@@ -1063,146 +1082,6 @@ export default function CompanyManagementPage() {
               <Button onClick={saveExecutives} disabled={isSaving} className="flex items-center gap-2">
                 <Save className="h-4 w-4" />
                 {isSaving ? "저장 중..." : "임원 정보 저장"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 성공 사례 탭 */}
-        <TabsContent value="success">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>성공 사례</CardTitle>
-                  <CardDescription>회사의 성공 사례를 관리합니다</CardDescription>
-                </div>
-                <Button onClick={addSuccessCase} variant="outline" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  사례 추가
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {successCases.map((successCase, index) => (
-                <div key={successCase.id} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">성공 사례 #{index + 1}</h4>
-                    <Button
-                      onClick={() => removeSuccessCase(successCase.id)}
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>제목</Label>
-                      <Input
-                        value={successCase.title}
-                        onChange={(e) => {
-                          const updated = successCases.map((caseItem) =>
-                            caseItem.id === successCase.id ? { ...caseItem, title: e.target.value } : caseItem,
-                          )
-                          setSuccessCases(updated)
-                        }}
-                        placeholder="강남 오피스 빌딩"
-                      />
-                    </div>
-                    <div>
-                      <Label>위치</Label>
-                      <Input
-                        value={successCase.location}
-                        onChange={(e) => {
-                          const updated = successCases.map((caseItem) =>
-                            caseItem.id === successCase.id ? { ...caseItem, location: e.target.value } : caseItem,
-                          )
-                          setSuccessCases(updated)
-                        }}
-                        placeholder="서울 강남구"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>개선 전</Label>
-                      <Input
-                        value={successCase.before_status}
-                        onChange={(e) => {
-                          const updated = successCases.map((caseItem) =>
-                            caseItem.id === successCase.id ? { ...caseItem, before_status: e.target.value } : caseItem,
-                          )
-                          setSuccessCases(updated)
-                        }}
-                        placeholder="공실률 35%"
-                      />
-                    </div>
-                    <div>
-                      <Label>개선 후</Label>
-                      <Input
-                        value={successCase.after_status}
-                        onChange={(e) => {
-                          const updated = successCases.map((caseItem) =>
-                            caseItem.id === successCase.id ? { ...caseItem, after_status: e.target.value } : caseItem,
-                          )
-                          setSuccessCases(updated)
-                        }}
-                        placeholder="공실률 5%"
-                      />
-                    </div>
-                    <div>
-                      <Label>기간</Label>
-                      <Input
-                        value={successCase.period}
-                        onChange={(e) => {
-                          const updated = successCases.map((caseItem) =>
-                            caseItem.id === successCase.id ? { ...caseItem, period: e.target.value } : caseItem,
-                          )
-                          setSuccessCases(updated)
-                        }}
-                        placeholder="4개월"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>상세 설명</Label>
-                    <Textarea
-                      value={successCase.details}
-                      onChange={(e) => {
-                        const updated = successCases.map((caseItem) =>
-                          caseItem.id === successCase.id ? { ...caseItem, details: e.target.value } : caseItem,
-                        )
-                        setSuccessCases(updated)
-                      }}
-                      placeholder="성공 사례에 대한 상세한 설명을 입력하세요"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label>사례 이미지</Label>
-                    <ImageUpload
-                      value={successCase.image_url || ""}
-                      onChange={(url) => {
-                        const updated = successCases.map((caseItem) =>
-                          caseItem.id === successCase.id ? { ...caseItem, image_url: url } : caseItem,
-                        )
-                        setSuccessCases(updated)
-                      }}
-                      label="성공 사례 이미지"
-                    />
-                  </div>
-                </div>
-              ))}
-              {successCases.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>등록된 성공 사례가 없습니다. 성공 사례를 추가해보세요.</p>
-                </div>
-              )}
-              <Button onClick={saveSuccessCases} disabled={isSaving} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                {isSaving ? "저장 중..." : "성공 사례 저장"}
               </Button>
             </CardContent>
           </Card>

@@ -2,30 +2,26 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/components/ui/use-toast"
-import { Upload, X, ImageIcon } from "lucide-react"
+import { Loader2, Upload, X } from "lucide-react"
+import Image from "next/image"
 
 interface ImageUploadProps {
-  value?: string
+  value: string
   onChange: (url: string) => void
-  label?: string
-  className?: string
+  label: string
+  description?: string
 }
 
-export function ImageUpload({ value, onChange, label = "이미지", className }: ImageUploadProps) {
-  const { toast } = useToast()
+export function ImageUpload({ value, onChange, label, description }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState(value || "")
+  const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
+  const handleUpload = async (file: File) => {
     setIsUploading(true)
+    setError(null)
 
     try {
       const formData = new FormData()
@@ -36,82 +32,107 @@ export function ImageUpload({ value, onChange, label = "이미지", className }:
         body: formData,
       })
 
-      const result = await response.json()
-
       if (!response.ok) {
-        throw new Error(result.error || "업로드에 실패했습니다.")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "업로드 실패")
       }
 
-      setPreviewUrl(result.url)
-      onChange(result.url)
-
-      toast({
-        title: "업로드 완료",
-        description: "이미지가 성공적으로 업로드되었습니다.",
-      })
-    } catch (error) {
-      console.error("업로드 실패:", error)
-      toast({
-        title: "업로드 실패",
-        description: error instanceof Error ? error.message : "이미지 업로드에 실패했습니다.",
-        variant: "destructive",
-      })
+      const data = await response.json()
+      onChange(data.url)
+    } catch (err) {
+      console.error("이미지 업로드 오류:", err)
+      setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
     } finally {
       setIsUploading(false)
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleUpload(file)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      handleUpload(file)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+  }
+
   const handleRemove = () => {
-    setPreviewUrl("")
     onChange("")
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <Label>{label}</Label>
-
-      {previewUrl ? (
-        <div className="relative">
-          <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-gray-50">
-            <img src={previewUrl || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+    <div className="space-y-2">
+      <div
+        className={`border-2 border-dashed rounded-lg p-4 text-center ${
+          isUploading ? "bg-gray-50 border-gray-300" : "hover:bg-gray-50 border-gray-300"
+        }`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
+        {isUploading ? (
+          <div className="flex flex-col items-center justify-center py-4">
+            <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-2" />
+            <p className="text-sm text-gray-500">업로드 중...</p>
+          </div>
+        ) : value ? (
+          <div className="relative">
+            <div className="relative h-48 w-full">
+              <Image
+                src={value || "/placeholder.svg"}
+                alt={label}
+                fill
+                className="object-contain rounded-md"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
             <Button
               type="button"
               variant="destructive"
-              size="sm"
-              className="absolute top-1 right-1 h-6 w-6 p-0"
+              size="icon"
+              className="absolute top-2 right-2"
               onClick={handleRemove}
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">이미지를 변경하려면 새 파일을 선택하세요</p>
-        </div>
-      ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500 mb-2">이미지를 업로드하세요</p>
-          <p className="text-xs text-gray-400 mb-4">JPG, PNG, WebP (최대 5MB)</p>
-        </div>
-      )}
-
-      <div className="flex items-center gap-2">
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={handleFileUpload}
-          disabled={isUploading}
-          className="hidden"
-          id={`file-upload-${label}`}
-        />
-        <Label htmlFor={`file-upload-${label}`} className="cursor-pointer">
-          <Button type="button" variant="outline" disabled={isUploading} className="flex items-center gap-2" asChild>
-            <span>
-              <Upload className="h-4 w-4" />
-              {isUploading ? "업로드 중..." : "파일 선택"}
-            </span>
-          </Button>
-        </Label>
+        ) : (
+          <div className="py-4">
+            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm font-medium mb-1">{label}</p>
+            {description && <p className="text-xs text-gray-500 mb-2">{description}</p>}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-2"
+            >
+              파일 선택
+            </Button>
+          </div>
+        )}
       </div>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/jpeg,image/png,image/webp,image/jpg"
+        className="hidden"
+      />
     </div>
   )
 }
