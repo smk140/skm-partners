@@ -14,6 +14,11 @@ interface CompanyInfo {
   phone: string
   email: string
   description: string
+  site_images: {
+    hero_about: string
+    company_building: string
+    team_photo: string
+  }
 }
 
 interface Executive {
@@ -21,7 +26,6 @@ interface Executive {
   name: string
   position: string
   bio: string
-  image_url?: string
   order_index: number
 }
 
@@ -32,6 +36,11 @@ export default function AboutPage() {
     phone: "",
     email: "",
     description: "",
+    site_images: {
+      hero_about: "",
+      company_building: "",
+      team_photo: "",
+    },
   })
   const [executives, setExecutives] = useState<Executive[]>([])
 
@@ -57,7 +66,11 @@ export default function AboutPage() {
       <section className="relative h-[400px] w-full overflow-hidden">
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <Image
-          src="/placeholder.svg?height=400&width=1200&text=About Us"
+          src={
+            companyInfo.site_images.hero_about ||
+            "/placeholder.svg?height=400&width=1200&text=About Us" ||
+            "/placeholder.svg"
+          }
           alt="회사 소개"
           fill
           className="object-cover"
@@ -115,7 +128,11 @@ export default function AboutPage() {
             </div>
             <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl">
               <Image
-                src="/placeholder.svg?height=400&width=600&text=Company Image"
+                src={
+                  companyInfo.site_images.company_building ||
+                  "/placeholder.svg?height=400&width=600&text=Company Image" ||
+                  "/placeholder.svg"
+                }
                 alt={companyInfo.name}
                 fill
                 className="object-cover"
@@ -125,7 +142,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* Team Section (사진 없이 텍스트만) */}
       {executives.length > 0 && (
         <section className="py-16 bg-slate-50">
           <div className="container mx-auto px-4">
@@ -140,29 +157,40 @@ export default function AboutPage() {
                 .map((executive) => (
                   <Card
                     key={executive.id}
-                    className="overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-t-4 border-blue-600"
+                    className="hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-t-4 border-blue-600"
                   >
-                    <div className="relative h-64">
-                      {executive.image_url ? (
-                        <Image
-                          src={executive.image_url || "/placeholder.svg"}
-                          alt={executive.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                          <span className="text-gray-400 text-4xl">{executive.name.charAt(0)}</span>
-                        </div>
-                      )}
-                    </div>
                     <CardContent className="p-6 text-center">
+                      <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl font-bold text-blue-600">{executive.name.charAt(0)}</span>
+                      </div>
                       <h3 className="text-xl font-semibold mb-1">{executive.name}</h3>
                       <p className="text-blue-600 font-medium mb-4">{executive.position}</p>
                       <p className="text-slate-600">{executive.bio}</p>
                     </CardContent>
                   </Card>
                 ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Team Photo Section */}
+      {companyInfo.site_images.team_photo && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">우리 팀</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">
+                {companyInfo.name}의 전문가들이 함께 최고의 서비스를 제공합니다.
+              </p>
+            </div>
+            <div className="relative h-[400px] rounded-lg overflow-hidden shadow-xl max-w-4xl mx-auto">
+              <Image
+                src={companyInfo.site_images.team_photo || "/placeholder.svg"}
+                alt="팀 단체 사진"
+                fill
+                className="object-cover"
+              />
             </div>
           </div>
         </section>

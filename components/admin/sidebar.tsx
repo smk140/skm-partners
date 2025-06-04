@@ -147,3 +147,55 @@ export function AdminSidebar() {
     </div>
   )
 }
+
+// 이전에 추가한 dashboardConfig도 유지
+export const dashboardConfig = {
+  mainNav: [
+    {
+      title: "홈",
+      href: "/admin",
+    },
+    {
+      title: "문서",
+      href: "/docs",
+      disabled: true,
+    },
+  ],
+  sidebarNav: [
+    {
+      title: "대시보드",
+      href: "/admin",
+      icon: Home,
+    },
+    {
+      title: "문의 관리",
+      href: "/admin/inquiries",
+      icon: MessageSquare,
+    },
+    {
+      title: "부동산 관리",
+      href: "/admin/real-estate",
+      icon: Building2,
+    },
+    {
+      title: "회사 정보",
+      href: "/admin/company",
+      icon: Users,
+    },
+    {
+      title: "보안 관리",
+      href: "/admin/security",
+      icon: Shield,
+    },
+    {
+      title: "시스템 로그",
+      href: "/admin/logs",
+      icon: Eye,
+    },
+    {
+      title: "사이트 설정",
+      href: "/admin/settings",
+      icon: Settings,
+    },
+  ],
+}

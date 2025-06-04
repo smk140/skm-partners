@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { Mail, MapPin, Phone, Send } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Mail, MapPin, Phone, Send, Clock, VoicemailIcon as Fax } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,8 +13,43 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
+interface CompanyInfo {
+  name: string
+  address: string
+  phone: string
+  fax: string
+  email: string
+  business_hours: {
+    weekday: string
+    weekend: string
+    holiday: string
+    emergency: string
+  }
+  map_info: {
+    map_embed_url: string
+  }
+}
+
 export default function ContactPage() {
   const { toast } = useToast()
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    name: "SKM파트너스",
+    address: "서울특별시 강남구 테헤란로 123, 4층",
+    phone: "02-123-4567",
+    fax: "02-123-4568",
+    email: "bykim@skm.kr",
+    business_hours: {
+      weekday: "평일 09:00 - 18:00",
+      weekend: "토요일 09:00 - 15:00",
+      holiday: "일요일 및 공휴일 휴무",
+      emergency: "긴급상황 시 24시간 대응",
+    },
+    map_info: {
+      map_embed_url:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.4515690893825!2d127.0282918!3d37.4969958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca15a2f9719ab%3A0x20210a76b2b256f7!2z7YWM7Zqp66-86rWtIOuNlOuvuOq1rCDthYzsm5DroZwyNuq4uCAxMDc!5e0!3m2!1sko!2skr!4v1650000000000!5m2!1sko!2skr",
+    },
+  })
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,6 +58,20 @@ export default function ContactPage() {
     message: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 회사 정보 로드
+  useEffect(() => {
+    fetch("/api/company")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.info) {
+          setCompanyInfo(data.info)
+        }
+      })
+      .catch((error) => {
+        console.error("회사 정보 로드 실패:", error)
+      })
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -34,13 +83,21 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      // 이메일 발송 로직 (실제 구현에서는 이메일 서비스 API 사용)
-      // 예: await fetch('/api/send-email', { method: 'POST', body: JSON.stringify(formData) })
+      const response = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          service: "일반 문의",
+          status: "pending",
+        }),
+      })
 
-      // 서버 응답을 기다리는 것처럼 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      console.log("이메일 문의 데이터:", formData)
+      if (!response.ok) {
+        throw new Error("문의 전송에 실패했습니다.")
+      }
 
       toast({
         title: "문의가 성공적으로 전송되었습니다",
@@ -73,7 +130,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-center">문의하기</h1>
           <p className="text-lg text-white/90 max-w-xl mx-auto text-center">
-            SKM파트너스의 전문 서비스에 대해 궁금한 점이 있으시면 언제든지 문의해주세요. 이메일로 신속하게
+            {companyInfo.name}의 전문 서비스에 대해 궁금한 점이 있으시면 언제든지 문의해주세요. 이메일로 신속하게
             답변드리겠습니다.
           </p>
         </div>
@@ -202,7 +259,7 @@ export default function ContactPage() {
                     <Mail className="h-5 w-5 mr-4 mt-0.5 text-slate-500" />
                     <div>
                       <h3 className="font-semibold mb-1">이메일</h3>
-                      <p className="text-slate-600">info@skmpartners.com</p>
+                      <p className="text-slate-600">{companyInfo.email}</p>
                       <p className="text-sm text-slate-500 mt-1">24시간 접수 가능</p>
                       <p className="text-sm text-blue-600 mt-1">평균 답변 시간: 4시간 이내</p>
                     </div>
@@ -214,9 +271,15 @@ export default function ContactPage() {
                     <Phone className="h-5 w-5 mr-4 mt-0.5 text-slate-500" />
                     <div>
                       <h3 className="font-semibold mb-1">전화</h3>
-                      <p className="text-slate-600">02-123-4567</p>
-                      <p className="text-sm text-slate-500 mt-1">평일 09:00 - 18:00</p>
-                      <p className="text-sm text-slate-500">긴급상황 시 24시간 대응</p>
+                      <p className="text-slate-600">{companyInfo.phone}</p>
+                      {companyInfo.fax && (
+                        <p className="text-slate-600 flex items-center mt-1">
+                          <Fax className="h-4 w-4 mr-1" />
+                          팩스: {companyInfo.fax}
+                        </p>
+                      )}
+                      <p className="text-sm text-slate-500 mt-1">{companyInfo.business_hours.weekday}</p>
+                      <p className="text-sm text-slate-500">{companyInfo.business_hours.emergency}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -226,8 +289,23 @@ export default function ContactPage() {
                     <MapPin className="h-5 w-5 mr-4 mt-0.5 text-slate-500" />
                     <div>
                       <h3 className="font-semibold mb-1">주소</h3>
-                      <p className="text-slate-600">서울특별시 강남구 테헤란로 123, 4층</p>
+                      <p className="text-slate-600">{companyInfo.address}</p>
                       <p className="text-sm text-slate-500 mt-1">방문 상담 가능 (사전 예약 필수)</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 flex items-start">
+                    <Clock className="h-5 w-5 mr-4 mt-0.5 text-slate-500" />
+                    <div>
+                      <h3 className="font-semibold mb-1">운영 시간</h3>
+                      <div className="space-y-1 text-sm text-slate-600">
+                        <p>{companyInfo.business_hours.weekday}</p>
+                        <p>{companyInfo.business_hours.weekend}</p>
+                        <p>{companyInfo.business_hours.holiday}</p>
+                        <p className="text-blue-600 font-medium">{companyInfo.business_hours.emergency}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -242,9 +320,10 @@ export default function ContactPage() {
                   </ul>
                 </div>
 
+                {/* 동적 구글 맵 */}
                 <div className="h-[300px] w-full rounded-lg overflow-hidden border">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.4515690893825!2d127.0282918!3d37.4969958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca15a2f9719ab%3A0x20210a76b2b256f7!2z7YWM7Zqp66-86rWtIOuNlOuvuOq1rCDthYzsm5DroZwyNuq4uCAxMDc!5e0!3m2!1sko!2skr!4v1650000000000!5m2!1sko!2skr"
+                    src={companyInfo.map_info.map_embed_url}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}

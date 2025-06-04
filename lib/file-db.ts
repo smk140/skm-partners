@@ -22,70 +22,65 @@ function ensureDataDirectory() {
   }
 }
 
-// 기본 데이터 구조
+// 확장된 기본 데이터 구조
 const DEFAULT_COMPANY_DATA = {
   info: {
     name: "SKM파트너스",
+    slogan: "공실률 ZERO를 위한 스마트 건물 관리 솔루션",
     address: "서울특별시 강남구 테헤란로 123, 4층",
     phone: "02-123-4567",
+    fax: "02-123-4568",
     email: "bykim@skm.kr",
+    website: "https://skm.kr",
     description:
       "SKM파트너스는 건물 관리와 부동산 임대 대행 전문 기업으로, 고객의 자산 가치를 높이는 최고의 파트너입니다.",
+    established_year: "2020",
+    employee_count: "15명",
+    service_area: "서울, 경기, 인천",
+    logo_url: "",
+
+    // 운영 시간
+    business_hours: {
+      weekday: "평일 09:00 - 18:00",
+      weekend: "토요일 09:00 - 15:00",
+      holiday: "일요일 및 공휴일 휴무",
+      emergency: "긴급상황 시 24시간 대응",
+    },
+
+    // 소셜 미디어
+    social_media: {
+      facebook: "",
+      instagram: "",
+      linkedin: "",
+      youtube: "",
+      blog: "",
+    },
+
+    // 구글 맵 정보
+    map_info: {
+      latitude: "37.4969958",
+      longitude: "127.0282918",
+      zoom_level: "16",
+      map_embed_url:
+        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.4515690893825!2d127.0282918!3d37.4969958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca15a2f9719ab%3A0x20210a76b2b256f7!2z7YWM7Zqp66-86rWtIOuNlOuvuOq1rCDthYzsm5DroZwyNuq4uCAxMDc!5e0!3m2!1sko!2skr!4v1650000000000!5m2!1sko!2skr",
+    },
+
+    // 주요 서비스
+    main_services: ["건물 종합 관리", "청소 서비스", "소방 점검", "엘리베이터 관리", "공실 임대 대행", "부동산 컨설팅"],
+
+    // 인증 및 자격
+    certifications: ["건물관리업 등록", "청소업 신고", "소방시설관리업 등록"],
   },
-  executives: [
-    {
-      id: 1,
-      name: "김대표",
-      position: "대표이사",
-      bio: "건물 관리 업계에서 20년 이상의 경험을 가진 전문가로, SKM파트너스를 설립하여 업계를 선도하고 있습니다.",
-      image_url: null,
-      order_index: 1,
-    },
-  ],
-  successCases: [
-    {
-      id: 1,
-      title: "강남 오피스 빌딩",
-      location: "서울 강남구",
-      before_status: "공실률 35%",
-      after_status: "공실률 5%",
-      period: "4개월",
-      details: "강남 오피스 빌딩의 공실률을 35%에서 5%로 4개월 만에 개선한 성공 사례입니다.",
-      image_url: null,
-    },
-  ],
+  executives: [],
+  successCases: [],
 }
 
 const DEFAULT_PROPERTIES_DATA = {
-  properties: [
-    {
-      id: 1,
-      title: "강남 프리미엄 오피스",
-      location: "서울 강남구 테헤란로",
-      type: "오피스",
-      size: "100평",
-      price: "월 500만원",
-      status: "활성",
-      description: "강남 중심가에 위치한 프리미엄 오피스 공간입니다.",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ],
+  properties: [],
 }
 
 const DEFAULT_INQUIRIES_DATA = {
-  inquiries: [
-    {
-      id: 1,
-      name: "홍길동",
-      email: "hong@example.com",
-      phone: "010-1234-5678",
-      service: "건물관리",
-      message: "건물 관리 서비스에 대해 문의드립니다.",
-      status: "pending",
-      created_at: new Date().toISOString(),
-    },
-  ],
+  inquiries: [],
 }
 
 // 파일 존재 확인 및 생성
