@@ -1,60 +1,91 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile } from "fs/promises"
+import { writeFile, mkdir } from "fs/promises"
+import { existsSync } from "fs"
 import path from "path"
-import fs from "fs"
 
 export async function POST(request: NextRequest) {
+  console.log("업로드 API 호출됨")
+
   try {
-    const data = await request.formData()
-    const file: File | null = data.get("file") as unknown as File
+    const formData = await request.formData()
+    const file = formData.get("file") as File
 
     if (!file) {
+      console.log("파일이 없음")
       return NextResponse.json({ error: "파일이 없습니다." }, { status: 400 })
     }
 
+    console.log("파일 정보:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    })
+
     // 파일 크기 제한 (5MB)
     if (file.size > 5 * 1024 * 1024) {
+      console.log("파일 크기 초과:", file.size)
       return NextResponse.json({ error: "파일 크기는 5MB 이하여야 합니다." }, { status: 400 })
     }
 
-    // 허용된 파일 형식 확인
+    // 파일 형식 확인
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
     if (!allowedTypes.includes(file.type)) {
+      console.log("지원하지 않는 파일 형식:", file.type)
       return NextResponse.json({ error: "지원하지 않는 파일 형식입니다." }, { status: 400 })
     }
 
+    // 파일 데이터 읽기
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // 파일명 생성 (타임스탬프 + 원본 파일명)
+    // 안전한 파일명 생성
     const timestamp = Date.now()
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
-    const fileName = `${timestamp}_${originalName}`
+    const randomString = Math.random().toString(36).substring(2, 8)
+    const fileExtension = path.extname(file.name).toLowerCase()
+    const safeFileName = `${timestamp}_${randomString}${fileExtension}`
 
-    // public/uploads 디렉토리에 저장
+    // 업로드 디렉토리 경로
     const uploadDir = path.join(process.cwd(), "public", "uploads")
-    const filePath = path.join(uploadDir, fileName)
+    const filePath = path.join(uploadDir, safeFileName)
 
-    // 디렉토리가 없으면 생성
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true })
+    console.log("업로드 디렉토리:", uploadDir)
+    console.log("파일 경로:", filePath)
+
+    // 디렉토리 생성 (존재하지 않는 경우)
+    if (!existsSync(uploadDir)) {
+      console.log("업로드 디렉토리 생성 중...")
+      await mkdir(uploadDir, { recursive: true })
     }
 
+    // 파일 저장
     await writeFile(filePath, buffer)
-    console.log(`File saved to ${filePath}`)
+    console.log("파일 저장 완료:", filePath)
 
-    // 웹에서 접근 가능한 URL 반환
-    const fileUrl = `/uploads/${fileName}`
+    // 웹 접근 가능한 URL
+    const fileUrl = `/uploads/${safeFileName}`
+    console.log("파일 URL:", fileUrl)
 
     return NextResponse.json({
       success: true,
       url: fileUrl,
-      fileName: fileName,
+      fileName: safeFileName,
+      originalName: file.name,
       size: file.size,
       type: file.type,
     })
   } catch (error) {
-    console.error("파일 업로드 실패:", error)
-    return NextResponse.json({ error: "파일 업로드에 실패했습니다." }, { status: 500 })
+    console.error("업로드 처리 중 오류:", error)
+    return NextResponse.json(
+      {
+        error: "파일 업로드 중 서버 오류가 발생했습니다.",
+        details: error instanceof Error ? error.message : "알 수 없는 오류",
+      },
+      { status: 500 },
+    )
   }
+}
+
+// GET 요청도 처리 (테스트용)
+export async function GET() {
+  return NextResponse.json({ message: "업로드 API가 작동 중입니다." })
 }

@@ -862,7 +862,7 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="메인 페이지 배경 이미지"
-                    description="메인 페이지 상단 배경으로 사용됩니다"
+                    description="메인 페이지(/) 상단에 표시되는 대형 배경 이미지입니다. 권장 크기: 1920x600px"
                   />
                 </div>
 
@@ -880,7 +880,7 @@ export default function CompanyManagementPage() {
                       })
                     }
                     label="회사 소개 페이지 배경 이미지"
-                    description="회사 소개 페이지 상단 배경으로 사용됩니다"
+                    description="회사 소개 페이지(/about) 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px"
                   />
                 </div>
 
@@ -977,7 +977,7 @@ export default function CompanyManagementPage() {
                 <div>
                   <Label className="text-base font-medium">서비스 소개 이미지</Label>
                   <p className="text-sm text-gray-500 mb-2">
-                    서비스 페이지에 표시되는 서비스 소개 이미지입니다. 권장 크기: 800x600px
+                    서비스 페이지에 표시되는 서비스 소개 이미지입니다. 권장 크기:
                   </p>
                   <ImageUpload
                     value={companyInfo.site_images.service_showcase || ""}
