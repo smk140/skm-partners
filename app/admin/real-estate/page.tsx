@@ -59,7 +59,7 @@ export default function AdminRealEstatePage() {
   }, [])
 
   const fetchProperties = async () => {
-    console.log("🔄 매물 목록 조회 시작...")
+    console.log("매물 목록 조회 시작...")
     setIsLoading(true)
     try {
       const response = await fetch("/api/admin/properties", {
@@ -67,24 +67,24 @@ export default function AdminRealEstatePage() {
         cache: "no-store",
       })
 
-      console.log("📡 응답 상태:", response.status)
+      console.log("응답 상태:", response.status)
 
       if (!response.ok) {
         throw new Error(`HTTP 오류: ${response.status}`)
       }
 
       const data = await response.json()
-      console.log("📊 받은 데이터:", data)
+      console.log("받은 데이터:", data)
 
       if (data.success && Array.isArray(data.properties)) {
         setProperties(data.properties)
-        console.log("✅ 매물 목록 설정 완료:", data.properties.length, "개")
+        console.log("매물 목록 설정 완료:", data.properties.length, "개")
       } else {
         setProperties([])
-        console.warn("⚠️ 매물 데이터가 없거나 형식이 잘못됨")
+        console.warn("매물 데이터가 없거나 형식이 잘못됨")
       }
     } catch (error) {
-      console.error("💥 매물 조회 실패:", error)
+      console.error("매물 조회 실패:", error)
       toast({
         title: "오류",
         description: "매물 목록을 불러오는데 실패했습니다.",
@@ -107,7 +107,8 @@ export default function AdminRealEstatePage() {
   }
 
   const handleAddProperty = async () => {
-    console.log("🆕 매물 추가 시작...")
+    console.log("매물 추가 시작...")
+    console.log("폼 데이터:", { title, location, type, size, price, description, imageUrl })
 
     if (!title.trim() || !location.trim()) {
       toast({
@@ -131,7 +132,7 @@ export default function AdminRealEstatePage() {
         image_url: imageUrl.trim(),
       }
 
-      console.log("📤 전송할 매물 데이터:", propertyData)
+      console.log("전송할 데이터:", propertyData)
 
       const response = await fetch("/api/admin/properties", {
         method: "POST",
@@ -141,17 +142,17 @@ export default function AdminRealEstatePage() {
         body: JSON.stringify(propertyData),
       })
 
-      console.log("📡 추가 응답 상태:", response.status)
+      console.log("추가 응답 상태:", response.status)
 
       const result = await response.json()
-      console.log("📊 추가 응답 데이터:", result)
+      console.log("추가 응답 데이터:", result)
 
       if (!response.ok) {
         throw new Error(result.error || `HTTP 오류: ${response.status}`)
       }
 
       if (result.success) {
-        console.log("✅ 매물 추가 성공!")
+        console.log("매물 추가 성공!")
         toast({
           title: "성공",
           description: "매물이 성공적으로 추가되었습니다.",
@@ -167,7 +168,7 @@ export default function AdminRealEstatePage() {
         throw new Error(result.message || "매물 추가에 실패했습니다.")
       }
     } catch (error) {
-      console.error("💥 매물 추가 실패:", error)
+      console.error("매물 추가 실패:", error)
       toast({
         title: "오류",
         description: error instanceof Error ? error.message : "매물 추가 중 오류가 발생했습니다.",
@@ -205,7 +206,7 @@ export default function AdminRealEstatePage() {
         throw new Error(result.message || "매물 삭제에 실패했습니다.")
       }
     } catch (error) {
-      console.error("💥 매물 삭제 실패:", error)
+      console.error("매물 삭제 실패:", error)
       toast({
         title: "오류",
         description: error instanceof Error ? error.message : "매물 삭제 중 오류가 발생했습니다.",
@@ -322,7 +323,10 @@ export default function AdminRealEstatePage() {
                   <ImageUpload
                     label="매물 대표 이미지"
                     value={imageUrl}
-                    onChange={setImageUrl}
+                    onChange={(url) => {
+                      console.log("이미지 URL 변경됨:", url.substring(0, 50) + "...")
+                      setImageUrl(url)
+                    }}
                     description="매물 목록 및 상세 페이지에 사용될 대표 이미지입니다."
                   />
                 </div>
@@ -405,22 +409,16 @@ export default function AdminRealEstatePage() {
                       <TableRow key={property.id}>
                         <TableCell>
                           {property.image_url ? (
-                            <div className="relative h-16 w-16">
-                              <img
-                                src={property.image_url || "/placeholder.svg"}
-                                alt={property.title}
-                                className="object-cover rounded-md h-16 w-16"
-                                onLoad={() => console.log("✅ 테이블 이미지 로드 성공:", property.title)}
-                                onError={(e) => {
-                                  console.error("❌ 테이블 이미지 로드 실패:", property.title)
-                                  e.currentTarget.style.display = "none"
-                                  e.currentTarget.nextElementSibling?.classList.remove("hidden")
-                                }}
-                              />
-                              <div className="hidden h-16 w-16 bg-slate-100 rounded-md flex items-center justify-center">
-                                <ImageIcon className="h-6 w-6 text-slate-400" />
-                              </div>
-                            </div>
+                            <img
+                              src={property.image_url || "/placeholder.svg"}
+                              alt={property.title}
+                              className="object-cover rounded-md h-16 w-16"
+                              onLoad={() => console.log("테이블 이미지 로드 성공:", property.title)}
+                              onError={(e) => {
+                                console.error("테이블 이미지 로드 실패:", property.title)
+                                e.currentTarget.style.display = "none"
+                              }}
+                            />
                           ) : (
                             <div className="h-16 w-16 bg-slate-100 rounded-md flex items-center justify-center">
                               <ImageIcon className="h-6 w-6 text-slate-400" />
