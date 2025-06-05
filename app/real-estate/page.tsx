@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ArrowRight, CheckCircle2, MapPin, Building, Eye, ChevronDown, ChevronUp } from "lucide-react"
-
+import { ArrowRight, CheckCircle2, MapPin, Building, Eye, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 
-// SearchBar 컴포넌트 정의
 interface SearchBarProps {
   placeholder: string
   onSearch: (query: string, filters: any) => void
@@ -44,54 +41,50 @@ interface Property {
   description: string
   status: string
   created_at: string
+  image_url?: string
 }
 
 export default function RealEstatePage() {
   const [properties, setProperties] = useState<Property[]>([])
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
-  // 매물 데이터 로드
   useEffect(() => {
     loadProperties()
   }, [])
 
   const loadProperties = async () => {
+    setIsLoading(true)
+    setError(null)
     try {
-      console.log("🔄 매물 데이터 로드 시작...")
       const response = await fetch("/api/admin/properties", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        cache: "no-store", // 캐시 비활성화
+        cache: "no-store",
       })
 
-      console.log("📡 API 응답 상태:", response.status)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP 오류: ${response.status}` }))
+        throw new Error(errorData.error || `HTTP 오류: ${response.status}`)
+      }
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log("📊 받은 데이터:", data)
+      const data = await response.json()
 
-        if (data.success && data.properties) {
-          setProperties(data.properties)
-          setFilteredProperties(data.properties)
-          console.log("✅ 매물 데이터 설정 완료:", data.properties.length, "개")
-        } else {
-          console.warn("⚠️ 데이터 형식이 올바르지 않음:", data)
-          setProperties([])
-          setFilteredProperties([])
-        }
+      if (data.success && Array.isArray(data.properties)) {
+        setProperties(data.properties)
+        setFilteredProperties(data.properties)
       } else {
-        const errorData = await response.json().catch(() => ({ error: "응답 파싱 실패" }))
-        console.error("❌ API 호출 실패:", response.status, errorData)
         setProperties([])
         setFilteredProperties([])
+        setError(data.message || "매물 데이터를 불러오는 데 실패했습니다.")
       }
-    } catch (error) {
-      console.error("💥 매물 로드 실패:", error)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.")
       setProperties([])
       setFilteredProperties([])
     } finally {
@@ -99,7 +92,6 @@ export default function RealEstatePage() {
     }
   }
 
-  // 검색 기능
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     if (!query.trim()) {
@@ -107,15 +99,14 @@ export default function RealEstatePage() {
     } else {
       const filtered = properties.filter(
         (property) =>
-          property.title.toLowerCase().includes(query.toLowerCase()) ||
-          property.location.toLowerCase().includes(query.toLowerCase()) ||
-          property.type.toLowerCase().includes(query.toLowerCase()),
+          property.title?.toLowerCase().includes(query.toLowerCase()) ||
+          property.location?.toLowerCase().includes(query.toLowerCase()) ||
+          property.type?.toLowerCase().includes(query.toLowerCase()),
       )
       setFilteredProperties(filtered)
     }
   }
 
-  // 표시할 매물 수 결정
   const displayedProperties = showAll ? filteredProperties : filteredProperties.slice(0, 5)
 
   return (
@@ -124,7 +115,7 @@ export default function RealEstatePage() {
       <section className="relative h-[400px] w-full overflow-hidden">
         <div className="absolute inset-0 bg-black/50 z-10"></div>
         <Image
-          src="/placeholder.svg?height=400&width=1200&text=Real Estate"
+          src="/placeholder.svg?height=400&width=1200"
           alt="부동산 서비스"
           fill
           className="object-cover"
@@ -143,32 +134,23 @@ export default function RealEstatePage() {
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">부동산 검색</h2>
-
-            {/* 검색 컴포넌트 */}
             <div className="mb-8">
               <SearchBar
                 placeholder="지역, 건물 유형, 특징으로 검색 (예: 강남 오피스, 역세권 상가)"
                 onSearch={handleSearch}
               />
             </div>
-
             <div className="bg-blue-50 p-4 rounded-lg mb-6">
-              <h3 className="font-medium text-blue-800 mb-2">인기 매물</h3>
+              <h3 className="font-medium text-blue-800 mb-2">인기 검색어</h3>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("강남 오피스")}>
-                  강남 역세권 오피스
+                  강남 오피스
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("신축")}>
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("신축 상가")}>
                   신축 상가
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("수익형")}>
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("수익형 부동산")}>
                   수익형 부동산
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("리모델링")}>
-                  리모델링 빌딩
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("테헤란로")}>
-                  테헤란로 사무실
                 </Button>
               </div>
             </div>
@@ -190,17 +172,8 @@ export default function RealEstatePage() {
               </div>
               {filteredProperties.length > 5 && (
                 <Button variant="outline" onClick={() => setShowAll(!showAll)} className="flex items-center gap-2">
-                  {showAll ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      접기
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      더보기 ({filteredProperties.length - 5}개 더)
-                    </>
-                  )}
+                  {showAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {showAll ? "접기" : `더보기 (${filteredProperties.length - 5}개 더)`}
                 </Button>
               )}
             </div>
@@ -210,6 +183,15 @@ export default function RealEstatePage() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">매물 정보를 불러오는 중...</p>
               </div>
+            ) : error ? (
+              <div className="text-center py-12 bg-red-50 p-6 rounded-lg">
+                <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-red-700 mb-2">오류 발생</h3>
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button onClick={loadProperties} className="bg-red-600 hover:bg-red-700">
+                  다시 시도
+                </Button>
+              </div>
             ) : displayedProperties.length === 0 ? (
               <div className="text-center py-12">
                 <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -217,7 +199,7 @@ export default function RealEstatePage() {
                   {searchQuery ? "검색 결과가 없습니다" : "등록된 매물이 없습니다"}
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  {searchQuery ? "다른 검색어로 시도해보세요" : "곧 다양한 매물이 등록될 예정입니다. 문의해주세요!"}
+                  {searchQuery ? "다른 검색어로 시도해보세요." : "곧 다양한 매물이 등록될 예정입니다. 문의해주세요!"}
                 </p>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <ArrowRight className="mr-2 h-4 w-4" />
@@ -230,46 +212,60 @@ export default function RealEstatePage() {
                   <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative h-48 bg-gray-200">
                       <Image
-                        src="/placeholder.svg?height=200&width=300&text=Property"
-                        alt={property.title}
+                        src={
+                          property.image_url ||
+                          `/placeholder.svg?height=200&width=300&query=${encodeURIComponent(property.title)}`
+                        }
+                        alt={property.title || "부동산 매물"}
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute top-4 left-4">
-                        <Badge
-                          variant={property.status === "활성" ? "default" : "secondary"}
-                          className={property.status === "활성" ? "bg-green-600" : ""}
-                        >
-                          {property.status}
-                        </Badge>
-                      </div>
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="outline" className="bg-white/90">
-                          {property.type}
-                        </Badge>
-                      </div>
+                      {property.status && (
+                        <div className="absolute top-4 left-4">
+                          <Badge
+                            variant={property.status === "활성" ? "default" : "secondary"}
+                            className={property.status === "활성" ? "bg-green-600 text-white" : ""}
+                          >
+                            {property.status}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                     <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold mb-2">{property.title}</h3>
-                      <div className="flex items-center text-gray-500 text-sm mb-2">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>{property.location}</span>
-                      </div>
-                      <div className="space-y-2 mb-4">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">면적:</span>
-                          <span className="font-medium">{property.size}</span>
+                      <h3 className="text-xl font-semibold mb-2 truncate" title={property.title}>
+                        {property.title || "제목 없음"}
+                      </h3>
+                      {property.location && (
+                        <div className="flex items-center text-gray-500 text-sm mb-2">
+                          <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="truncate" title={property.location}>
+                            {property.location}
+                          </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">가격:</span>
-                          <span className="font-medium text-blue-600">{property.price}</span>
-                        </div>
+                      )}
+                      <div className="space-y-1 mb-4 text-sm">
+                        {property.size && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">면적:</span>
+                            <span className="font-medium">{property.size}</span>
+                          </div>
+                        )}
+                        {property.price && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">가격:</span>
+                            <span className="font-medium text-blue-600">{property.price}</span>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
+                      {property.description && (
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2" title={property.description}>
+                          {property.description}
+                        </p>
+                      )}
                       <Button variant="outline" className="w-full group">
                         <Eye className="mr-2 h-4 w-4" />
                         상세보기
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        <ArrowRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </CardContent>
                   </Card>
@@ -277,7 +273,7 @@ export default function RealEstatePage() {
               </div>
             )}
 
-            {filteredProperties.length > 5 && !showAll && (
+            {filteredProperties.length > 5 && !showAll && !isLoading && !error && (
               <div className="text-center mt-8">
                 <Button
                   onClick={() => setShowAll(true)}
@@ -305,7 +301,6 @@ export default function RealEstatePage() {
                   건물 소유주님의 소중한 자산, 공실로 인한 손실이 걱정되시나요? SKM파트너스의 공실 임대 대행 서비스를
                   통해 최적의 임차인을 빠르게 연결해 드립니다.
                 </p>
-
                 <div className="space-y-4 mb-6">
                   <div className="flex items-start">
                     <CheckCircle2 className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
@@ -336,19 +331,17 @@ export default function RealEstatePage() {
                     </div>
                   </div>
                 </div>
-
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   빠른 상담 신청
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
-
               <div className="relative">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <div className="relative h-40 rounded-lg overflow-hidden shadow-md">
                       <Image
-                        src="/placeholder.svg?height=160&width=240&text=Before"
+                        src="/placeholder.svg?height=160&width=240"
                         alt="공실 Before"
                         fill
                         className="object-cover"
@@ -363,7 +356,7 @@ export default function RealEstatePage() {
                   <div className="space-y-4">
                     <div className="relative h-40 rounded-lg overflow-hidden shadow-md">
                       <Image
-                        src="/placeholder.svg?height=160&width=240&text=After"
+                        src="/placeholder.svg?height=160&width=240"
                         alt="공실 After"
                         fill
                         className="object-cover"
@@ -384,188 +377,6 @@ export default function RealEstatePage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Service Details */}
-      <section className="py-16 bg-slate-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">부동산 서비스 상세 내용</h2>
-
-            <Tabs defaultValue="vacancy" className="w-full">
-              <TabsList className="grid grid-cols-3 mb-8">
-                <TabsTrigger value="vacancy">공실 임대 대행</TabsTrigger>
-                <TabsTrigger value="management">임대 관리</TabsTrigger>
-                <TabsTrigger value="consulting">부동산 컨설팅</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="vacancy" className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="grid md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-4">공실 임대 대행</h3>
-                    <p className="text-slate-600 mb-4">
-                      SKM파트너스의 공실 임대 대행 서비스는 건물 소유주를 대신하여 최적의 임차인을 찾아드립니다.
-                      전문적인 마케팅과 임차인 심사를 통해 공실률을 최소화하고 임대 수익을 극대화합니다.
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>매물 분석 및 시장 조사</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>전문적인 매물 마케팅</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>임차인 모집 및 심사</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>임대차 계약 지원</span>
-                      </li>
-                    </ul>
-                    <Button className="bg-blue-600 hover:bg-blue-700">문의하기</Button>
-                  </div>
-                  <div className="relative h-[300px] w-full rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder.svg?height=300&width=400&text=Vacancy Management"
-                      alt="공실 임대 대행"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="management" className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="grid md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-4">임대 관리</h3>
-                    <p className="text-slate-600 mb-4">
-                      SKM파트너스의 임대 관리 서비스는 건물 소유주의 부담을 덜어드립니다. 임대료 수납부터 임차인 관리,
-                      시설 유지보수까지 모든 것을 대행해 드립니다.
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>임대료 수납 관리</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>임차인 관계 관리</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>시설 유지보수 관리</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>임대차 계약 갱신 관리</span>
-                      </li>
-                    </ul>
-                    <Button className="bg-blue-600 hover:bg-blue-700">문의하기</Button>
-                  </div>
-                  <div className="relative h-[300px] w-full rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder.svg?height=300&width=400&text=Rental Management"
-                      alt="임대 관리"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="consulting" className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="grid md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <h3 className="text-2xl font-semibold mb-4">부동산 컨설팅</h3>
-                    <p className="text-slate-600 mb-4">
-                      SKM파트너스의 부동산 컨설팅 서비스는 건물 소유주의 자산 가치를 극대화하기 위한 전략을 제시합니다.
-                      시장 분석과 전문적인 조언을 통해 최적의 의사결정을 도와드립니다.
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>부동산 시장 분석</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>자산 가치 평가</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>투자 전략 수립</span>
-                      </li>
-                      <li className="flex items-start">
-                        <div className="mr-2 mt-1 text-green-500">
-                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <span>리모델링 및 개발 자문</span>
-                      </li>
-                    </ul>
-                    <Button className="bg-blue-600 hover:bg-blue-700">문의하기</Button>
-                  </div>
-                  <div className="relative h-[300px] w-full rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder.svg?height=300&width=400&text=Real Estate Consulting"
-                      alt="부동산 컨설팅"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
           </div>
         </div>
       </section>

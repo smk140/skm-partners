@@ -1,11 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== 업로드 API 시작 ===")
+    console.log("=== 업로드 API 시작 (Base64 Only) ===")
 
     const formData = await request.formData()
     const file = formData.get("file") as File
@@ -29,65 +26,32 @@ export async function POST(request: NextRequest) {
     }
 
     // 파일 형식 체크
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
     if (!allowedTypes.includes(file.type)) {
       console.log("❌ 지원하지 않는 파일 형식:", file.type)
-      return NextResponse.json({ error: "지원하지 않는 파일 형식입니다. (JPG, PNG, WebP만 가능)" }, { status: 400 })
+      return NextResponse.json(
+        { error: "지원하지 않는 파일 형식입니다. (JPG, PNG, WebP, GIF만 가능)" },
+        { status: 400 },
+      )
     }
 
-    try {
-      // uploads 디렉토리 생성
-      const uploadsDir = path.join(process.cwd(), "public", "uploads")
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true })
-        console.log("📁 uploads 디렉토리 생성됨")
-      }
+    // 파일을 Base64로 변환
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = buffer.toString("base64")
+    const dataUrl = `data:${file.type};base64,${base64}`
 
-      // 파일명 생성 (타임스탬프 + 원본명)
-      const timestamp = Date.now()
-      const fileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
-      const filePath = path.join(uploadsDir, fileName)
+    console.log("✅ Base64 변환 완료, 데이터 URL 길이:", dataUrl.length)
 
-      // 파일 저장
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      await writeFile(filePath, buffer)
-
-      const publicUrl = `/uploads/${fileName}`
-      console.log("✅ 파일 저장 완료:", publicUrl)
-
-      // 성공 응답
-      return NextResponse.json({
-        success: true,
-        url: publicUrl,
-        fileName: fileName,
-        originalName: file.name,
-        size: file.size,
-        type: file.type,
-        message: "이미지가 성공적으로 업로드되었습니다.",
-      })
-    } catch (fileError) {
-      console.error("💥 파일 저장 실패:", fileError)
-
-      // 파일 저장 실패 시 Base64 폴백
-      console.log("🔄 Base64 폴백 시도...")
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const base64 = buffer.toString("base64")
-      const dataUrl = `data:${file.type};base64,${base64}`
-
-      console.log("✅ Base64 폴백 완료")
-
-      return NextResponse.json({
-        success: true,
-        url: dataUrl,
-        fileName: file.name,
-        size: file.size,
-        type: file.type,
-        message: "이미지가 Base64로 업로드되었습니다.",
-        fallback: true,
-      })
-    }
+    // 성공 응답
+    return NextResponse.json({
+      success: true,
+      url: dataUrl, // Base64 데이터 URL 반환
+      fileName: file.name,
+      size: file.size,
+      type: file.type,
+      message: "이미지가 성공적으로 Base64 인코딩되었습니다.",
+    })
   } catch (error) {
     console.error("💥 업로드 API 오류:", error)
     return NextResponse.json(
@@ -102,7 +66,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: "이미지 업로드 API가 정상 작동 중입니다.",
+    message: "이미지 업로드 API가 정상 작동 중입니다. (Base64 Only)",
     timestamp: new Date().toISOString(),
   })
 }
