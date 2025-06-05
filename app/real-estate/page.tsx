@@ -60,14 +60,40 @@ export default function RealEstatePage() {
 
   const loadProperties = async () => {
     try {
-      const response = await fetch("/api/admin/properties")
+      console.log("🔄 매물 데이터 로드 시작...")
+      const response = await fetch("/api/admin/properties", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store", // 캐시 비활성화
+      })
+
+      console.log("📡 API 응답 상태:", response.status)
+
       if (response.ok) {
         const data = await response.json()
-        setProperties(data.properties || [])
-        setFilteredProperties(data.properties || [])
+        console.log("📊 받은 데이터:", data)
+
+        if (data.success && data.properties) {
+          setProperties(data.properties)
+          setFilteredProperties(data.properties)
+          console.log("✅ 매물 데이터 설정 완료:", data.properties.length, "개")
+        } else {
+          console.warn("⚠️ 데이터 형식이 올바르지 않음:", data)
+          setProperties([])
+          setFilteredProperties([])
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "응답 파싱 실패" }))
+        console.error("❌ API 호출 실패:", response.status, errorData)
+        setProperties([])
+        setFilteredProperties([])
       }
     } catch (error) {
-      console.error("매물 로드 실패:", error)
+      console.error("💥 매물 로드 실패:", error)
+      setProperties([])
+      setFilteredProperties([])
     } finally {
       setIsLoading(false)
     }
