@@ -1,53 +1,55 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ImageUpload } from "@/components/image-upload"
+import { Button } from "@/components/ui/button"
 
 export default function TestUploadPage() {
-  const [testImage, setTestImage] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
+  const [testResult, setTestResult] = useState("")
 
   const testAPI = async () => {
     try {
+      setTestResult("API 테스트 중...")
       const response = await fetch("/api/upload")
-      const data = await response.json()
-      console.log("API 테스트 결과:", data)
-      alert(`API 상태: ${data.message}`)
+      const result = await response.json()
+      setTestResult(`API 상태: ${result.status} - ${result.message}`)
     } catch (error) {
-      console.error("API 테스트 실패:", error)
-      alert("API 테스트 실패")
+      setTestResult(`API 오류: ${error instanceof Error ? error.message : "알 수 없는 오류"}`)
     }
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle>이미지 업로드 테스트</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Button onClick={testAPI} variant="outline">
-            API 연결 테스트
+    <div className="container mx-auto py-8 max-w-2xl">
+      <h1 className="text-2xl font-bold mb-6">이미지 업로드 테스트</h1>
+
+      <div className="space-y-6">
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4">API 상태 확인</h2>
+          <Button onClick={testAPI} className="mb-2">
+            API 테스트
           </Button>
+          {testResult && <p className="text-sm text-gray-600">{testResult}</p>}
+        </div>
 
-          <div>
-            <h3 className="text-lg font-medium mb-4">이미지 업로드 테스트</h3>
-            <ImageUpload
-              value={testImage}
-              onChange={setTestImage}
-              label="테스트 이미지"
-              description="이미지 업로드 기능을 테스트해보세요"
-            />
+        <div className="border rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4">이미지 업로드 테스트</h2>
+          <ImageUpload
+            label="테스트 이미지"
+            value={imageUrl}
+            onChange={setImageUrl}
+            description="이미지 업로드 기능을 테스트합니다."
+          />
+        </div>
+
+        {imageUrl && (
+          <div className="border rounded-lg p-4">
+            <h2 className="text-lg font-semibold mb-4">업로드 결과</h2>
+            <p className="text-sm text-gray-600 mb-2">이미지 URL:</p>
+            <p className="text-xs bg-gray-100 p-2 rounded break-all">{imageUrl}</p>
           </div>
-
-          {testImage && (
-            <div className="mt-4 p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700">✅ 업로드 성공! 이미지 URL: {testImage.substring(0, 50)}...</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   )
 }

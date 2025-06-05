@@ -1,7 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 
 export async function POST(request: NextRequest) {
   console.log("=== 파일 업로드 API 시작 ===")
@@ -27,13 +24,13 @@ export async function POST(request: NextRequest) {
       type: file.type,
     })
 
-    // 파일 크기 체크 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // 파일 크기 체크 (5MB로 줄임)
+    if (file.size > 5 * 1024 * 1024) {
       console.log("❌ 파일 크기 초과")
       return NextResponse.json(
         {
           success: false,
-          error: "파일 크기는 10MB 이하여야 합니다.",
+          error: "파일 크기는 5MB 이하여야 합니다.",
         },
         { status: 400 },
       )
@@ -52,51 +49,62 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 업로드 디렉토리 생성
-    const uploadDir = path.join(process.cwd(), "public", "uploads")
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-      console.log("📁 업로드 디렉토리 생성:", uploadDir)
-    }
-
-    // 파일명 생성 (타임스탬프 + 원본명)
-    const timestamp = Date.now()
-    const fileExtension = path.extname(file.name)
-    const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`
-    const filePath = path.join(uploadDir, fileName)
-
-    console.log("💾 저장할 파일 경로:", filePath)
-
-    // 파일 저장
+    // Base64로 변환 (파일 시스템 대신)
+    console.log("🔄 Base64 변환 시작...")
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    await writeFile(filePath, buffer)
+    const base64 = buffer.toString("base64")
+    const dataUrl = `data:${file.type};base64,${base64}`
 
-    console.log("✅ 파일 저장 완료!")
+    console.log("✅ Base64 변환 완료!")
+    console.log("📊 데이터 URL 길이:", `${(dataUrl.length / 1024).toFixed(2)}KB`)
 
-    // 웹에서 접근 가능한 URL 생성
-    const fileUrl = `/uploads/${fileName}`
+    // 변환 검증
+    if (!dataUrl.startsWith("data:image/") || dataUrl.length < 100) {
+      console.error("❌ 잘못된 데이터 URL")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "이미지 변환에 실패했습니다.",
+        },
+        { status: 500 },
+      )
+    }
 
     const response = {
       success: true,
-      url: fileUrl,
-      fileName: fileName,
-      originalName: file.name,
+      url: dataUrl,
+      fileName: file.name,
       size: file.size,
       type: file.type,
-      message: "파일이 성공적으로 업로드되었습니다.",
+      message: "이미지가 성공적으로 업로드되었습니다.",
       timestamp: new Date().toISOString(),
     }
 
-    console.log("📤 응답 데이터:", response)
+    console.log("✅ 업로드 성공!")
     return NextResponse.json(response)
   } catch (error) {
-    console.error("💥 파일 업로드 오류:", error)
+    console.error("💥 업로드 API 오류:", error)
+
+    // 더 자세한 오류 정보 제공
+    let errorMessage = "파일 업로드 중 오류가 발생했습니다."
+    let errorDetails = "알 수 없는 오류"
+
+    if (error instanceof Error) {
+      errorDetails = error.message
+      if (error.message.includes("File too large")) {
+        errorMessage = "파일 크기가 너무 큽니다."
+      } else if (error.message.includes("Invalid file")) {
+        errorMessage = "유효하지 않은 파일입니다."
+      }
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: "파일 업로드 중 서버 오류가 발생했습니다.",
-        details: error instanceof Error ? error.message : "알 수 없는 오류",
+        error: errorMessage,
+        details: errorDetails,
+        timestamp: new Date().toISOString(),
       },
       { status: 500 },
     )
@@ -107,9 +115,9 @@ export async function GET() {
   return NextResponse.json({
     message: "파일 업로드 API 정상 작동 중",
     timestamp: new Date().toISOString(),
-    maxSize: "10MB",
+    maxSize: "5MB",
     supportedFormats: ["JPG", "PNG", "WebP", "GIF"],
-    uploadPath: "/uploads/",
+    method: "Base64 encoding",
     status: "ready",
   })
 }
