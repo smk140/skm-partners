@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   ArrowRight,
@@ -55,6 +56,7 @@ interface Property {
 }
 
 export default function RealEstatePage() {
+  const router = useRouter()
   const [properties, setProperties] = useState<Property[]>([])
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -132,6 +134,11 @@ export default function RealEstatePage() {
       )
       setFilteredProperties(filtered)
     }
+  }
+
+  const handlePropertyClick = (propertyId: number) => {
+    console.log("매물 상세보기 이동:", propertyId)
+    router.push(`/real-estate/${propertyId}`)
   }
 
   const displayedProperties = showAll ? filteredProperties : filteredProperties.slice(0, 5)
@@ -249,7 +256,7 @@ export default function RealEstatePage() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayedProperties.map((property) => (
-                  <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="relative h-48 bg-gray-200">
                       {property.image_url ? (
                         <img
@@ -320,7 +327,11 @@ export default function RealEstatePage() {
                           {property.description}
                         </p>
                       )}
-                      <Button variant="outline" className="w-full group">
+                      <Button
+                        variant="outline"
+                        className="w-full group"
+                        onClick={() => handlePropertyClick(property.id)}
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         상세보기
                         <ArrowRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
