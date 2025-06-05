@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== 업로드 API 시작 (Base64 Only) ===")
+    console.log("=== 이미지 업로드 API 시작 ===")
 
     const formData = await request.formData()
     const file = formData.get("file") as File
@@ -12,17 +12,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "파일이 선택되지 않았습니다." }, { status: 400 })
     }
 
-    console.log("📁 파일 정보:", {
+    console.log("📁 업로드 파일 정보:", {
       name: file.name,
       size: file.size,
       type: file.type,
     })
 
-    // 파일 크기 체크 (5MB로 제한)
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    // 파일 크기 체크 (10MB로 증가)
+    const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       console.log("❌ 파일 크기 초과:", file.size)
-      return NextResponse.json({ error: "파일 크기는 5MB 이하여야 합니다." }, { status: 400 })
+      return NextResponse.json({ error: "파일 크기는 10MB 이하여야 합니다." }, { status: 400 })
     }
 
     // 파일 형식 체크
@@ -36,28 +36,36 @@ export async function POST(request: NextRequest) {
     }
 
     // 파일을 Base64로 변환
+    console.log("🔄 Base64 변환 시작...")
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const base64 = buffer.toString("base64")
     const dataUrl = `data:${file.type};base64,${base64}`
 
-    console.log("✅ Base64 변환 완료, 데이터 URL 길이:", dataUrl.length)
+    console.log("✅ Base64 변환 완료!")
+    console.log("📊 데이터 URL 길이:", dataUrl.length)
+    console.log("📊 데이터 URL 시작 부분:", dataUrl.substring(0, 100) + "...")
 
     // 성공 응답
-    return NextResponse.json({
+    const response = {
       success: true,
-      url: dataUrl, // Base64 데이터 URL 반환
+      url: dataUrl,
       fileName: file.name,
       size: file.size,
       type: file.type,
-      message: "이미지가 성공적으로 Base64 인코딩되었습니다.",
-    })
+      message: "이미지가 성공적으로 업로드되었습니다.",
+      timestamp: new Date().toISOString(),
+    }
+
+    console.log("✅ 업로드 성공 응답 전송")
+    return NextResponse.json(response)
   } catch (error) {
     console.error("💥 업로드 API 오류:", error)
     return NextResponse.json(
       {
         error: "서버 오류가 발생했습니다.",
         details: error instanceof Error ? error.message : "알 수 없는 오류",
+        success: false,
       },
       { status: 500 },
     )
@@ -66,7 +74,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: "이미지 업로드 API가 정상 작동 중입니다. (Base64 Only)",
+    message: "이미지 업로드 API가 정상 작동 중입니다.",
     timestamp: new Date().toISOString(),
+    maxSize: "10MB",
+    supportedFormats: ["JPG", "PNG", "WebP", "GIF"],
   })
 }

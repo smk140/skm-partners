@@ -2,7 +2,17 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ArrowRight, CheckCircle2, MapPin, Building, Eye, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react"
+import {
+  ArrowRight,
+  CheckCircle2,
+  MapPin,
+  Building,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  RefreshCw,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -40,7 +50,7 @@ interface Property {
   price: string
   description: string
   status: string
-  created_at: string
+  createdAt: string
   image_url?: string
 }
 
@@ -51,14 +61,20 @@ export default function RealEstatePage() {
   const [error, setError] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [lastUpdated, setLastUpdated] = useState<string>("")
 
   useEffect(() => {
     loadProperties()
+    // 30초마다 자동 새로고침
+    const interval = setInterval(loadProperties, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   const loadProperties = async () => {
+    console.log("🔄 매물 데이터 로드 시작...")
     setIsLoading(true)
     setError(null)
+
     try {
       const response = await fetch("/api/admin/properties", {
         method: "GET",
@@ -68,22 +84,29 @@ export default function RealEstatePage() {
         cache: "no-store",
       })
 
+      console.log("📡 API 응답 상태:", response.status)
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: `HTTP 오류: ${response.status}` }))
         throw new Error(errorData.error || `HTTP 오류: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log("📊 받은 데이터:", data)
 
       if (data.success && Array.isArray(data.properties)) {
         setProperties(data.properties)
         setFilteredProperties(data.properties)
+        setLastUpdated(new Date().toLocaleTimeString())
+        console.log("✅ 매물 데이터 설정 완료:", data.properties.length, "개")
       } else {
+        console.warn("⚠️ 데이터 형식이 올바르지 않음:", data)
         setProperties([])
         setFilteredProperties([])
-        setError(data.message || "매물 데이터를 불러오는 데 실패했습니다.")
+        setError("매물 데이터 형식이 올바르지 않습니다.")
       }
     } catch (err) {
+      console.error("💥 매물 로드 실패:", err)
       setError(err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다.")
       setProperties([])
       setFilteredProperties([])
@@ -168,14 +191,27 @@ export default function RealEstatePage() {
                 <p className="text-gray-600">
                   총 {filteredProperties.length}개의 매물이 있습니다
                   {searchQuery && ` (검색: "${searchQuery}")`}
+                  {lastUpdated && <span className="text-sm text-gray-500 ml-2">(마지막 업데이트: {lastUpdated})</span>}
                 </p>
               </div>
-              {filteredProperties.length > 5 && (
-                <Button variant="outline" onClick={() => setShowAll(!showAll)} className="flex items-center gap-2">
-                  {showAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  {showAll ? "접기" : `더보기 (${filteredProperties.length - 5}개 더)`}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadProperties}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                  새로고침
                 </Button>
-              )}
+                {filteredProperties.length > 5 && (
+                  <Button variant="outline" onClick={() => setShowAll(!showAll)} className="flex items-center gap-2">
+                    {showAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {showAll ? "접기" : `더보기 (${filteredProperties.length - 5}개 더)`}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {isLoading ? (
@@ -199,7 +235,7 @@ export default function RealEstatePage() {
                   {searchQuery ? "검색 결과가 없습니다" : "등록된 매물이 없습니다"}
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  {searchQuery ? "다른 검색어로 시도해보세요." : "곧 다양한 매물이 등록될 예정입니다. 문의해주세요!"}
+                  {searchQuery ? "다른 검색어로 시도해보세요." : "관리자 페이지에서 매물을 추가해주세요!"}
                 </p>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <ArrowRight className="mr-2 h-4 w-4" />
@@ -214,7 +250,7 @@ export default function RealEstatePage() {
                       <Image
                         src={
                           property.image_url ||
-                          `/placeholder.svg?height=200&width=300&query=${encodeURIComponent(property.title)}`
+                          `/placeholder.svg?height=200&width=300&query=${encodeURIComponent(property.title) || "/placeholder.svg"}`
                         }
                         alt={property.title || "부동산 매물"}
                         fill
@@ -227,6 +263,13 @@ export default function RealEstatePage() {
                             className={property.status === "활성" ? "bg-green-600 text-white" : ""}
                           >
                             {property.status}
+                          </Badge>
+                        </div>
+                      )}
+                      {property.type && (
+                        <div className="absolute top-4 right-4">
+                          <Badge variant="outline" className="bg-white/90">
+                            {property.type}
                           </Badge>
                         </div>
                       )}

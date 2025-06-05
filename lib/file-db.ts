@@ -1,6 +1,5 @@
 import fs from "fs"
 import path from "path"
-// import { commitFileToGitHub } from "./github" // GitHub 연동 일시 비활성화
 
 // 데이터 디렉토리 경로
 const DATA_DIR = path.join(process.cwd(), "data")
@@ -15,14 +14,14 @@ function ensureDataDirectory() {
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true })
-      console.log(`[FileDB] Data directory created: ${DATA_DIR}`)
+      console.log(`[FileDB] 📁 데이터 디렉토리 생성: ${DATA_DIR}`)
     }
   } catch (error) {
-    console.error(`[FileDB] Error creating data directory ${DATA_DIR}:`, error)
+    console.error(`[FileDB] 💥 디렉토리 생성 실패 ${DATA_DIR}:`, error)
   }
 }
 
-// 확장된 기본 데이터 구조
+// 기본 데이터 구조
 const DEFAULT_COMPANY_DATA = {
   info: {
     name: "SKM파트너스",
@@ -80,22 +79,17 @@ const DEFAULT_INQUIRIES_DATA = {
   last_updated: new Date().toISOString(),
 }
 
-// 파일 존재 확인 및 생성
-function ensureFileExists(filePath: string, defaultData: any) {
+// 파일 초기화
+function initializeFile(filePath: string, defaultData: any) {
   try {
     if (!fs.existsSync(filePath)) {
       const jsonData = JSON.stringify(defaultData, null, 2)
       fs.writeFileSync(filePath, jsonData, "utf8")
-      console.log(`[FileDB] Initialized file: ${filePath}`)
+      console.log(`[FileDB] 📄 파일 초기화: ${filePath}`)
     }
   } catch (error) {
-    console.error(`[FileDB] Error initializing file ${filePath}:`, error)
+    console.error(`[FileDB] 💥 파일 초기화 실패 ${filePath}:`, error)
   }
-}
-
-// 파일 초기화 함수 (존재하지 않을 경우)
-function initializeFile(filePath: string, defaultData: any) {
-  ensureFileExists(filePath, defaultData)
 }
 
 // 초기화 함수
@@ -106,179 +100,138 @@ function initializeFiles() {
   initializeFile(INQUIRIES_FILE, DEFAULT_INQUIRIES_DATA)
 }
 
-// 파일 읽기 함수
-function readJsonFile(filePath: string, defaultData: any) {
-  try {
-    if (!fs.existsSync(filePath)) {
-      console.log(`📄 File not found, creating default: ${filePath}`)
-      ensureFileExists(filePath, defaultData)
-      return JSON.parse(JSON.stringify(defaultData)) // 깊은 복사 반환
-    }
-
-    const fileContent = fs.readFileSync(filePath, "utf8")
-
-    if (!fileContent.trim()) {
-      console.log(`📄 Empty file, using default: ${filePath}`)
-      return JSON.parse(JSON.stringify(defaultData)) // 깊은 복사 반환
-    }
-
-    const parsed = JSON.parse(fileContent)
-    console.log(`✅ Successfully read file: ${filePath}`)
-    return parsed
-  } catch (error) {
-    console.error(`💥 파일 읽기 실패 (${filePath}):`, error)
-    console.log(`🔄 Using default data for: ${filePath}`)
-    return JSON.parse(JSON.stringify(defaultData)) // 깊은 복사 반환
-  }
-}
-
-// 파일 쓰기 함수
-function writeJsonFile(filePath: string, data: any, commitMessage: string) {
-  try {
-    if (!data) {
-      console.error(`❌ Invalid data for ${filePath}. Aborting write.`)
-      return false
-    }
-
-    const jsonData = JSON.stringify(data, null, 2)
-
-    // 파일 크기 체크 (5MB 제한)
-    if (jsonData.length > 5 * 1024 * 1024) {
-      console.error(`❌ File too large for ${filePath}: ${jsonData.length} bytes. Max 5MB. Aborting write.`)
-      return false
-    }
-
-    fs.writeFileSync(filePath, jsonData, "utf8")
-    console.log(`✅ Successfully wrote file: ${filePath}`)
-
-    // GitHub 연동 일시 비활성화
-    // const relativePath = path.relative(process.cwd(), filePath)
-    // commitFileToGitHub(relativePath, jsonData, commitMessage).catch((error) =>
-    //   console.error("💥 GitHub 커밋 실패:", error),
-    // )
-
-    return true
-  } catch (error) {
-    console.error(`💥 파일 쓰기 실패 (${filePath}):`, error)
-    return false
-  }
-}
-
 // 초기화 실행
 initializeFiles()
 
 // 회사 정보 관련 함수
 export function getCompanyData() {
-  // Implement similar to getPropertiesData
-  console.log(`[FileDB] Reading company data from ${COMPANY_FILE}`)
+  console.log(`[FileDB] 📖 회사 데이터 읽기: ${COMPANY_FILE}`)
   try {
+    if (!fs.existsSync(COMPANY_FILE)) {
+      console.log(`[FileDB] ⚠️ 파일 없음, 기본값 사용: ${COMPANY_FILE}`)
+      initializeFile(COMPANY_FILE, DEFAULT_COMPANY_DATA)
+      return JSON.parse(JSON.stringify(DEFAULT_COMPANY_DATA))
+    }
+
     const content = fs.readFileSync(COMPANY_FILE, "utf8")
-    return JSON.parse(content)
-  } catch (e) {
-    console.error(`[FileDB] Error reading ${COMPANY_FILE}`, e)
-    return DEFAULT_COMPANY_DATA
+    if (!content.trim()) {
+      console.log(`[FileDB] ⚠️ 빈 파일, 기본값 사용: ${COMPANY_FILE}`)
+      return JSON.parse(JSON.stringify(DEFAULT_COMPANY_DATA))
+    }
+
+    const data = JSON.parse(content)
+    console.log(`[FileDB] ✅ 회사 데이터 읽기 성공`)
+    return data
+  } catch (error) {
+    console.error(`[FileDB] 💥 회사 데이터 읽기 실패:`, error)
+    return JSON.parse(JSON.stringify(DEFAULT_COMPANY_DATA))
   }
 }
 
 export function saveCompanyData(data: any) {
-  // Implement similar to savePropertiesData
-  console.log(`[FileDB] Saving company data to ${COMPANY_FILE}`)
+  console.log(`[FileDB] 💾 회사 데이터 저장: ${COMPANY_FILE}`)
   try {
-    fs.writeFileSync(COMPANY_FILE, JSON.stringify(data, null, 2), "utf8")
+    if (!data) {
+      console.error(`[FileDB] ❌ 잘못된 데이터`)
+      return false
+    }
+
+    const jsonData = JSON.stringify(data, null, 2)
+
+    // 백업 생성
+    const backupPath = `${COMPANY_FILE}.backup`
+    if (fs.existsSync(COMPANY_FILE)) {
+      fs.copyFileSync(COMPANY_FILE, backupPath)
+    }
+
+    fs.writeFileSync(COMPANY_FILE, jsonData, "utf8")
+    console.log(`[FileDB] ✅ 회사 데이터 저장 성공`)
     return true
-  } catch (e) {
-    console.error(`[FileDB] Error saving ${COMPANY_FILE}`, e)
+  } catch (error) {
+    console.error(`[FileDB] 💥 회사 데이터 저장 실패:`, error)
     return false
   }
 }
 
 // 부동산 매물 관련 함수
 export function getPropertiesData() {
-  console.log(`[FileDB] Attempting to read: ${PROPERTIES_FILE}`)
+  console.log(`[FileDB] 📖 매물 데이터 읽기: ${PROPERTIES_FILE}`)
   try {
     if (!fs.existsSync(PROPERTIES_FILE)) {
-      console.warn(`[FileDB] File not found: ${PROPERTIES_FILE}. Returning default data.`)
-      initializeFile(PROPERTIES_FILE, DEFAULT_PROPERTIES_DATA) // Attempt to create if missing
+      console.log(`[FileDB] ⚠️ 매물 파일 없음, 기본값 사용`)
+      initializeFile(PROPERTIES_FILE, DEFAULT_PROPERTIES_DATA)
       return JSON.parse(JSON.stringify(DEFAULT_PROPERTIES_DATA))
     }
 
     const fileContent = fs.readFileSync(PROPERTIES_FILE, "utf8")
     if (!fileContent.trim()) {
-      console.warn(`[FileDB] File is empty: ${PROPERTIES_FILE}. Returning default data.`)
+      console.log(`[FileDB] ⚠️ 빈 매물 파일, 기본값 사용`)
       return JSON.parse(JSON.stringify(DEFAULT_PROPERTIES_DATA))
     }
 
     const data = JSON.parse(fileContent)
     if (!Array.isArray(data.properties)) {
-      console.warn(`[FileDB] 'properties' key is not an array in ${PROPERTIES_FILE}. Resetting.`)
+      console.log(`[FileDB] ⚠️ 매물 배열이 아님, 수정`)
       data.properties = []
     }
-    console.log(`[FileDB] Successfully read ${PROPERTIES_FILE}. Properties count: ${data.properties.length}`)
+
+    console.log(`[FileDB] ✅ 매물 데이터 읽기 성공. 매물 수: ${data.properties.length}`)
     return data
   } catch (error) {
-    console.error(`[FileDB] Error reading ${PROPERTIES_FILE}:`, error, "Returning default data.")
+    console.error(`[FileDB] 💥 매물 데이터 읽기 실패:`, error)
     return JSON.parse(JSON.stringify(DEFAULT_PROPERTIES_DATA))
   }
 }
 
 export function savePropertiesData(dataToSave: any) {
-  console.log(`[FileDB] Attempting to save to: ${PROPERTIES_FILE}`)
+  console.log(`[FileDB] 💾 매물 데이터 저장 시작`)
+  console.log(`[FileDB] 💾 저장할 매물 수: ${dataToSave?.properties?.length || 0}`)
+
   if (!dataToSave || !Array.isArray(dataToSave.properties)) {
-    console.error(
-      "[FileDB] Invalid data provided to savePropertiesData. 'properties' must be an array. Aborting save.",
-      dataToSave,
-    )
+    console.error("[FileDB] ❌ 잘못된 매물 데이터 형식")
     return false
   }
 
-  const dataWithTimestamp = {
-    ...dataToSave,
-    properties: dataToSave.properties, // Ensure properties array is directly used
-    last_updated: new Date().toISOString(),
-  }
-
   try {
-    const jsonData = JSON.stringify(dataWithTimestamp, null, 2)
-    console.log(`[FileDB] Data to be written (first 500 chars): ${jsonData.substring(0, 500)}...`)
+    const dataWithTimestamp = {
+      ...dataToSave,
+      last_updated: new Date().toISOString(),
+    }
 
-    // Create a backup
+    const jsonData = JSON.stringify(dataWithTimestamp, null, 2)
+
+    // 백업 생성
     const backupPath = `${PROPERTIES_FILE}.backup`
     if (fs.existsSync(PROPERTIES_FILE)) {
       fs.copyFileSync(PROPERTIES_FILE, backupPath)
-      console.log(`[FileDB] Backup created: ${backupPath}`)
+      console.log(`[FileDB] 📋 백업 생성: ${backupPath}`)
     }
 
+    // 파일 쓰기
     fs.writeFileSync(PROPERTIES_FILE, jsonData, "utf8")
-    console.log(
-      `[FileDB] Successfully wrote to ${PROPERTIES_FILE}. Properties count: ${dataWithTimestamp.properties.length}`,
-    )
+    console.log(`[FileDB] ✅ 매물 데이터 저장 성공. 매물 수: ${dataWithTimestamp.properties.length}`)
 
-    // Verify write
-    const writtenData = fs.readFileSync(PROPERTIES_FILE, "utf8")
-    if (writtenData !== jsonData) {
-      console.error(`[FileDB] CRITICAL: File write verification FAILED for ${PROPERTIES_FILE}. Data may be corrupted.`)
-      // Attempt to restore from backup
-      if (fs.existsSync(backupPath)) {
-        fs.copyFileSync(backupPath, PROPERTIES_FILE)
-        console.error(`[FileDB] CRITICAL: Restored ${PROPERTIES_FILE} from backup due to write verification failure.`)
-      }
+    // 검증
+    const verification = fs.readFileSync(PROPERTIES_FILE, "utf8")
+    const verifiedData = JSON.parse(verification)
+    if (verifiedData.properties.length !== dataWithTimestamp.properties.length) {
+      console.error(`[FileDB] 💥 저장 검증 실패!`)
       return false
     }
-    console.log(`[FileDB] File write verified for ${PROPERTIES_FILE}.`)
+
+    console.log(`[FileDB] ✅ 저장 검증 완료`)
     return true
   } catch (error) {
-    console.error(`[FileDB] Error writing to ${PROPERTIES_FILE}:`, error)
-    // Attempt to restore from backup on error
+    console.error(`[FileDB] 💥 매물 데이터 저장 실패:`, error)
+
+    // 백업에서 복원 시도
     const backupPath = `${PROPERTIES_FILE}.backup`
     if (fs.existsSync(backupPath)) {
       try {
         fs.copyFileSync(backupPath, PROPERTIES_FILE)
-        console.warn(`[FileDB] Restored ${PROPERTIES_FILE} from backup due to write error.`)
+        console.log(`[FileDB] 🔄 백업에서 복원 완료`)
       } catch (restoreError) {
-        console.error(
-          `[FileDB] CRITICAL: Failed to restore ${PROPERTIES_FILE} from backup after write error:`,
-          restoreError,
-        )
+        console.error(`[FileDB] 💥 백업 복원 실패:`, restoreError)
       }
     }
     return false
@@ -287,23 +240,39 @@ export function savePropertiesData(dataToSave: any) {
 
 // 문의 관련 함수
 export function getInquiriesData() {
-  console.log(`[FileDB] Reading inquiries data from ${INQUIRIES_FILE}`)
+  console.log(`[FileDB] 📖 문의 데이터 읽기: ${INQUIRIES_FILE}`)
   try {
+    if (!fs.existsSync(INQUIRIES_FILE)) {
+      initializeFile(INQUIRIES_FILE, DEFAULT_INQUIRIES_DATA)
+      return JSON.parse(JSON.stringify(DEFAULT_INQUIRIES_DATA))
+    }
+
     const content = fs.readFileSync(INQUIRIES_FILE, "utf8")
+    if (!content.trim()) {
+      return JSON.parse(JSON.stringify(DEFAULT_INQUIRIES_DATA))
+    }
+
     return JSON.parse(content)
-  } catch (e) {
-    console.error(`[FileDB] Error reading ${INQUIRIES_FILE}`, e)
-    return DEFAULT_INQUIRIES_DATA
+  } catch (error) {
+    console.error(`[FileDB] 💥 문의 데이터 읽기 실패:`, error)
+    return JSON.parse(JSON.stringify(DEFAULT_INQUIRIES_DATA))
   }
 }
 
 export function saveInquiriesData(data: any) {
-  console.log(`[FileDB] Saving inquiries data to ${INQUIRIES_FILE}`)
+  console.log(`[FileDB] 💾 문의 데이터 저장: ${INQUIRIES_FILE}`)
   try {
-    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(data, null, 2), "utf8")
+    if (!data) {
+      console.error(`[FileDB] ❌ 잘못된 문의 데이터`)
+      return false
+    }
+
+    const jsonData = JSON.stringify(data, null, 2)
+    fs.writeFileSync(INQUIRIES_FILE, jsonData, "utf8")
+    console.log(`[FileDB] ✅ 문의 데이터 저장 성공`)
     return true
-  } catch (e) {
-    console.error(`[FileDB] Error saving ${INQUIRIES_FILE}`, e)
+  } catch (error) {
+    console.error(`[FileDB] 💥 문의 데이터 저장 실패:`, error)
     return false
   }
 }
@@ -311,8 +280,11 @@ export function saveInquiriesData(data: any) {
 // ID 생성 함수
 export function generateId(items: any[]) {
   if (!items || items.length === 0) {
+    console.log(`[FileDB] 🆔 첫 번째 ID 생성: 1`)
     return 1
   }
   const maxId = Math.max(0, ...items.map((item) => Number(item.id) || 0))
-  return maxId + 1
+  const newId = maxId + 1
+  console.log(`[FileDB] 🆔 새 ID 생성: ${newId}`)
+  return newId
 }
