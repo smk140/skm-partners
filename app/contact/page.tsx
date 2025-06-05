@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Mail, MapPin, Phone, Send, Clock, VoicemailIcon as Fax } from "lucide-react"
+import { Mail, MapPin, Phone, Send, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,7 +17,6 @@ interface CompanyInfo {
   name: string
   address: string
   phone: string
-  fax: string
   email: string
   business_hours: {
     weekday: string
@@ -36,7 +35,6 @@ export default function ContactPage() {
     name: "SKM파트너스",
     address: "서울특별시 강남구 테헤란로 123, 4층",
     phone: "02-123-4567",
-    fax: "02-123-4568",
     email: "bykim@skm.kr",
     business_hours: {
       weekday: "평일 09:00 - 18:00",
@@ -45,8 +43,7 @@ export default function ContactPage() {
       emergency: "긴급상황 시 24시간 대응",
     },
     map_info: {
-      map_embed_url:
-        "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.4515690893825!2d127.0282918!3d37.4969958!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca15a2f9719ab%3A0x20210a76b2b256f7!2z7YWM7Zqp66-86rWtIOuNlOuvuOq1rCDthYzsm5DroZwyNuq4uCAxMDc!5e0!3m2!1sko!2skr!4v1650000000000!5m2!1sko!2skr",
+      map_embed_url: "",
     },
   })
 
@@ -91,12 +88,14 @@ export default function ContactPage() {
         body: JSON.stringify({
           ...formData,
           service: "일반 문의",
-          status: "pending",
+          type: "contact",
         }),
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error("문의 전송에 실패했습니다.")
+        throw new Error(result.error || "문의 전송에 실패했습니다.")
       }
 
       toast({
@@ -113,6 +112,7 @@ export default function ContactPage() {
         message: "",
       })
     } catch (error) {
+      console.error("문의 전송 오류:", error)
       toast({
         title: "전송 중 오류가 발생했습니다",
         description: "잠시 후 다시 시도해주세요.",
@@ -121,6 +121,12 @@ export default function ContactPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // 구글 맵 URL 생성 (API 키 없이)
+  const getMapUrl = (address: string) => {
+    const encodedAddress = encodeURIComponent(address)
+    return `https://www.google.com/maps?q=${encodedAddress}&output=embed`
   }
 
   return (
@@ -272,12 +278,6 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold mb-1">전화</h3>
                       <p className="text-slate-600">{companyInfo.phone}</p>
-                      {companyInfo.fax && (
-                        <p className="text-slate-600 flex items-center mt-1">
-                          <Fax className="h-4 w-4 mr-1" />
-                          팩스: {companyInfo.fax}
-                        </p>
-                      )}
                       <p className="text-sm text-slate-500 mt-1">{companyInfo.business_hours.weekday}</p>
                       <p className="text-sm text-slate-500">{companyInfo.business_hours.emergency}</p>
                     </div>
@@ -320,10 +320,10 @@ export default function ContactPage() {
                   </ul>
                 </div>
 
-                {/* 동적 구글 맵 */}
+                {/* 구글 맵 (API 키 없이) */}
                 <div className="h-[300px] w-full rounded-lg overflow-hidden border">
                   <iframe
-                    src={companyInfo.map_info.map_embed_url}
+                    src={getMapUrl(companyInfo.address)}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}

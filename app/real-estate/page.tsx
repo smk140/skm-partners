@@ -1,11 +1,13 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ArrowRight, CheckCircle2, MapPin } from "lucide-react"
+import { ArrowRight, CheckCircle2, MapPin, Building, Eye, ChevronDown, ChevronUp } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
 
 // SearchBar 컴포넌트 정의
 interface SearchBarProps {
@@ -14,21 +16,82 @@ interface SearchBarProps {
 }
 
 const SearchBar = ({ placeholder, onSearch }: SearchBarProps) => {
+  const [query, setQuery] = useState("")
+
   return (
     <div className="flex">
       <input
         type="text"
         placeholder={placeholder}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
         className="flex-grow rounded-l-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
       />
-      <Button className="rounded-l-none bg-blue-600 hover:bg-blue-700" onClick={() => onSearch("검색어", {})}>
+      <Button className="rounded-l-none bg-blue-600 hover:bg-blue-700" onClick={() => onSearch(query, {})}>
         검색
       </Button>
     </div>
   )
 }
 
+interface Property {
+  id: number
+  title: string
+  location: string
+  type: string
+  size: string
+  price: string
+  description: string
+  status: string
+  created_at: string
+}
+
 export default function RealEstatePage() {
+  const [properties, setProperties] = useState<Property[]>([])
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // 매물 데이터 로드
+  useEffect(() => {
+    loadProperties()
+  }, [])
+
+  const loadProperties = async () => {
+    try {
+      const response = await fetch("/api/admin/properties")
+      if (response.ok) {
+        const data = await response.json()
+        setProperties(data.properties || [])
+        setFilteredProperties(data.properties || [])
+      }
+    } catch (error) {
+      console.error("매물 로드 실패:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 검색 기능
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (!query.trim()) {
+      setFilteredProperties(properties)
+    } else {
+      const filtered = properties.filter(
+        (property) =>
+          property.title.toLowerCase().includes(query.toLowerCase()) ||
+          property.location.toLowerCase().includes(query.toLowerCase()) ||
+          property.type.toLowerCase().includes(query.toLowerCase()),
+      )
+      setFilteredProperties(filtered)
+    }
+  }
+
+  // 표시할 매물 수 결정
+  const displayedProperties = showAll ? filteredProperties : filteredProperties.slice(0, 5)
+
   return (
     <main className="flex min-h-screen flex-col">
       {/* Hero Section */}
@@ -55,37 +118,152 @@ export default function RealEstatePage() {
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">부동산 검색</h2>
 
-            {/* 검색 컴포넌트 추가 */}
+            {/* 검색 컴포넌트 */}
             <div className="mb-8">
               <SearchBar
                 placeholder="지역, 건물 유형, 특징으로 검색 (예: 강남 오피스, 역세권 상가)"
-                onSearch={(query, filters) => {
-                  console.log("검색:", query, filters)
-                  // 여기에 검색 로직 구현
-                }}
+                onSearch={handleSearch}
               />
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg mb-6">
               <h3 className="font-medium text-blue-800 mb-2">인기 매물</h3>
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" className="bg-white">
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("강남 오피스")}>
                   강남 역세권 오피스
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white">
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("신축")}>
                   신축 상가
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white">
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("수익형")}>
                   수익형 부동산
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white">
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("리모델링")}>
                   리모델링 빌딩
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white">
+                <Button variant="outline" size="sm" className="bg-white" onClick={() => handleSearch("테헤란로")}>
                   테헤란로 사무실
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 매물 목록 섹션 */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">등록된 매물</h2>
+                <p className="text-gray-600">
+                  총 {filteredProperties.length}개의 매물이 있습니다
+                  {searchQuery && ` (검색: "${searchQuery}")`}
+                </p>
+              </div>
+              {filteredProperties.length > 5 && (
+                <Button variant="outline" onClick={() => setShowAll(!showAll)} className="flex items-center gap-2">
+                  {showAll ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      접기
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      더보기 ({filteredProperties.length - 5}개 더)
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">매물 정보를 불러오는 중...</p>
+              </div>
+            ) : displayedProperties.length === 0 ? (
+              <div className="text-center py-12">
+                <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  {searchQuery ? "검색 결과가 없습니다" : "등록된 매물이 없습니다"}
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  {searchQuery ? "다른 검색어로 시도해보세요" : "곧 다양한 매물이 등록될 예정입니다. 문의해주세요!"}
+                </p>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  문의하기
+                </Button>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedProperties.map((property) => (
+                  <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative h-48 bg-gray-200">
+                      <Image
+                        src="/placeholder.svg?height=200&width=300&text=Property"
+                        alt={property.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <Badge
+                          variant={property.status === "활성" ? "default" : "secondary"}
+                          className={property.status === "활성" ? "bg-green-600" : ""}
+                        >
+                          {property.status}
+                        </Badge>
+                      </div>
+                      <div className="absolute top-4 right-4">
+                        <Badge variant="outline" className="bg-white/90">
+                          {property.type}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-semibold mb-2">{property.title}</h3>
+                      <div className="flex items-center text-gray-500 text-sm mb-2">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        <span>{property.location}</span>
+                      </div>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">면적:</span>
+                          <span className="font-medium">{property.size}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">가격:</span>
+                          <span className="font-medium text-blue-600">{property.price}</span>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
+                      <Button variant="outline" className="w-full group">
+                        <Eye className="mr-2 h-4 w-4" />
+                        상세보기
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {filteredProperties.length > 5 && !showAll && (
+              <div className="text-center mt-8">
+                <Button
+                  onClick={() => setShowAll(true)}
+                  variant="outline"
+                  size="lg"
+                  className="flex items-center gap-2"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  {filteredProperties.length - 5}개 매물 더보기
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -362,98 +540,6 @@ export default function RealEstatePage() {
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
-        </div>
-      </section>
-
-      {/* Success Cases */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">성공 사례</h2>
-          <p className="text-center text-slate-600 mb-12 max-w-2xl mx-auto">
-            SKM파트너스의 부동산 서비스를 통해 건물 가치를 높이고 수익을 극대화한 실제 사례입니다.
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                title: "강남 오피스 빌딩",
-                location: "서울 강남구",
-                before: "공실률 40%",
-                after: "공실률 5%",
-                period: "3개월",
-                image: "/placeholder.svg?height=200&width=300&text=Case 1",
-                details:
-                  "테헤란로에 위치한 10층 규모 오피스 빌딩으로, 노후화된 시설과 관리 부실로 공실률이 40%에 달했습니다. SKM파트너스의 종합 관리 서비스 적용 후 3개월 만에 공실률 5%로 개선되었습니다.",
-              },
-              {
-                title: "분당 상가 건물",
-                location: "경기 성남시 분당구",
-                before: "공실률 30%",
-                after: "공실률 0%",
-                period: "2개월",
-                image: "/placeholder.svg?height=200&width=300&text=Case 2",
-                details:
-                  "분당 신도시 중심 상권에 위치한 5층 규모 상가 건물로, 주변 경쟁 시설 증가로 공실률이 30%까지 상승했습니다. SKM파트너스의 임대 마케팅 전략 적용 후 2개월 만에 100% 임대 달성했습니다.",
-              },
-              {
-                title: "홍대 복합 건물",
-                location: "서울 마포구",
-                before: "공실률 25%",
-                after: "공실률 3%",
-                period: "4개월",
-                image: "/placeholder.svg?height=200&width=300&text=Case 3",
-                details:
-                  "홍대입구역 인근 복합 상업시설로, 코로나19 이후 공실률이 25%까지 증가했습니다. SKM파트너스의 시설 개선 및 임대 전략 컨설팅 후 4개월 만에 공실률 3%로 회복했습니다.",
-              },
-            ].map((item, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-t-4 border-blue-600"
-              >
-                <div className="relative h-48">
-                  <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
-                  <div className="absolute top-0 right-0 bg-blue-600 text-white px-3 py-1 text-sm font-bold">
-                    {item.period} 만에 해결
-                  </div>
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                  <div className="flex items-center text-slate-500 text-sm mb-4">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>{item.location}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-4 p-2 bg-slate-50 rounded-lg">
-                    <div className="text-red-500 font-medium text-center flex-1 border-r border-slate-200">
-                      Before
-                      <br />
-                      {item.before}
-                    </div>
-                    <div className="text-slate-500 px-2">→</div>
-                    <div className="text-green-500 font-medium text-center flex-1 border-l border-slate-200">
-                      After
-                      <br />
-                      {item.after}
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-slate-600 mb-4">{item.details}</p>
-
-                  <Button variant="outline" className="w-full group">
-                    상세 사례 보기
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              더 많은 성공 사례 보기
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
           </div>
         </div>
       </section>
