@@ -1,10 +1,7 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Edit, Plus, Search, Trash2, Building, ImageIcon } from "lucide-react"
+import { Plus, Search, Trash2, Building, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { ImageUpload } from "@/components/image-upload" // Import ImageUpload
+import { ImageUpload } from "@/components/image-upload"
 
 interface Property {
   id: number
@@ -35,17 +32,7 @@ interface Property {
   description: string
   status: string
   createdAt: string
-  image_url?: string // Add image_url
-}
-
-const INITIAL_NEW_PROPERTY_STATE = {
-  title: "",
-  location: "",
-  type: "오피스",
-  size: "",
-  price: "",
-  description: "",
-  image_url: "", // Add image_url
+  image_url?: string
 }
 
 export default function AdminRealEstatePage() {
@@ -56,81 +43,138 @@ export default function AdminRealEstatePage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [newProperty, setNewProperty] = useState(INITIAL_NEW_PROPERTY_STATE)
+  // 폼 상태
+  const [title, setTitle] = useState("")
+  const [location, setLocation] = useState("")
+  const [type, setType] = useState("오피스")
+  const [size, setSize] = useState("")
+  const [price, setPrice] = useState("")
+  const [description, setDescription] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
 
   useEffect(() => {
     fetchProperties()
   }, [])
 
   const fetchProperties = async () => {
+    console.log("🔄 매물 목록 조회 시작...")
     setIsLoading(true)
     try {
-      const response = await fetch("/api/admin/properties")
+      const response = await fetch("/api/admin/properties", {
+        method: "GET",
+        cache: "no-store",
+      })
+
+      console.log("📡 응답 상태:", response.status)
+
       if (!response.ok) {
-        throw new Error("매물 정보를 불러오는데 실패했습니다.")
+        throw new Error(`HTTP 오류: ${response.status}`)
       }
+
       const data = await response.json()
+      console.log("📊 받은 데이터:", data)
+
       if (data.success && Array.isArray(data.properties)) {
         setProperties(data.properties)
+        console.log("✅ 매물 목록 설정 완료:", data.properties.length, "개")
       } else {
         setProperties([])
-        console.error("API 응답 형식이 올바르지 않거나 매물이 없습니다:", data)
+        console.warn("⚠️ 매물 데이터가 없거나 형식이 잘못됨")
       }
     } catch (error) {
-      console.error("매물 로딩 오류:", error)
-      toast({ title: "오류", description: (error as Error).message, variant: "destructive" })
+      console.error("💥 매물 조회 실패:", error)
+      toast({
+        title: "오류",
+        description: "매물 목록을 불러오는데 실패했습니다.",
+        variant: "destructive",
+      })
       setProperties([])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const filteredProperties = properties.filter(
-    (property) =>
-      property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.type.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  const resetForm = () => {
+    setTitle("")
+    setLocation("")
+    setType("오피스")
+    setSize("")
+    setPrice("")
+    setDescription("")
+    setImageUrl("")
+  }
 
   const handleAddProperty = async () => {
-    if (!newProperty.title || !newProperty.location) {
-      toast({ title: "입력 오류", description: "매물명과 위치는 필수입니다.", variant: "destructive" })
-      return
-    }
-    try {
-      const response = await fetch("/api/admin/properties", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProperty),
-      })
+    console.log("🆕 매물 추가 시작...")
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "알 수 없는 오류 발생" }))
-        throw new Error(errorData.message || "매물 추가에 실패했습니다.")
-      }
-
-      const result = await response.json()
-
-      if (result.success && result.property) {
-        // setProperties([...properties, result.property]) // Optimistic update
-        await fetchProperties() // Re-fetch to get the latest list including new ID
-        setNewProperty(INITIAL_NEW_PROPERTY_STATE) // Reset form
-        setIsAddDialogOpen(false)
-        toast({
-          title: "매물 추가 완료",
-          description: "새로운 매물이 성공적으로 추가되었습니다.",
-        })
-      } else {
-        throw new Error(result.message || "매물 추가 결과가 올바르지 않습니다.")
-      }
-    } catch (error) {
-      console.error("매물 추가 중 오류:", error)
+    if (!title.trim() || !location.trim()) {
       toast({
-        title: "오류 발생",
-        description: (error as Error).message,
+        title: "입력 오류",
+        description: "매물명과 위치는 필수입니다.",
         variant: "destructive",
       })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const propertyData = {
+        title: title.trim(),
+        location: location.trim(),
+        type,
+        size: size.trim(),
+        price: price.trim(),
+        description: description.trim(),
+        image_url: imageUrl.trim(),
+      }
+
+      console.log("📤 전송할 매물 데이터:", propertyData)
+
+      const response = await fetch("/api/admin/properties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(propertyData),
+      })
+
+      console.log("📡 추가 응답 상태:", response.status)
+
+      const result = await response.json()
+      console.log("📊 추가 응답 데이터:", result)
+
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP 오류: ${response.status}`)
+      }
+
+      if (result.success) {
+        console.log("✅ 매물 추가 성공!")
+        toast({
+          title: "성공",
+          description: "매물이 성공적으로 추가되었습니다.",
+        })
+
+        // 폼 초기화
+        resetForm()
+        setIsAddDialogOpen(false)
+
+        // 목록 새로고침
+        await fetchProperties()
+      } else {
+        throw new Error(result.message || "매물 추가에 실패했습니다.")
+      }
+    } catch (error) {
+      console.error("💥 매물 추가 실패:", error)
+      toast({
+        title: "오류",
+        description: error instanceof Error ? error.message : "매물 추가 중 오류가 발생했습니다.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -142,46 +186,40 @@ export default function AdminRealEstatePage() {
         method: "DELETE",
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "알 수 없는 오류 발생" }))
-        throw new Error(errorData.message || "매물 삭제에 실패했습니다.")
-      }
       const result = await response.json()
 
+      if (!response.ok) {
+        throw new Error(result.error || "매물 삭제에 실패했습니다.")
+      }
+
       if (result.success) {
-        // setProperties(properties.filter((p) => p.id !== selectedPropertyId)) // Optimistic update
-        await fetchProperties() // Re-fetch
+        toast({
+          title: "성공",
+          description: "매물이 성공적으로 삭제되었습니다.",
+        })
+
         setIsDeleteDialogOpen(false)
         setSelectedPropertyId(null)
-        toast({
-          title: "매물 삭제 완료",
-          description: "선택한 매물이 성공적으로 삭제되었습니다.",
-        })
+        await fetchProperties()
       } else {
-        throw new Error(result.message || "매물 삭제 결과가 올바르지 않습니다.")
+        throw new Error(result.message || "매물 삭제에 실패했습니다.")
       }
     } catch (error) {
-      console.error("매물 삭제 중 오류:", error)
+      console.error("💥 매물 삭제 실패:", error)
       toast({
-        title: "오류 발생",
-        description: (error as Error).message,
+        title: "오류",
+        description: error instanceof Error ? error.message : "매물 삭제 중 오류가 발생했습니다.",
         variant: "destructive",
       })
     }
   }
 
-  const handleNewPropertyInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setNewProperty((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleNewPropertySelectChange = (value: string) => {
-    setNewProperty((prev) => ({ ...prev, type: value }))
-  }
-
-  const handleNewPropertyImageChange = (url: string) => {
-    setNewProperty((prev) => ({ ...prev, image_url: url }))
-  }
+  const filteredProperties = properties.filter(
+    (property) =>
+      property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      property.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      property.type?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <AdminAuthCheck>
@@ -195,7 +233,7 @@ export default function AdminRealEstatePage() {
             open={isAddDialogOpen}
             onOpenChange={(isOpen) => {
               setIsAddDialogOpen(isOpen)
-              if (!isOpen) setNewProperty(INITIAL_NEW_PROPERTY_STATE) // Reset form on close
+              if (!isOpen) resetForm()
             }}
           >
             <DialogTrigger asChild>
@@ -218,15 +256,14 @@ export default function AdminRealEstatePage() {
                     </Label>
                     <Input
                       id="title"
-                      name="title"
-                      value={newProperty.title}
-                      onChange={handleNewPropertyInputChange}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       placeholder="매물 이름을 입력하세요"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="type">매물 유형</Label>
-                    <Select value={newProperty.type} onValueChange={handleNewPropertySelectChange}>
+                    <Select value={type} onValueChange={setType}>
                       <SelectTrigger id="type">
                         <SelectValue placeholder="매물 유형 선택" />
                       </SelectTrigger>
@@ -246,9 +283,8 @@ export default function AdminRealEstatePage() {
                   </Label>
                   <Input
                     id="location"
-                    name="location"
-                    value={newProperty.location}
-                    onChange={handleNewPropertyInputChange}
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
                     placeholder="주소를 입력하세요"
                   />
                 </div>
@@ -257,9 +293,8 @@ export default function AdminRealEstatePage() {
                     <Label htmlFor="size">면적</Label>
                     <Input
                       id="size"
-                      name="size"
-                      value={newProperty.size}
-                      onChange={handleNewPropertyInputChange}
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
                       placeholder="면적을 입력하세요 (예: 85평)"
                     />
                   </div>
@@ -267,9 +302,8 @@ export default function AdminRealEstatePage() {
                     <Label htmlFor="price">가격</Label>
                     <Input
                       id="price"
-                      name="price"
-                      value={newProperty.price}
-                      onChange={handleNewPropertyInputChange}
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
                       placeholder="가격을 입력하세요 (예: 월 580만원)"
                     />
                   </div>
@@ -278,9 +312,8 @@ export default function AdminRealEstatePage() {
                   <Label htmlFor="description">상세 설명</Label>
                   <Textarea
                     id="description"
-                    name="description"
-                    value={newProperty.description}
-                    onChange={handleNewPropertyInputChange}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="매물에 대한 상세 설명을 입력하세요"
                     rows={4}
                   />
@@ -288,8 +321,8 @@ export default function AdminRealEstatePage() {
                 <div className="space-y-2">
                   <ImageUpload
                     label="매물 대표 이미지"
-                    value={newProperty.image_url || ""}
-                    onChange={handleNewPropertyImageChange}
+                    value={imageUrl}
+                    onChange={setImageUrl}
                     description="매물 목록 및 상세 페이지에 사용될 대표 이미지입니다."
                   />
                 </div>
@@ -299,13 +332,14 @@ export default function AdminRealEstatePage() {
                   variant="outline"
                   onClick={() => {
                     setIsAddDialogOpen(false)
-                    setNewProperty(INITIAL_NEW_PROPERTY_STATE) // Reset form on cancel
+                    resetForm()
                   }}
+                  disabled={isSubmitting}
                 >
                   취소
                 </Button>
-                <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddProperty}>
-                  매물 추가
+                <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddProperty} disabled={isSubmitting}>
+                  {isSubmitting ? "추가 중..." : "매물 추가"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -315,7 +349,7 @@ export default function AdminRealEstatePage() {
         <Card>
           <CardHeader>
             <CardTitle>매물 목록</CardTitle>
-            <CardDescription>총 {isLoading ? "..." : properties.length}개의 매물이 등록되어 있습니다.</CardDescription>
+            <CardDescription>총 {properties.length}개의 매물이 등록되어 있습니다.</CardDescription>
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-slate-400" />
               <Input
@@ -324,6 +358,9 @@ export default function AdminRealEstatePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
               />
+              <Button onClick={fetchProperties} variant="outline" size="sm">
+                새로고침
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -368,13 +405,22 @@ export default function AdminRealEstatePage() {
                       <TableRow key={property.id}>
                         <TableCell>
                           {property.image_url ? (
-                            <Image
-                              src={property.image_url || "/placeholder.svg"}
-                              alt={property.title}
-                              width={64}
-                              height={64}
-                              className="object-cover rounded-md h-16 w-16"
-                            />
+                            <div className="relative h-16 w-16">
+                              <img
+                                src={property.image_url || "/placeholder.svg"}
+                                alt={property.title}
+                                className="object-cover rounded-md h-16 w-16"
+                                onLoad={() => console.log("✅ 테이블 이미지 로드 성공:", property.title)}
+                                onError={(e) => {
+                                  console.error("❌ 테이블 이미지 로드 실패:", property.title)
+                                  e.currentTarget.style.display = "none"
+                                  e.currentTarget.nextElementSibling?.classList.remove("hidden")
+                                }}
+                              />
+                              <div className="hidden h-16 w-16 bg-slate-100 rounded-md flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-slate-400" />
+                              </div>
+                            </div>
                           ) : (
                             <div className="h-16 w-16 bg-slate-100 rounded-md flex items-center justify-center">
                               <ImageIcon className="h-6 w-6 text-slate-400" />
@@ -397,13 +443,6 @@ export default function AdminRealEstatePage() {
                         <TableCell>{new Date(property.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" asChild disabled>
-                              {/* TODO: Edit functionality */}
-                              <Link href={`#`}>
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">수정</span>
-                              </Link>
-                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"

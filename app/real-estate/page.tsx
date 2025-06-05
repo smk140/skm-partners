@@ -99,6 +99,10 @@ export default function RealEstatePage() {
         setFilteredProperties(data.properties)
         setLastUpdated(new Date().toLocaleTimeString())
         console.log("✅ 매물 데이터 설정 완료:", data.properties.length, "개")
+
+        // 이미지가 있는 매물 수 확인
+        const propertiesWithImages = data.properties.filter((p: Property) => p.image_url)
+        console.log("🖼️ 이미지가 있는 매물:", propertiesWithImages.length, "개")
       } else {
         console.warn("⚠️ 데이터 형식이 올바르지 않음:", data)
         setProperties([])
@@ -247,15 +251,26 @@ export default function RealEstatePage() {
                 {displayedProperties.map((property) => (
                   <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative h-48 bg-gray-200">
-                      <Image
-                        src={
-                          property.image_url ||
-                          `/placeholder.svg?height=200&width=300&query=${encodeURIComponent(property.title) || "/placeholder.svg"}`
-                        }
-                        alt={property.title || "부동산 매물"}
-                        fill
-                        className="object-cover"
-                      />
+                      {property.image_url ? (
+                        <img
+                          src={property.image_url || "/placeholder.svg"}
+                          alt={property.title || "부동산 매물"}
+                          className="w-full h-full object-cover"
+                          onLoad={() => console.log("✅ 매물 이미지 로드 성공:", property.title)}
+                          onError={(e) => {
+                            console.error("❌ 매물 이미지 로드 실패:", property.title)
+                            e.currentTarget.style.display = "none"
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement
+                            if (fallback) fallback.style.display = "flex"
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-full h-full bg-gray-200 flex items-center justify-center"
+                        style={{ display: property.image_url ? "none" : "flex" }}
+                      >
+                        <Building className="h-12 w-12 text-gray-400" />
+                      </div>
                       {property.status && (
                         <div className="absolute top-4 left-4">
                           <Badge
