@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { ImageUpload } from "@/components/image-upload"
+import { ImageSelector } from "@/components/image-selector"
 
 interface Property {
   id: number
@@ -242,7 +242,7 @@ export default function AdminRealEstatePage() {
                 <Plus className="mr-2 h-4 w-4" />새 매물 추가
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[700px]">
               <DialogHeader>
                 <DialogTitle>새 매물 추가</DialogTitle>
                 <DialogDescription>
@@ -320,14 +320,14 @@ export default function AdminRealEstatePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <ImageUpload
+                  <ImageSelector
                     label="매물 대표 이미지"
                     value={imageUrl}
                     onChange={(url) => {
-                      console.log("이미지 URL 변경됨:", url.substring(0, 50) + "...")
+                      console.log("이미지 선택됨:", url)
                       setImageUrl(url)
                     }}
-                    description="매물 목록 및 상세 페이지에 사용될 대표 이미지입니다."
+                    description="매물 목록 및 상세 페이지에 사용될 대표 이미지를 선택하세요."
                   />
                 </div>
               </div>

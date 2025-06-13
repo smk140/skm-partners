@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { ArrowRight, Building, CableCarIcon as Elevator, FlameIcon as Fire, MapPin, CheckCircle2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -43,13 +42,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[600px] w-full overflow-hidden">
         <div className="absolute inset-0 bg-black/50 z-10"></div>
-        <video autoPlay muted loop className="absolute inset-0 w-full h-full object-cover">
-          <source
-            src="https://assets.mixkit.co/videos/preview/mixkit-modern-office-building-with-glass-windows-10441-large.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+        <div
+          className="absolute inset-0 w-full h-full bg-cover bg-center"
+          style={{
+            backgroundImage: `url('/placeholder.svg?height=600&width=1200&text=SKM파트너스+메인+Hero')`,
+          }}
+        ></div>
         <div className="relative z-20 container mx-auto px-4 h-full flex flex-col justify-center items-start">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 max-w-2xl leading-tight">
             <span className="text-blue-400">공실률 ZERO</span>를 위한
@@ -86,6 +84,7 @@ export default function Home() {
                 title: "건물 관리",
                 description: "종합적인 건물 관리 서비스로 건물의 가치를 높이고 관리의 효율성을 극대화합니다.",
                 link: "/services/building",
+                image: "/placeholder.svg?height=200&width=300&text=건물관리+서비스",
               },
               {
                 icon: (
@@ -101,24 +100,28 @@ export default function Home() {
                 title: "청소 서비스",
                 description: "전문적인 청소 서비스로 건물의 청결을 유지하고 쾌적한 환경을 조성합니다.",
                 link: "/services/cleaning",
+                image: "/placeholder.svg?height=200&width=300&text=청소+서비스",
               },
               {
                 icon: <Fire className="h-8 w-8 text-blue-600" />,
                 title: "소방 점검",
                 description: "소방 시설 및 스프링클러 점검과 관리로 화재 안전을 보장합니다.",
                 link: "/services/fire",
+                image: "/placeholder.svg?height=200&width=300&text=소방점검+서비스",
               },
               {
                 icon: <Elevator className="h-8 w-8 text-blue-600" />,
                 title: "엘리베이터 관리",
                 description: "정기적인 점검과 유지보수로 엘리베이터의 안전성과 효율성을 확보합니다.",
                 link: "/services/elevator",
+                image: "/placeholder.svg?height=200&width=300&text=엘리베이터+관리",
               },
               {
                 icon: <MapPin className="h-8 w-8 text-blue-600" />,
                 title: "공실 관리",
                 description: "임차인 연결 및 공실 매물 관리를 통해 건물 소유주의 수익을 극대화합니다.",
                 link: "/services/vacancy",
+                image: "/placeholder.svg?height=200&width=300&text=공실+관리",
               },
               {
                 icon: (
@@ -134,16 +137,27 @@ export default function Home() {
                 title: "부동산 서비스",
                 description: "건물 매매 및 임대 관리를 통해 부동산 자산 가치를 높이는 서비스를 제공합니다.",
                 link: "/real-estate",
+                image: "/placeholder.svg?height=200&width=300&text=부동산+서비스",
               },
             ].map((service, index) => (
               <Card
                 key={index}
                 className="overflow-hidden hover:shadow-xl transition-all duration-300 border-t-4 border-blue-600 group hover:border-blue-500 hover:-translate-y-1"
               >
-                <CardContent className="p-6">
-                  <div className="mb-4 text-blue-600 group-hover:scale-110 transition-transform duration-300">
-                    {service.icon}
+                <div className="relative h-48 bg-slate-100">
+                  <img
+                    src={service.image || "/placeholder.svg"}
+                    alt={service.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <div className="mb-2 text-white group-hover:scale-110 transition-transform duration-300">
+                      {service.icon}
+                    </div>
                   </div>
+                </div>
+                <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
                   <p className="text-slate-600 mb-4">{service.description}</p>
                   <Link
@@ -219,11 +233,10 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div className="relative h-40 rounded-lg overflow-hidden shadow-md">
-                    <Image
-                      src="/placeholder.svg?height=160&width=240&text=Before"
+                    <img
+                      src="/placeholder.svg?height=160&width=240&text=공실+Before"
                       alt="공실 Before"
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                     <div className="absolute bottom-0 left-0 bg-red-500 text-white px-2 py-1 text-sm">Before</div>
                   </div>
@@ -234,11 +247,10 @@ export default function Home() {
                 </div>
                 <div className="space-y-4">
                   <div className="relative h-40 rounded-lg overflow-hidden shadow-md">
-                    <Image
-                      src="/placeholder.svg?height=160&width=240&text=After"
+                    <img
+                      src="/placeholder.svg?height=160&width=240&text=공실+After"
                       alt="공실 After"
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                     <div className="absolute bottom-0 left-0 bg-green-500 text-white px-2 py-1 text-sm">After</div>
                   </div>

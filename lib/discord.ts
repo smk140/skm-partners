@@ -622,3 +622,147 @@ export async function sendAdminPrivacyConsentNotification() {
 export async function sendSystemUpdateNotification() {
   // 더 이상 사용하지 않음
 }
+
+// 관리자 로그인 성공 알림
+export async function sendAdminLoginSuccessNotification({
+  username,
+  ip_address,
+  timestamp,
+}: {
+  username: string
+  ip_address: string
+  timestamp: string
+}) {
+  const webhookUrl = process.env.ADMIN_DISCORD_WEBHOOK_URL || process.env.NEXT_PUBLIC_ADMIN_DISCORD_WEBHOOK_URL
+
+  if (!webhookUrl) {
+    console.log("Admin Discord webhook URL not configured")
+    return false
+  }
+
+  const embed: DiscordEmbed = {
+    title: "🔐 관리자 로그인 성공",
+    description: `관리자가 시스템에 로그인했습니다.`,
+    color: 0x00ff00,
+    fields: [
+      {
+        name: "👤 사용자",
+        value: username,
+        inline: true,
+      },
+      {
+        name: "🌐 접속 위치",
+        value: ip_address,
+        inline: true,
+      },
+      {
+        name: "⏰ 로그인 시간",
+        value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+        inline: true,
+      },
+    ],
+    timestamp: timestamp,
+    footer: {
+      text: "SKM파트너스 관리자 시스템",
+    },
+  }
+
+  const message: DiscordMessage = {
+    content: "✅ 관리자가 시스템에 로그인했습니다.",
+    embeds: [embed],
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Admin login Discord webhook error:", errorText)
+      return false
+    }
+
+    console.log("Admin login notification sent successfully")
+    return true
+  } catch (error) {
+    console.error("Failed to send admin login notification:", error)
+    return false
+  }
+}
+
+// 관리자 로그인 실패 알림
+export async function sendAdminLoginFailureNotification({
+  username,
+  ip_address,
+  timestamp,
+}: {
+  username: string
+  ip_address: string
+  timestamp: string
+}) {
+  const webhookUrl = process.env.SECURITY_DISCORD_WEBHOOK_URL || process.env.NEXT_PUBLIC_SECURITY_DISCORD_WEBHOOK_URL
+
+  if (!webhookUrl) {
+    console.log("Security Discord webhook URL not configured")
+    return false
+  }
+
+  const embed: DiscordEmbed = {
+    title: "⚠️ 관리자 로그인 실패",
+    description: `잘못된 관리자 로그인 시도가 감지되었습니다.`,
+    color: 0xff0000,
+    fields: [
+      {
+        name: "👤 시도한 사용자명",
+        value: username,
+        inline: true,
+      },
+      {
+        name: "🌐 접속 위치",
+        value: ip_address,
+        inline: true,
+      },
+      {
+        name: "⏰ 시도 시간",
+        value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+        inline: true,
+      },
+    ],
+    timestamp: timestamp,
+    footer: {
+      text: "SKM파트너스 보안 시스템",
+    },
+  }
+
+  const message: DiscordMessage = {
+    content: "🚨 **보안 알림** - 잘못된 관리자 로그인 시도가 감지되었습니다!",
+    embeds: [embed],
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Admin login failure Discord webhook error:", errorText)
+      return false
+    }
+
+    console.log("Admin login failure notification sent successfully")
+    return true
+  } catch (error) {
+    console.error("Failed to send admin login failure notification:", error)
+    return false
+  }
+}

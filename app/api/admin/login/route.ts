@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { sendDiscordNotification } from "@/lib/discord"
+import { sendAdminLoginSuccessNotification, sendAdminLoginFailureNotification } from "@/lib/discord"
 
 export async function POST(request: Request) {
   try {
@@ -11,22 +11,10 @@ export async function POST(request: Request) {
     if (username === "admin" && password === "skm2024!@#") {
       // 로그인 성공 - Discord 알림 발송
       try {
-        await sendDiscordNotification({
-          title: "🔐 관리자 로그인 성공",
-          description: `관리자가 시스템에 로그인했습니다.`,
-          color: 0x00ff00,
-          fields: [
-            {
-              name: "시간",
-              value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
-              inline: true,
-            },
-            {
-              name: "사용자",
-              value: username,
-              inline: true,
-            },
-          ],
+        await sendAdminLoginSuccessNotification({
+          username: username,
+          ip_address: "관리자 시스템",
+          timestamp: new Date().toISOString(),
         })
       } catch (discordError) {
         console.error("Discord notification failed:", discordError)
@@ -43,22 +31,10 @@ export async function POST(request: Request) {
     } else {
       // 로그인 실패 - Discord 알림 발송
       try {
-        await sendDiscordNotification({
-          title: "⚠️ 관리자 로그인 실패",
-          description: `잘못된 로그인 시도가 감지되었습니다.`,
-          color: 0xff0000,
-          fields: [
-            {
-              name: "시간",
-              value: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
-              inline: true,
-            },
-            {
-              name: "시도한 사용자명",
-              value: username,
-              inline: true,
-            },
-          ],
+        await sendAdminLoginFailureNotification({
+          username: username,
+          ip_address: "관리자 시스템",
+          timestamp: new Date().toISOString(),
         })
       } catch (discordError) {
         console.error("Discord notification failed:", discordError)

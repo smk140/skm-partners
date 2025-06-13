@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Trash2, Save, RefreshCw, MapPin, Clock, Users, Award, ImageIcon } from "lucide-react"
+import { Plus, Trash2, Save, RefreshCw, MapPin, Users, ImageIcon } from "lucide-react"
 import { ImageUpload } from "@/components/image-upload"
 
 interface CompanyInfo {
@@ -63,17 +63,7 @@ interface Executive {
   position: string
   bio: string
   order_index: number
-}
-
-interface SuccessCase {
-  id: number
-  title: string
-  location: string
-  before_status: string
-  after_status: string
-  period: string
-  details: string
-  image_url: string | null
+  image_url?: string
 }
 
 export default function CompanyManagementPage() {
@@ -127,11 +117,8 @@ export default function CompanyManagementPage() {
     },
   })
 
-  // 임원 정보 (사진 제외)
+  // 임원 정보
   const [executives, setExecutives] = useState<Executive[]>([])
-
-  // 성공 사례
-  const [successCases, setSuccessCases] = useState<SuccessCase[]>([])
 
   // 데이터 로드
   useEffect(() => {
@@ -187,9 +174,6 @@ export default function CompanyManagementPage() {
       if (data.executives) {
         setExecutives(data.executives)
       }
-      if (data.successCases) {
-        setSuccessCases(data.successCases)
-      }
 
       toast({
         title: "데이터 로드 완료",
@@ -205,24 +189,6 @@ export default function CompanyManagementPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // 구글 맵 URL 자동 생성
-  const generateMapUrl = (address: string) => {
-    const encodedAddress = encodeURIComponent(address)
-    return `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodedAddress}&zoom=16`
-  }
-
-  // 주소 변경 시 맵 URL 자동 업데이트
-  const handleAddressChange = (newAddress: string) => {
-    setCompanyInfo((prev) => ({
-      ...prev,
-      address: newAddress,
-      map_info: {
-        ...prev.map_info,
-        map_embed_url: generateMapUrl(newAddress),
-      },
-    }))
   }
 
   // 회사 기본 정보 저장
@@ -299,43 +265,6 @@ export default function CompanyManagementPage() {
     }
   }
 
-  // 성공 사례 저장
-  const saveSuccessCases = async () => {
-    setIsSaving(true)
-    try {
-      const response = await fetch("/api/admin/company", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "success_cases",
-          data: successCases,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || "저장에 실패했습니다.")
-      }
-
-      toast({
-        title: "저장 완료",
-        description: "성공 사례가 성공적으로 저장되었습니다.",
-      })
-    } catch (error) {
-      console.error("Failed to save success cases:", error)
-      toast({
-        title: "저장 실패",
-        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   // 서비스 추가/삭제
   const addService = () => {
     setCompanyInfo((prev) => ({
@@ -358,28 +287,6 @@ export default function CompanyManagementPage() {
     }))
   }
 
-  // 인증 추가/삭제
-  const addCertification = () => {
-    setCompanyInfo((prev) => ({
-      ...prev,
-      certifications: [...prev.certifications, ""],
-    }))
-  }
-
-  const removeCertification = (index: number) => {
-    setCompanyInfo((prev) => ({
-      ...prev,
-      certifications: prev.certifications.filter((_, i) => i !== index),
-    }))
-  }
-
-  const updateCertification = (index: number, value: string) => {
-    setCompanyInfo((prev) => ({
-      ...prev,
-      certifications: prev.certifications.map((cert, i) => (i === index ? value : cert)),
-    }))
-  }
-
   // 임원 추가
   const addExecutive = () => {
     const newExecutive: Executive = {
@@ -388,6 +295,7 @@ export default function CompanyManagementPage() {
       position: "",
       bio: "",
       order_index: executives.length + 1,
+      image_url: "",
     }
     setExecutives([...executives, newExecutive])
   }
@@ -395,26 +303,6 @@ export default function CompanyManagementPage() {
   // 임원 삭제
   const removeExecutive = (id: number) => {
     setExecutives(executives.filter((exec) => exec.id !== id))
-  }
-
-  // 성공 사례 추가
-  const addSuccessCase = () => {
-    const newCase: SuccessCase = {
-      id: Date.now(),
-      title: "",
-      location: "",
-      before_status: "",
-      after_status: "",
-      period: "",
-      details: "",
-      image_url: null,
-    }
-    setSuccessCases([...successCases, newCase])
-  }
-
-  // 성공 사례 삭제
-  const removeSuccessCase = (id: number) => {
-    setSuccessCases(successCases.filter((caseItem) => caseItem.id !== id))
   }
 
   if (isLoading) {
@@ -433,7 +321,7 @@ export default function CompanyManagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">회사 정보 관리</h1>
-          <p className="text-gray-600 mt-1">회사의 모든 정보를 상세하게 관리합니다</p>
+          <p className="text-gray-600 mt-1">회사의 기본 정보를 관리합니다</p>
         </div>
         <Button onClick={loadCompanyData} variant="outline" className="flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
@@ -442,12 +330,10 @@ export default function CompanyManagementPage() {
       </div>
 
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basic">기본 정보</TabsTrigger>
           <TabsTrigger value="contact">연락처</TabsTrigger>
-          <TabsTrigger value="business">운영 정보</TabsTrigger>
-          <TabsTrigger value="social">소셜 미디어</TabsTrigger>
-          <TabsTrigger value="images">사이트 이미지</TabsTrigger>
+          <TabsTrigger value="images">이미지</TabsTrigger>
           <TabsTrigger value="executives">임원진</TabsTrigger>
         </TabsList>
 
@@ -483,36 +369,6 @@ export default function CompanyManagementPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="established-year">설립년도</Label>
-                  <Input
-                    id="established-year"
-                    value={companyInfo.established_year}
-                    onChange={(e) => setCompanyInfo({ ...companyInfo, established_year: e.target.value })}
-                    placeholder="2020"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="employee-count">직원 수</Label>
-                  <Input
-                    id="employee-count"
-                    value={companyInfo.employee_count}
-                    onChange={(e) => setCompanyInfo({ ...companyInfo, employee_count: e.target.value })}
-                    placeholder="15명"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="service-area">서비스 지역</Label>
-                  <Input
-                    id="service-area"
-                    value={companyInfo.service_area}
-                    onChange={(e) => setCompanyInfo({ ...companyInfo, service_area: e.target.value })}
-                    placeholder="서울, 경기, 인천"
-                  />
-                </div>
-              </div>
-
               <div>
                 <Label htmlFor="company-description">회사 소개</Label>
                 <Textarea
@@ -521,16 +377,6 @@ export default function CompanyManagementPage() {
                   onChange={(e) => setCompanyInfo({ ...companyInfo, description: e.target.value })}
                   placeholder="회사에 대한 상세한 소개를 입력하세요"
                   rows={4}
-                />
-              </div>
-
-              <div>
-                <Label>회사 로고</Label>
-                <ImageUpload
-                  value={companyInfo.logo_url || ""}
-                  onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
-                  label="회사 로고 이미지"
-                  description="웹사이트 상단에 표시되는 회사 로고입니다. 투명 배경의 PNG 파일을 권장합니다."
                 />
               </div>
 
@@ -559,39 +405,6 @@ export default function CompanyManagementPage() {
                 </div>
               </div>
 
-              {/* 인증 및 자격 */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <Label className="flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    인증 및 자격
-                  </Label>
-                  <Button onClick={addCertification} variant="outline" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    인증 추가
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {companyInfo.certifications.map((cert, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Input
-                        value={cert}
-                        onChange={(e) => updateCertification(index, e.target.value)}
-                        placeholder="인증명을 입력하세요"
-                      />
-                      <Button
-                        onClick={() => removeCertification(index)}
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
                 <Save className="h-4 w-4" />
                 {isSaving ? "저장 중..." : "기본 정보 저장"}
@@ -600,7 +413,7 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 연락처 정보 탭 (팩스 번호 제거) */}
+        {/* 연락처 정보 탭 */}
         <TabsContent value="contact">
           <Card>
             <CardHeader>
@@ -608,7 +421,7 @@ export default function CompanyManagementPage() {
                 <MapPin className="h-5 w-5" />
                 연락처 및 위치 정보
               </CardTitle>
-              <CardDescription>연락처 정보와 구글 맵 연동을 관리합니다</CardDescription>
+              <CardDescription>연락처 정보를 관리합니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -634,24 +447,13 @@ export default function CompanyManagementPage() {
               </div>
 
               <div>
-                <Label htmlFor="company-website">웹사이트</Label>
-                <Input
-                  id="company-website"
-                  value={companyInfo.website}
-                  onChange={(e) => setCompanyInfo({ ...companyInfo, website: e.target.value })}
-                  placeholder="https://skm.kr"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="company-address">주소 (구글 맵 자동 연동)</Label>
+                <Label htmlFor="company-address">주소</Label>
                 <Input
                   id="company-address"
                   value={companyInfo.address}
-                  onChange={(e) => handleAddressChange(e.target.value)}
+                  onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })}
                   placeholder="서울특별시 강남구 테헤란로 123, 4층"
                 />
-                <p className="text-sm text-gray-500 mt-1">주소를 변경하면 구글 맵이 자동으로 업데이트됩니다.</p>
               </div>
 
               <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
@@ -662,353 +464,108 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 운영 정보 탭 */}
-        <TabsContent value="business">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                운영 시간 및 정보
-              </CardTitle>
-              <CardDescription>운영 시간과 관련 정보를 관리합니다</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="weekday-hours">평일 운영시간</Label>
-                  <Input
-                    id="weekday-hours"
-                    value={companyInfo.business_hours.weekday}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        business_hours: { ...companyInfo.business_hours, weekday: e.target.value },
-                      })
-                    }
-                    placeholder="평일 09:00 - 18:00"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="weekend-hours">주말 운영시간</Label>
-                  <Input
-                    id="weekend-hours"
-                    value={companyInfo.business_hours.weekend}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        business_hours: { ...companyInfo.business_hours, weekend: e.target.value },
-                      })
-                    }
-                    placeholder="토요일 09:00 - 15:00"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="holiday-hours">휴일 안내</Label>
-                  <Input
-                    id="holiday-hours"
-                    value={companyInfo.business_hours.holiday}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        business_hours: { ...companyInfo.business_hours, holiday: e.target.value },
-                      })
-                    }
-                    placeholder="일요일 및 공휴일 휴무"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="emergency-hours">긴급 대응</Label>
-                  <Input
-                    id="emergency-hours"
-                    value={companyInfo.business_hours.emergency}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        business_hours: { ...companyInfo.business_hours, emergency: e.target.value },
-                      })
-                    }
-                    placeholder="긴급상황 시 24시간 대응"
-                  />
-                </div>
-              </div>
-
-              <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                {isSaving ? "저장 중..." : "운영 정보 저장"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 소셜 미디어 탭 */}
-        <TabsContent value="social">
-          <Card>
-            <CardHeader>
-              <CardTitle>소셜 미디어 링크</CardTitle>
-              <CardDescription>소셜 미디어 계정 링크를 관리합니다</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="facebook">Facebook</Label>
-                  <Input
-                    id="facebook"
-                    value={companyInfo.social_media.facebook}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        social_media: { ...companyInfo.social_media, facebook: e.target.value },
-                      })
-                    }
-                    placeholder="https://facebook.com/skmpartners"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    value={companyInfo.social_media.instagram}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        social_media: { ...companyInfo.social_media, instagram: e.target.value },
-                      })
-                    }
-                    placeholder="https://instagram.com/skmpartners"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="linkedin">LinkedIn</Label>
-                  <Input
-                    id="linkedin"
-                    value={companyInfo.social_media.linkedin}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        social_media: { ...companyInfo.social_media, linkedin: e.target.value },
-                      })
-                    }
-                    placeholder="https://linkedin.com/company/skmpartners"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="youtube">YouTube</Label>
-                  <Input
-                    id="youtube"
-                    value={companyInfo.social_media.youtube}
-                    onChange={(e) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        social_media: { ...companyInfo.social_media, youtube: e.target.value },
-                      })
-                    }
-                    placeholder="https://youtube.com/@skmpartners"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="blog">블로그</Label>
-                <Input
-                  id="blog"
-                  value={companyInfo.social_media.blog}
-                  onChange={(e) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      social_media: { ...companyInfo.social_media, blog: e.target.value },
-                    })
-                  }
-                  placeholder="https://blog.skm.kr"
-                />
-              </div>
-
-              <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                {isSaving ? "저장 중..." : "소셜 미디어 저장"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* 사이트 이미지 관리 탭 - 이미지 설명 개선 */}
+        {/* 이미지 관리 탭 - 이름 수정 */}
         <TabsContent value="images">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                사이트 이미지 관리
+                이미지 관리
               </CardTitle>
-              <CardDescription>웹사이트에 사용되는 모든 이미지를 관리합니다</CardDescription>
+              <CardDescription>웹사이트에 사용되는 이미지를 관리합니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-8">
                 <div>
-                  <Label className="text-base font-medium">메인 페이지 히어로 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    메인 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x600px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.hero_main || ""}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, hero_main: url },
-                      })
-                    }
-                    label="메인 페이지 배경 이미지"
-                    description="메인 페이지(/) 상단에 표시되는 대형 배경 이미지입니다. 권장 크기: 1920x600px"
+                    label="회사 로고"
+                    value={companyInfo.logo_url}
+                    onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
                   />
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">회사 소개 페이지 히어로 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    회사 소개 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.hero_about || ""}
+                    label="회사소개 페이지 상단 이미지"
+                    value={companyInfo.site_images.hero_about}
                     onChange={(url) =>
                       setCompanyInfo({
                         ...companyInfo,
                         site_images: { ...companyInfo.site_images, hero_about: url },
                       })
                     }
-                    label="회사 소개 페이지 배경 이미지"
-                    description="회사 소개 페이지(/about) 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">서비스 페이지 히어로 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    서비스 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.hero_services || ""}
+                    label="건물관리 서비스 이미지"
+                    value={companyInfo.site_images.hero_services}
                     onChange={(url) =>
                       setCompanyInfo({
                         ...companyInfo,
                         site_images: { ...companyInfo.site_images, hero_services: url },
                       })
                     }
-                    label="서비스 페이지 배경 이미지"
-                    description="서비스 페이지 상단 배경으로 사용됩니다"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">문의하기 페이지 히어로 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    문의하기 페이지 상단에 표시되는 배경 이미지입니다. 권장 크기: 1920x400px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.hero_contact || ""}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, hero_contact: url },
-                      })
-                    }
-                    label="문의하기 페이지 배경 이미지"
-                    description="문의하기 페이지 상단 배경으로 사용됩니다"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-base font-medium">회사 건물 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    회사 소개 페이지에 표시되는 회사 건물 이미지입니다. 권장 크기: 800x600px
-                  </p>
-                  <ImageUpload
-                    value={companyInfo.site_images.company_building || ""}
+                    label="회사 건물 외관 이미지"
+                    value={companyInfo.site_images.company_building}
                     onChange={(url) =>
                       setCompanyInfo({
                         ...companyInfo,
                         site_images: { ...companyInfo.site_images, company_building: url },
                       })
                     }
-                    label="회사 건물 외관 이미지"
-                    description="회사 소개 페이지에 표시되는 건물 이미지입니다"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">팀 단체 사진</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    회사 소개 페이지에 표시되는 팀 단체 사진입니다. 권장 크기: 1200x800px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.team_photo || ""}
+                    label="팀 단체 사진"
+                    value={companyInfo.site_images.team_photo}
                     onChange={(url) =>
                       setCompanyInfo({
                         ...companyInfo,
                         site_images: { ...companyInfo.site_images, team_photo: url },
                       })
                     }
-                    label="팀 단체 사진"
-                    description="회사 소개 페이지에 표시되는 팀 단체 사진입니다"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">사무실 내부 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    회사 소개 또는 서비스 페이지에 표시되는 사무실 내부 이미지입니다. 권장 크기: 800x600px
-                  </p>
                   <ImageUpload
-                    value={companyInfo.site_images.office_interior || ""}
+                    label="사무실 내부 이미지"
+                    value={companyInfo.site_images.office_interior}
                     onChange={(url) =>
                       setCompanyInfo({
                         ...companyInfo,
                         site_images: { ...companyInfo.site_images, office_interior: url },
                       })
                     }
-                    label="사무실 내부 이미지"
-                    description="회사 소개 또는 서비스 페이지에 표시되는 사무실 내부 이미지입니다"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-base font-medium">서비스 소개 이미지</Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    서비스 페이지에 표시되는 서비스 소개 이미지입니다. 권장 크기:
-                  </p>
-                  <ImageUpload
-                    value={companyInfo.site_images.service_showcase || ""}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, service_showcase: url },
-                      })
-                    }
-                    label="서비스 소개 이미지"
-                    description="서비스 페이지에 표시되는 서비스 소개 이미지입니다"
                   />
                 </div>
               </div>
 
               <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
                 <Save className="h-4 w-4" />
-                {isSaving ? "저장 중..." : "사이트 이미지 저장"}
+                {isSaving ? "저장 중..." : "이미지 저장"}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* 임원진 탭 (사진 제외) */}
+        {/* 임원진 탭 */}
         <TabsContent value="executives">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>임원 정보</CardTitle>
-                  <CardDescription>회사 임원진의 정보를 관리합니다 (사진 제외)</CardDescription>
+                  <CardDescription>회사 임원진의 정보를 관리합니다</CardDescription>
                 </div>
                 <Button onClick={addExecutive} variant="outline" className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
@@ -1070,6 +627,18 @@ export default function CompanyManagementPage() {
                       }}
                       placeholder="임원에 대한 간단한 소개를 입력하세요"
                       rows={3}
+                    />
+                  </div>
+                  <div>
+                    <ImageUpload
+                      label="임원 사진"
+                      value={executive.image_url || ""}
+                      onChange={(url) => {
+                        const updated = executives.map((exec) =>
+                          exec.id === executive.id ? { ...exec, image_url: url } : exec,
+                        )
+                        setExecutives(updated)
+                      }}
                     />
                   </div>
                 </div>
