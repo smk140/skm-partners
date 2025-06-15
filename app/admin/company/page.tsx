@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Trash2, Save, RefreshCw, MapPin, Users, ImageIcon } from "lucide-react"
-import { ImageSelector } from "@/components/image-selector"
+import { ImageUpload } from "@/components/image-upload"
 
 interface CompanyInfo {
   name: string
@@ -464,90 +464,78 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 이미지 관리 탭 - 선택만 가능 */}
+        {/* 이미지 관리 탭 */}
         <TabsContent value="images">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                이미지 선택
+                이미지 업로드
               </CardTitle>
-              <CardDescription>미리 준비된 이미지 중에서 선택합니다</CardDescription>
+              <CardDescription>클라우드에서 이미지를 업로드합니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 gap-8">
-                <div>
-                  <ImageSelector
-                    value={companyInfo.logo_url}
-                    onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
-                    label="회사 로고"
-                  />
-                </div>
+                <ImageUpload
+                  label="회사 로고"
+                  value={companyInfo.logo_url}
+                  onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
+                />
 
-                <div>
-                  <ImageSelector
-                    value={companyInfo.site_images.hero_about}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, hero_about: url },
-                      })
-                    }
-                    label="회사소개 페이지 상단 이미지"
-                  />
-                </div>
+                <ImageUpload
+                  label="회사소개 페이지 상단 이미지"
+                  value={companyInfo.site_images.hero_about}
+                  onChange={(url) =>
+                    setCompanyInfo({
+                      ...companyInfo,
+                      site_images: { ...companyInfo.site_images, hero_about: url },
+                    })
+                  }
+                />
 
-                <div>
-                  <ImageSelector
-                    value={companyInfo.site_images.hero_services}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, hero_services: url },
-                      })
-                    }
-                    label="건물관리 서비스 이미지"
-                  />
-                </div>
+                <ImageUpload
+                  label="건물관리 서비스 이미지"
+                  value={companyInfo.site_images.hero_services}
+                  onChange={(url) =>
+                    setCompanyInfo({
+                      ...companyInfo,
+                      site_images: { ...companyInfo.site_images, hero_services: url },
+                    })
+                  }
+                />
 
-                <div>
-                  <ImageSelector
-                    value={companyInfo.site_images.company_building}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, company_building: url },
-                      })
-                    }
-                    label="회사 건물 외관 이미지"
-                  />
-                </div>
+                <ImageUpload
+                  label="회사 건물 외관 이미지"
+                  value={companyInfo.site_images.company_building}
+                  onChange={(url) =>
+                    setCompanyInfo({
+                      ...companyInfo,
+                      site_images: { ...companyInfo.site_images, company_building: url },
+                    })
+                  }
+                />
 
-                <div>
-                  <ImageSelector
-                    value={companyInfo.site_images.team_photo}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, team_photo: url },
-                      })
-                    }
-                    label="팀 단체 사진"
-                  />
-                </div>
+                <ImageUpload
+                  label="팀 단체 사진"
+                  value={companyInfo.site_images.team_photo}
+                  onChange={(url) =>
+                    setCompanyInfo({
+                      ...companyInfo,
+                      site_images: { ...companyInfo.site_images, team_photo: url },
+                    })
+                  }
+                />
 
-                <div>
-                  <ImageSelector
-                    value={companyInfo.site_images.office_interior}
-                    onChange={(url) =>
-                      setCompanyInfo({
-                        ...companyInfo,
-                        site_images: { ...companyInfo.site_images, office_interior: url },
-                      })
-                    }
-                    label="사무실 내부 이미지"
-                  />
-                </div>
+                <ImageUpload
+                  label="사무실 내부 이미지"
+                  value={companyInfo.site_images.office_interior}
+                  onChange={(url) =>
+                    setCompanyInfo({
+                      ...companyInfo,
+                      site_images: { ...companyInfo.site_images, office_interior: url },
+                    })
+                  }
+                />
               </div>
 
               <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
@@ -630,7 +618,8 @@ export default function CompanyManagementPage() {
                     />
                   </div>
                   <div>
-                    <ImageSelector
+                    <ImageUpload
+                      label="임원 사진"
                       value={executive.image_url || ""}
                       onChange={(url) => {
                         const updated = executives.map((exec) =>
@@ -638,7 +627,6 @@ export default function CompanyManagementPage() {
                         )
                         setExecutives(updated)
                       }}
-                      label="임원 사진"
                     />
                   </div>
                 </div>
