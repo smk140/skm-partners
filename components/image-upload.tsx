@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Upload, X, Loader2, AlertCircle, ImageIcon } from "lucide-react"
+import { Upload, X, Loader2, AlertCircle, ImageIcon, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ImageUploadProps {
@@ -17,7 +17,15 @@ interface ImageUploadProps {
 export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState(value)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // value prop이 변경될 때 로컬 상태 업데이트
+  useEffect(() => {
+    setImageUrl(value)
+    console.log("ImageUpload value 변경됨:", value)
+  }, [value])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -39,12 +47,16 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
 
     setIsUploading(true)
     setError(null)
+    setSuccess(null)
 
     try {
       console.log("Base64 변환 시작...")
       // Base64로 인코딩
       const base64 = await convertToBase64(file)
       console.log("Base64 변환 완료, 길이:", base64.length)
+
+      // 미리보기를 위해 즉시 로컬 상태 업데이트
+      setImageUrl(base64)
 
       console.log("서버 업로드 시작...")
       // 서버에 업로드 (기본 방법 시도)
@@ -93,11 +105,20 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       const data = await response.json()
       console.log("업로드 성공 데이터:", data)
 
-      onChange(data.url) // 업로드된 이미지 URL을 상태에 저장
+      // 성공 시 URL 업데이트
+      const finalUrl = data.url
+      setImageUrl(finalUrl)
+      onChange(finalUrl) // 부모 컴포넌트에 알림
+
+      setSuccess(`이미지가 성공적으로 업로드되었습니다: ${data.filename}`)
       setError(null)
+
+      console.log("최종 이미지 URL:", finalUrl)
+      console.log("onChange 호출됨:", finalUrl)
     } catch (err) {
       console.error("업로드 실패:", err)
       setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
+      setImageUrl(value) // 원래 값으로 복원
     } finally {
       setIsUploading(false)
       // 파일 입력 초기화
@@ -123,24 +144,40 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     })
   }
 
+  const handleRemove = () => {
+    setImageUrl("")
+    onChange("")
+    setSuccess(null)
+    setError(null)
+    console.log("이미지 제거됨")
+  }
+
   return (
     <div className="space-y-4">
       {label && <Label className="block font-medium text-sm">{label}</Label>}
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-        {value ? (
+        {imageUrl ? (
           <div className="space-y-4">
             <div className="relative">
               <img
-                src={value || "/placeholder.svg"}
+                src={imageUrl || "/placeholder.svg"}
                 alt="업로드된 이미지"
                 className="max-h-48 max-w-full object-contain mx-auto rounded-lg"
+                onLoad={() => {
+                  console.log("이미지 로드 성공:", imageUrl)
+                }}
                 onError={(e) => {
-                  console.error("이미지 로드 실패:", value)
+                  console.error("이미지 로드 실패:", imageUrl)
                   e.currentTarget.src = "/placeholder.svg"
                   setError("이미지를 불러올 수 없습니다.")
                 }}
               />
+              {isUploading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                  <Loader2 className="h-8 w-8 animate-spin text-white" />
+                </div>
+              )}
             </div>
             <div className="flex items-center justify-center gap-2">
               <Button
@@ -157,8 +194,9 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => onChange("")}
+                onClick={handleRemove}
                 className="text-red-500 hover:text-red-700"
+                disabled={isUploading}
               >
                 <X className="h-4 w-4 mr-1" />
                 삭제
@@ -203,6 +241,13 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
           className="hidden"
         />
       </div>
+
+      {success && (
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">{success}</AlertDescription>
+        </Alert>
+      )}
 
       {error && (
         <Alert variant="destructive">

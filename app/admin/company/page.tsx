@@ -191,10 +191,31 @@ export default function CompanyManagementPage() {
     }
   }
 
-  // 회사 기본 정보 저장
+  // 이미지 URL 업데이트 함수들 추가
+  const updateCompanyImage = (field: keyof CompanyInfo["site_images"], url: string) => {
+    console.log(`이미지 업데이트: ${field} = ${url}`)
+    setCompanyInfo((prev) => ({
+      ...prev,
+      site_images: {
+        ...prev.site_images,
+        [field]: url,
+      },
+    }))
+  }
+
+  const updateLogoUrl = (url: string) => {
+    console.log(`로고 업데이트: ${url}`)
+    setCompanyInfo((prev) => ({
+      ...prev,
+      logo_url: url,
+    }))
+  }
+
   const saveCompanyInfo = async () => {
     setIsSaving(true)
     try {
+      console.log("저장할 회사 정보:", companyInfo)
+
       const response = await fetch("/api/admin/company", {
         method: "PUT",
         headers: {
@@ -212,10 +233,17 @@ export default function CompanyManagementPage() {
         throw new Error(result.error || "저장에 실패했습니다.")
       }
 
+      console.log("저장 성공:", result)
+
       toast({
         title: "저장 완료",
         description: "회사 정보가 성공적으로 저장되었습니다.",
       })
+
+      // 저장 후 데이터 다시 로드하여 확인
+      setTimeout(() => {
+        loadCompanyData()
+      }, 1000)
     } catch (error) {
       console.error("Failed to save company info:", error)
       toast({
@@ -476,65 +504,36 @@ export default function CompanyManagementPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 gap-8">
-                <ImageUpload
-                  label="회사 로고"
-                  value={companyInfo.logo_url}
-                  onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
-                />
+                <ImageUpload label="회사 로고" value={companyInfo.logo_url} onChange={updateLogoUrl} />
 
                 <ImageUpload
                   label="회사소개 페이지 상단 이미지"
                   value={companyInfo.site_images.hero_about}
-                  onChange={(url) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      site_images: { ...companyInfo.site_images, hero_about: url },
-                    })
-                  }
+                  onChange={(url) => updateCompanyImage("hero_about", url)}
                 />
 
                 <ImageUpload
                   label="건물관리 서비스 이미지"
                   value={companyInfo.site_images.hero_services}
-                  onChange={(url) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      site_images: { ...companyInfo.site_images, hero_services: url },
-                    })
-                  }
+                  onChange={(url) => updateCompanyImage("hero_services", url)}
                 />
 
                 <ImageUpload
                   label="회사 건물 외관 이미지"
                   value={companyInfo.site_images.company_building}
-                  onChange={(url) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      site_images: { ...companyInfo.site_images, company_building: url },
-                    })
-                  }
+                  onChange={(url) => updateCompanyImage("company_building", url)}
                 />
 
                 <ImageUpload
                   label="팀 단체 사진"
                   value={companyInfo.site_images.team_photo}
-                  onChange={(url) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      site_images: { ...companyInfo.site_images, team_photo: url },
-                    })
-                  }
+                  onChange={(url) => updateCompanyImage("team_photo", url)}
                 />
 
                 <ImageUpload
                   label="사무실 내부 이미지"
                   value={companyInfo.site_images.office_interior}
-                  onChange={(url) =>
-                    setCompanyInfo({
-                      ...companyInfo,
-                      site_images: { ...companyInfo.site_images, office_interior: url },
-                    })
-                  }
+                  onChange={(url) => updateCompanyImage("office_interior", url)}
                 />
               </div>
 
