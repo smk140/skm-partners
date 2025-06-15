@@ -47,8 +47,8 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       console.log("Base64 변환 완료, 길이:", base64.length)
 
       console.log("서버 업로드 시작...")
-      // 서버에 업로드
-      const response = await fetch("/api/admin/upload-image", {
+      // 서버에 업로드 (기본 방법 시도)
+      let response = await fetch("/api/admin/upload-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,6 +58,21 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
           filename: file.name,
         }),
       })
+
+      // 기본 방법 실패 시 임시 방법 시도
+      if (!response.ok) {
+        console.log("기본 업로드 실패, 임시 방법 시도...")
+        response = await fetch("/api/admin/upload-image-temp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: base64,
+            filename: file.name,
+          }),
+        })
+      }
 
       console.log("서버 응답 상태:", response.status)
 

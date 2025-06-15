@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import fs from "fs"
+import { writeFile, mkdir } from "fs/promises"
+import { existsSync } from "fs"
 import path from "path"
 
 // 이미지 업로드 처리
@@ -63,41 +64,79 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "파일 크기는 5MB 이하여야 합니다." }, { status: 400 })
     }
 
-    // 파일명 생성
+    // 파일명 생성 (더 안전한 방식)
     const timestamp = Date.now()
-    const ext = path.extname(filename) || ".jpg"
-    const sanitizedFilename = path.basename(filename, ext).replace(/[^a-zA-Z0-9가-힣]/g, "-")
-    const newFilename = `${sanitizedFilename}-${timestamp}${ext}`
+    const randomId = Math.random().toString(36).substring(2, 8)
+    const ext = path.extname(filename).toLowerCase() || ".jpg"
 
+    // 파일명에서 특수문자 제거
+    const baseName = path
+      .basename(filename, ext)
+      .replace(/[^a-zA-Z0-9가-힣\-_]/g, "")
+      .substring(0, 20) // 길이 제한
+
+    const newFilename = `${baseName || "image"}-${timestamp}-${randomId}${ext}`
     console.log("새 파일명:", newFilename)
 
-    // 저장 경로 설정
-    const publicDir = path.join(process.cwd(), "public")
-    const uploadsDir = path.join(publicDir, "uploads")
-
+    // 저장 경로 설정 (절대 경로 사용)
+    const uploadsDir = path.join(process.cwd(), "public", "uploads")
     console.log("업로드 디렉토리:", uploadsDir)
+    console.log("현재 작업 디렉토리:", process.cwd())
 
-    // uploads 디렉토리가 없으면 생성
+    // uploads 디렉토리 생성 (비동기 방식)
     try {
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true })
+      if (!existsSync(uploadsDir)) {
+        await mkdir(uploadsDir, { recursive: true })
         console.log("uploads 디렉토리 생성됨")
+      } else {
+        console.log("uploads 디렉토리 이미 존재함")
       }
     } catch (dirError) {
       console.error("디렉토리 생성 실패:", dirError)
-      return NextResponse.json({ error: "파일 저장 디렉토리를 생성할 수 없습니다." }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: `파일 저장 디렉토리를 생성할 수 없습니다: ${dirError.message}`,
+        },
+        { status: 500 },
+      )
     }
 
     const filePath = path.join(uploadsDir, newFilename)
     console.log("파일 저장 경로:", filePath)
 
-    // 파일 저장
+    // 파일 저장 (비동기 방식)
     try {
-      fs.writeFileSync(filePath, buffer)
+      await writeFile(filePath, buffer)
       console.log("파일 저장 완료")
+
+      // 파일이 실제로 저장되었는지 확인
+      if (existsSync(filePath)) {
+        console.log("파일 존재 확인됨")
+      } else {
+        console.error("파일이 저장되지 않음")
+        return NextResponse.json({ error: "파일 저장 확인 실패" }, { status: 500 })
+      }
     } catch (writeError) {
       console.error("파일 저장 실패:", writeError)
-      return NextResponse.json({ error: "파일 저장 중 오류가 발생했습니다." }, { status: 500 })
+      console.error("오류 코드:", writeError.code)
+      console.error("오류 메시지:", writeError.message)
+
+      // 구체적인 오류 메시지 제공
+      let errorMessage = "파일 저장 중 오류가 발생했습니다."
+      if (writeError.code === "EACCES") {
+        errorMessage = "파일 저장 권한이 없습니다."
+      } else if (writeError.code === "ENOENT") {
+        errorMessage = "저장 경로를 찾을 수 없습니다."
+      } else if (writeError.code === "ENOSPC") {
+        errorMessage = "저장 공간이 부족합니다."
+      }
+
+      return NextResponse.json(
+        {
+          error: `${errorMessage} (${writeError.code}: ${writeError.message})`,
+        },
+        { status: 500 },
+      )
     }
 
     // 클라이언트에서 접근 가능한 URL 반환
@@ -110,10 +149,18 @@ export async function POST(request: Request) {
       success: true,
       url: fileUrl,
       filename: newFilename,
+      size: buffer.length,
+      type: type,
     })
   } catch (error) {
     console.error("=== 이미지 업로드 API 오류 ===")
     console.error("오류 상세:", error)
-    return NextResponse.json({ error: "이미지 업로드에 실패했습니다." }, { status: 500 })
+    console.error("오류 스택:", error.stack)
+    return NextResponse.json(
+      {
+        error: `이미지 업로드에 실패했습니다: ${error.message}`,
+      },
+      { status: 500 },
+    )
   }
 }
