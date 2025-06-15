@@ -464,20 +464,19 @@ export default function CompanyManagementPage() {
           </Card>
         </TabsContent>
 
-        {/* 이미지 관리 탭 - 부동산 페이지와 동일한 방식으로 변경 */}
+        {/* 이미지 관리 탭 - 선택만 가능 */}
         <TabsContent value="images">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                이미지 관리
+                이미지 선택
               </CardTitle>
-              <CardDescription>웹사이트에 사용되는 이미지를 관리합니다</CardDescription>
+              <CardDescription>미리 준비된 이미지 중에서 선택합니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 gap-8">
                 <div>
-                  <Label className="text-base font-medium mb-2 block">회사 로고</Label>
                   <ImageSelector
                     value={companyInfo.logo_url}
                     onChange={(url) => setCompanyInfo({ ...companyInfo, logo_url: url })}
@@ -486,7 +485,6 @@ export default function CompanyManagementPage() {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium mb-2 block">회사소개 페이지 상단 이미지</Label>
                   <ImageSelector
                     value={companyInfo.site_images.hero_about}
                     onChange={(url) =>
@@ -500,7 +498,6 @@ export default function CompanyManagementPage() {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium mb-2 block">건물관리 서비스 이미지</Label>
                   <ImageSelector
                     value={companyInfo.site_images.hero_services}
                     onChange={(url) =>
@@ -514,7 +511,6 @@ export default function CompanyManagementPage() {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium mb-2 block">회사 건물 외관 이미지</Label>
                   <ImageSelector
                     value={companyInfo.site_images.company_building}
                     onChange={(url) =>
@@ -528,7 +524,6 @@ export default function CompanyManagementPage() {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium mb-2 block">팀 단체 사진</Label>
                   <ImageSelector
                     value={companyInfo.site_images.team_photo}
                     onChange={(url) =>
@@ -542,7 +537,6 @@ export default function CompanyManagementPage() {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium mb-2 block">사무실 내부 이미지</Label>
                   <ImageSelector
                     value={companyInfo.site_images.office_interior}
                     onChange={(url) =>
@@ -636,7 +630,6 @@ export default function CompanyManagementPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-base font-medium mb-2 block">임원 사진</Label>
                     <ImageSelector
                       value={executive.image_url || ""}
                       onChange={(url) => {
