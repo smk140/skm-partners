@@ -23,9 +23,11 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // 파일 크기 제한 (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError("파일 크기는 10MB 이하여야 합니다.")
+    console.log("파일 선택됨:", file.name, file.size, file.type)
+
+    // 파일 크기 제한 (5MB로 줄임)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("파일 크기는 5MB 이하여야 합니다.")
       return
     }
 
@@ -39,9 +41,12 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     setError(null)
 
     try {
+      console.log("Base64 변환 시작...")
       // Base64로 인코딩
       const base64 = await convertToBase64(file)
+      console.log("Base64 변환 완료, 길이:", base64.length)
 
+      console.log("서버 업로드 시작...")
       // 서버에 업로드
       const response = await fetch("/api/admin/upload-image", {
         method: "POST",
@@ -54,17 +59,29 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
         }),
       })
 
+      console.log("서버 응답 상태:", response.status)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "이미지 업로드에 실패했습니다.")
+        const errorText = await response.text()
+        console.error("서버 오류 응답:", errorText)
+
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { error: errorText }
+        }
+
+        throw new Error(errorData.error || `서버 오류: ${response.status}`)
       }
 
       const data = await response.json()
-      onChange(data.url) // 업로드된 이미지 URL을 상태에 저장
+      console.log("업로드 성공 데이터:", data)
 
-      console.log("업로드 성공:", data.url) // 디버깅용
+      onChange(data.url) // 업로드된 이미지 URL을 상태에 저장
+      setError(null)
     } catch (err) {
-      console.error("Image upload failed:", err)
+      console.error("업로드 실패:", err)
       setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
     } finally {
       setIsUploading(false)
@@ -80,8 +97,14 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = (error) => reject(error)
+      reader.onload = () => {
+        console.log("FileReader 성공")
+        resolve(reader.result as string)
+      }
+      reader.onerror = (error) => {
+        console.error("FileReader 오류:", error)
+        reject(error)
+      }
     })
   }
 
@@ -98,6 +121,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
                 alt="업로드된 이미지"
                 className="max-h-48 max-w-full object-contain mx-auto rounded-lg"
                 onError={(e) => {
+                  console.error("이미지 로드 실패:", value)
                   e.currentTarget.src = "/placeholder.svg"
                   setError("이미지를 불러올 수 없습니다.")
                 }}
@@ -151,7 +175,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
                   </>
                 )}
               </Button>
-              <p className="text-sm text-gray-500 mt-2">JPG, PNG, GIF 파일을 선택하세요 (최대 10MB)</p>
+              <p className="text-sm text-gray-500 mt-2">JPG, PNG, GIF 파일을 선택하세요 (최대 5MB)</p>
             </div>
           </div>
         )}

@@ -8,22 +8,17 @@ const nextConfig = {
   },
   images: {
     domains: ['localhost'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
-    ],
     unoptimized: true,
   },
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', '*.vercel.app'],
+  // API 라우트 바디 크기 제한 증가
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
     },
+  },
+  // 실험적 기능으로 더 큰 요청 허용
+  experimental: {
+    serverComponentsExternalPackages: [],
   },
 }
 
