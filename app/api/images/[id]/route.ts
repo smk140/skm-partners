@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getImageData } from "@/lib/file-db"
+import memoryStorage from "@/lib/memory-storage"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   console.log(`=== 이미지 조회 API: ${params.id} ===`)
@@ -12,8 +12,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "이미지 ID가 필요합니다." }, { status: 400 })
     }
 
-    // 파일 DB에서 이미지 데이터 조회
-    const imageInfo = getImageData(imageId)
+    // 메모리 저장소에서 이미지 조회
+    const imageInfo = memoryStorage.getImage(imageId)
 
     if (!imageInfo) {
       console.log(`이미지를 찾을 수 없음: ${imageId}`)
@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     if (!matches || matches.length !== 3) {
       console.error("잘못된 Base64 형식")
-      return NextResponse.json({ error: "잘못된 이미지 데이터입니다." }, { status: 400 })
+      return NextResponse.json({ error: "잘못된 이미지 데이터입니다." }, { status: 500 })
     }
 
     const mimeType = matches[1]
@@ -49,8 +49,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       },
     })
   } catch (error) {
-    console.error("=== 이미지 조회 API 오류 ===")
-    console.error("오류 상세:", error)
+    console.error("이미지 조회 API 오류:", error)
     return NextResponse.json(
       {
         error: `이미지 조회에 실패했습니다: ${error.message}`,
