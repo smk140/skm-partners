@@ -3,6 +3,7 @@ import { saveImageData } from "@/lib/file-db"
 
 export async function POST(request: Request) {
   console.log("=== 이미지 업로드 API 시작 (파일 DB 저장) ===")
+  console.log("요청 헤더:", Object.fromEntries(request.headers.entries()))
 
   try {
     // 요청 본문 파싱
@@ -72,6 +73,7 @@ export async function POST(request: Request) {
     console.log("새 파일명:", newFilename)
 
     // 파일 DB에 이미지 저장
+    console.log("파일 DB 저장 시도...")
     const saveSuccess = saveImageData(imageId, image, {
       filename: newFilename,
       original_filename: filename,
@@ -80,9 +82,16 @@ export async function POST(request: Request) {
     })
 
     if (!saveSuccess) {
-      console.error("파일 DB 저장 실패")
-      return NextResponse.json({ error: "이미지 저장에 실패했습니다." }, { status: 500 })
+      console.error("파일 DB 저장 실패 - saveImageData 함수에서 false 반환")
+      return NextResponse.json(
+        {
+          error: "이미지 저장에 실패했습니다. 파일 시스템 오류일 수 있습니다.",
+        },
+        { status: 500 },
+      )
     }
+
+    console.log("파일 DB 저장 성공!")
 
     // 이미지 접근 URL 생성 (API 엔드포인트)
     const imageUrl = `/api/images/${imageId}`
@@ -97,6 +106,7 @@ export async function POST(request: Request) {
       filename: newFilename,
       size: buffer.length,
       type: type,
+      message: "이미지가 성공적으로 업로드되었습니다.",
     })
   } catch (error) {
     console.error("=== 이미지 업로드 API 오류 ===")

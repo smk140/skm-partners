@@ -128,8 +128,17 @@ function safeJsonParse(content: string, defaultValue: any) {
 
 // 이미지 관련 함수들 추가
 export function saveImageData(imageId: string, base64Data: string, metadata: any = {}) {
-  console.log(`[FileDB] 💾 이미지 저장: ${imageId}`)
+  console.log(`[FileDB] 💾 이미지 저장 시작: ${imageId}`)
+  console.log(`[FileDB] 💾 Base64 데이터 길이: ${base64Data.length}`)
+  console.log(`[FileDB] 💾 메타데이터:`, metadata)
+
   try {
+    // 데이터 디렉토리 확인
+    if (!fs.existsSync(DATA_DIR)) {
+      console.log(`[FileDB] 📁 데이터 디렉토리 생성: ${DATA_DIR}`)
+      fs.mkdirSync(DATA_DIR, { recursive: true })
+    }
+
     let imagesData = DEFAULT_IMAGES_DATA
 
     if (fs.existsSync(IMAGES_FILE)) {
@@ -151,12 +160,31 @@ export function saveImageData(imageId: string, base64Data: string, metadata: any
     imagesData.last_updated = new Date().toISOString()
 
     const jsonData = JSON.stringify(imagesData, null, 2)
+
+    console.log(`[FileDB] 💾 JSON 데이터 크기: ${jsonData.length}`)
+    console.log(`[FileDB] 💾 이미지 파일 경로: ${IMAGES_FILE}`)
+
     fs.writeFileSync(IMAGES_FILE, jsonData, "utf8")
 
-    console.log(`[FileDB] ✅ 이미지 저장 성공: ${imageId}`)
-    return true
+    // 저장 검증
+    if (fs.existsSync(IMAGES_FILE)) {
+      const verifyContent = fs.readFileSync(IMAGES_FILE, "utf8")
+      const verifyData = safeJsonParse(verifyContent, {})
+
+      if (verifyData.images && verifyData.images[imageId]) {
+        console.log(`[FileDB] ✅ 이미지 저장 및 검증 성공: ${imageId}`)
+        return true
+      } else {
+        console.error(`[FileDB] 💥 저장 검증 실패: 이미지가 저장되지 않음`)
+        return false
+      }
+    } else {
+      console.error(`[FileDB] 💥 이미지 파일이 생성되지 않음`)
+      return false
+    }
   } catch (error) {
     console.error(`[FileDB] 💥 이미지 저장 실패:`, error)
+    console.error(`[FileDB] 💥 오류 스택:`, error.stack)
     return false
   }
 }

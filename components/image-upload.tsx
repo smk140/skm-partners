@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -33,9 +32,9 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
 
     console.log("파일 선택됨:", file.name, file.size, file.type)
 
-    // 파일 크기 제한 (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("파일 크기는 5MB 이하여야 합니다.")
+    // 파일 크기 제한 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("파일 크기는 10MB 이하여야 합니다.")
       return
     }
 
@@ -89,6 +88,10 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
 
       const data = await response.json()
       console.log("업로드 성공 데이터:", data)
+
+      if (!data.success) {
+        throw new Error(data.error || "업로드에 실패했습니다.")
+      }
 
       // 성공 시 URL 업데이트
       const finalUrl = data.url
@@ -218,7 +221,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
                   </>
                 )}
               </Button>
-              <p className="text-sm text-gray-500 mt-2">JPG, PNG, GIF 파일을 선택하세요 (최대 5MB)</p>
+              <p className="text-sm text-gray-500 mt-2">JPG, PNG, GIF 파일을 선택하세요 (최대 10MB)</p>
             </div>
           </div>
         )}
