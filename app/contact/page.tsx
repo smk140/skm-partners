@@ -3,80 +3,88 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Mail, MapPin, Phone, Send, Clock, MessageSquare } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { MapPin, Phone, Mail, Clock, Send, ArrowRight } from "lucide-react"
+import { SafeImage } from "@/components/safe-image"
 
 interface CompanyInfo {
   name: string
   address: string
   phone: string
   email: string
-  business_hours: {
+  description: string
+  site_images?: {
+    hero_contact?: string
+    company_building?: string
+  }
+  business_hours?: {
     weekday: string
     weekend: string
     holiday: string
     emergency: string
   }
-  map_info: {
-    map_embed_url: string
-  }
 }
 
 export default function ContactPage() {
   const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     name: "SKM파트너스",
     address: "서울특별시 강남구 테헤란로 123, 4층",
     phone: "02-123-4567",
     email: "bykim@skm.kr",
+    description: "전문적인 건물 관리 서비스",
+    site_images: {},
     business_hours: {
       weekday: "평일 09:00 - 18:00",
       weekend: "토요일 09:00 - 15:00",
       holiday: "일요일 및 공휴일 휴무",
       emergency: "긴급상황 시 24시간 대응",
     },
-    map_info: {
-      map_embed_url: "",
-    },
   })
+  const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
+    subject: "",
     message: "",
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // 회사 정보 로드
   useEffect(() => {
-    fetch("/api/admin/company")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.companyInfo) {
-          setCompanyInfo((prev) => ({
-            ...prev,
-            ...data.companyInfo,
-          }))
-        }
-      })
-      .catch((error) => {
-        console.error("회사 정보 로드 실패:", error)
-      })
+    loadCompanyData()
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const loadCompanyData = async () => {
+    setIsLoading(true)
+    try {
+      console.log("회사 정보 로딩 시작...")
+      const response = await fetch("/api/admin/company")
+      const data = await response.json()
+
+      console.log("API 응답:", data)
+
+      if (data.success && data.companyInfo) {
+        setCompanyInfo((prev) => ({
+          ...prev,
+          ...data.companyInfo,
+        }))
+        console.log("회사 정보 설정됨:", data.companyInfo)
+      }
+    } catch (error) {
+      console.error("회사 정보 로드 실패:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,34 +99,30 @@ export default function ContactPage() {
         },
         body: JSON.stringify({
           ...formData,
-          service: "일반 문의",
           type: "contact",
+          created_at: new Date().toISOString(),
         }),
       })
 
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || "문의 전송에 실패했습니다.")
+      if (response.ok) {
+        toast({
+          title: "문의가 접수되었습니다",
+          description: "빠른 시일 내에 연락드리겠습니다.",
+        })
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          subject: "",
+          message: "",
+        })
+      } else {
+        throw new Error("문의 접수에 실패했습니다")
       }
-
-      toast({
-        title: "문의가 성공적으로 전송되었습니다",
-        description: "담당자가 이메일로 빠른 시일 내에 답변드리겠습니다.",
-      })
-
-      // 폼 초기화
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        message: "",
-      })
     } catch (error) {
-      console.error("문의 전송 오류:", error)
       toast({
-        title: "전송 중 오류가 발생했습니다",
+        title: "오류가 발생했습니다",
         description: "잠시 후 다시 시도해주세요.",
         variant: "destructive",
       })
@@ -127,10 +131,23 @@ export default function ContactPage() {
     }
   }
 
-  // 구글 맵 URL 생성
-  const getMapUrl = (address: string) => {
-    const encodedAddress = encodeURIComponent(address)
-    return `https://www.google.com/maps?q=${encodedAddress}&output=embed`
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -138,20 +155,42 @@ export default function ContactPage() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 mb-6">
-              연락처
-            </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              언제든지
-              <br />
-              <span className="text-blue-600">문의해 주세요</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              {companyInfo.name}의 전문 서비스에 대해 궁금한 점이 있으시면 언제든지 문의해주세요.
-              <br />
-              이메일로 신속하게 답변드리겠습니다.
-            </p>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  연락처
+                </Badge>
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                  {companyInfo.name}에 문의하세요
+                </h1>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  전문가와 상담하고 최적의 건물 관리 솔루션을 찾아보세요. 무료 상담을 통해 맞춤형 서비스를
+                  제안해드립니다.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+                  전화 상담 신청
+                  <Phone className="ml-2 h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="lg" className="px-8 py-3">
+                  카카오톡 상담
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            <div className="relative">
+              <SafeImage
+                src={
+                  companyInfo.site_images?.hero_contact ||
+                  "/placeholder.svg?height=500&width=600&query=professional customer service contact"
+                }
+                alt="연락처"
+                className="w-full h-[400px] lg:h-[500px] object-cover rounded-2xl shadow-2xl"
+                fallbackText="연락처 이미지"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -159,240 +198,184 @@ export default function ContactPage() {
       {/* Contact Form & Info */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div>
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">이메일 문의</h2>
-                <p className="text-gray-600 text-lg">
-                  아래 양식을 작성해주시면 담당자가 이메일로 상세한 답변을 드립니다. 모든 문의는 24시간 이내에
-                  답변드리도록 하겠습니다.
-                </p>
-              </div>
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">문의하기</CardTitle>
+                <CardDescription>아래 양식을 작성해주시면 빠르게 연락드리겠습니다.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">이름 *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="홍길동"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">연락처 *</Label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="010-1234-5678"
+                      />
+                    </div>
+                  </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                      이름 <span className="text-red-500">*</span>
-                    </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="email">이메일 *</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="example@email.com"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="company">회사명</Label>
+                      <Input
+                        id="company"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        placeholder="회사명 (선택사항)"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="subject">문의 제목 *</Label>
                     <Input
-                      id="name"
-                      name="name"
-                      placeholder="이름을 입력하세요"
-                      value={formData.name}
-                      onChange={handleChange}
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
                       required
-                      className="h-12"
+                      placeholder="문의 제목을 입력해주세요"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company" className="text-sm font-medium text-gray-700">
-                      회사명
-                    </Label>
-                    <Input
-                      id="company"
-                      name="company"
-                      placeholder="회사명을 입력하세요"
-                      value={formData.company}
-                      onChange={handleChange}
-                      className="h-12"
+
+                  <div>
+                    <Label htmlFor="message">문의 내용 *</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="문의하실 내용을 자세히 적어주세요"
+                      rows={6}
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    이메일 <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="이메일을 입력하세요"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="h-12"
-                  />
-                  <p className="text-sm text-gray-500">답변을 받으실 이메일 주소입니다.</p>
-                </div>
+                  <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        전송 중...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        문의 보내기
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                    연락처
-                  </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="연락처를 입력하세요 (선택사항)"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="h-12"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-sm font-medium text-gray-700">
-                    문의 내용 <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    placeholder="문의하실 내용을 상세히 작성해주세요"
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={6}
-                    required
-                    className="resize-none"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      전송 중...
-                    </div>
-                  ) : (
-                    <div className="flex items-center">
-                      <Send className="mr-2 h-5 w-5" />
-                      이메일로 문의하기
-                    </div>
-                  )}
-                </Button>
-              </form>
-            </div>
-
-            {/* Contact Information */}
+            {/* Contact Info */}
             <div className="space-y-8">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">연락처 정보</h2>
-              </div>
-
-              <div className="space-y-6">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-lg">
-                      <Mail className="h-6 w-6 mr-3 text-blue-600" />
-                      이메일
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-900 font-medium text-lg">{companyInfo.email}</p>
-                    <p className="text-gray-600 mt-1">24시간 접수 가능</p>
-                    <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-800">
-                      평균 답변 시간: 4시간 이내
-                    </Badge>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-lg">
-                      <Phone className="h-6 w-6 mr-3 text-green-600" />
-                      전화
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-900 font-medium text-lg">{companyInfo.phone}</p>
-                    <p className="text-gray-600 mt-1">{companyInfo.business_hours.weekday}</p>
-                    <p className="text-green-600 font-medium mt-1">{companyInfo.business_hours.emergency}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-lg">
-                      <MapPin className="h-6 w-6 mr-3 text-purple-600" />
-                      주소
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-900 font-medium text-lg">{companyInfo.address}</p>
-                    <p className="text-gray-600 mt-1">방문 상담 가능 (사전 예약 필수)</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-lg">
-                      <Clock className="h-6 w-6 mr-3 text-orange-600" />
-                      운영 시간
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-gray-700">{companyInfo.business_hours.weekday}</p>
-                      <p className="text-gray-700">{companyInfo.business_hours.weekend}</p>
-                      <p className="text-gray-700">{companyInfo.business_hours.holiday}</p>
-                      <p className="text-blue-600 font-medium">{companyInfo.business_hours.emergency}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Tips */}
-              <Card className="border-0 shadow-lg bg-blue-50">
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center text-lg text-blue-800">
-                    <MessageSquare className="h-6 w-6 mr-3" />
-                    빠른 답변을 위한 팁
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                    오시는 길
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-blue-700">
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      건물 위치와 규모를 명시해주세요
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      현재 상황과 원하는 서비스를 구체적으로 작성해주세요
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      연락 가능한 시간대를 알려주세요
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                      첨부파일이 있다면 이메일로 직접 보내주세요
-                    </li>
-                  </ul>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="font-medium text-gray-900">{companyInfo.address}</p>
+                    <p className="text-gray-600 mt-1">지하철 2호선 강남역 3번 출구 도보 5분</p>
+                  </div>
+                  <SafeImage
+                    src={
+                      companyInfo.site_images?.company_building ||
+                      "/placeholder.svg?height=200&width=400&query=office building location map"
+                    }
+                    alt="회사 위치"
+                    className="w-full h-48 object-cover rounded-lg"
+                    fallbackText="회사 위치"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="h-5 w-5 text-green-600" />
+                    연락처 정보
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <p className="font-medium">{companyInfo.phone}</p>
+                      <p className="text-sm text-gray-600">대표 전화</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                    <div>
+                      <p className="font-medium">{companyInfo.email}</p>
+                      <p className="text-sm text-gray-600">이메일 문의</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-purple-600" />
+                    운영 시간
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">평일</span>
+                    <span className="font-medium">{companyInfo.business_hours?.weekday}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">토요일</span>
+                    <span className="font-medium">{companyInfo.business_hours?.weekend}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">일요일/공휴일</span>
+                    <span className="font-medium text-red-600">{companyInfo.business_hours?.holiday}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <p className="text-sm text-blue-600 font-medium">{companyInfo.business_hours?.emergency}</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Map Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">찾아오시는 길</h2>
-            <p className="text-gray-600 text-lg">{companyInfo.name} 사무실로 직접 방문하실 수 있습니다.</p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <Card className="border-0 shadow-xl overflow-hidden">
-              <div className="h-[400px] w-full">
-                <iframe
-                  src={getMapUrl(companyInfo.address)}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="rounded-lg"
-                ></iframe>
-              </div>
-            </Card>
           </div>
         </div>
       </section>

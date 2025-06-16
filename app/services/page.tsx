@@ -3,94 +3,139 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  ShieldCheck,
-  SprayCanIcon as Spray,
-  HomeIcon,
-  KeyRound,
-  FlameIcon as Fire,
-  ArrowRight,
-  CheckCircle2,
-  Star,
-} from "lucide-react"
+import { Building2, Users, Shield, Wrench, ArrowRight, CheckCircle } from "lucide-react"
 import { SafeImage } from "@/components/safe-image"
-import Link from "next/link"
+import { useEffect, useState } from "react"
 
-const services = [
-  {
-    id: "security",
-    title: "보안 서비스",
-    icon: <ShieldCheck className="h-8 w-8" />,
-    description: "안전하고 신뢰할 수 있는 보안 솔루션을 제공합니다.",
-    image: "/placeholder.svg?height=300&width=400",
-    features: ["출입 통제 시스템", "CCTV 설치 및 관리", "보안 시스템 컨설팅", "비상 연락망 구축"],
-    benefits: ["사고 예방", "재산 보호", "안전한 환경 조성", "심리적 안정감 제공"],
-    color: "blue",
-  },
-  {
-    id: "cleaning",
-    title: "청소 서비스",
-    icon: <Spray className="h-8 w-8" />,
-    description: "쾌적하고 깨끗한 환경을 만들어 드립니다.",
-    image: "/placeholder.svg?height=300&width=400",
-    features: ["정기 청소", "특수 청소", "소독 방역", "건물 관리"],
-    benefits: ["쾌적한 환경", "위생적인 공간", "업무 효율성 향상", "건강 증진"],
-    color: "green",
-  },
-  {
-    id: "facility-management",
-    title: "시설 관리",
-    icon: <HomeIcon className="h-8 w-8" />,
-    description: "건물 유지보수 및 관리를 전문적으로 수행합니다.",
-    image: "/placeholder.svg?height=300&width=400",
-    features: ["전기 설비 유지보수", "소방 설비 관리", "냉난방 시스템", "배관 설비 관리"],
-    benefits: ["건물 가치 유지", "안전 사고 예방", "쾌적한 환경", "비용 절감"],
-    color: "purple",
-  },
-  {
-    id: "key-management",
-    title: "키 관리",
-    icon: <KeyRound className="h-8 w-8" />,
-    description: "안전하고 효율적인 키 관리 시스템을 제공합니다.",
-    image: "/placeholder.svg?height=300&width=400",
-    features: ["키 복사 및 제작", "키 보관 및 관리", "긴급 대응", "디지털 키 시스템"],
-    benefits: ["키 분실 방지", "보안 강화", "편리한 관리", "비용 절감"],
-    color: "orange",
-  },
-  {
-    id: "fire-inspection",
-    title: "소방 점검",
-    icon: <Fire className="h-8 w-8" />,
-    description: "소방 시설 점검 및 관리로 화재 안전을 보장합니다.",
-    image: "/placeholder.svg?height=300&width=400",
-    features: ["소방 시설 정기 점검", "스프링클러 관리", "소방 안전 교육", "화재 대응 계획"],
-    benefits: ["화재 위험 최소화", "법적 요구사항 준수", "보험료 절감", "안전 보장"],
-    color: "red",
-  },
-]
+interface CompanyInfo {
+  name: string
+  description: string
+  site_images?: {
+    hero_services?: string
+    service_showcase?: string
+    company_building?: string
+  }
+  main_services?: string[]
+}
 
 export default function ServicesPage() {
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    name: "SKM파트너스",
+    description: "전문적인 건물 관리 서비스",
+    site_images: {},
+    main_services: ["건물 종합 관리", "청소 서비스", "소방 안전 관리", "엘리베이터 관리"],
+  })
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    loadCompanyData()
+  }, [])
+
+  const loadCompanyData = async () => {
+    setIsLoading(true)
+    try {
+      console.log("회사 정보 로딩 시작...")
+      const response = await fetch("/api/admin/company")
+      const data = await response.json()
+
+      console.log("API 응답:", data)
+
+      if (data.success && data.companyInfo) {
+        setCompanyInfo((prev) => ({
+          ...prev,
+          ...data.companyInfo,
+        }))
+        console.log("회사 정보 설정됨:", data.companyInfo)
+      }
+    } catch (error) {
+      console.error("회사 정보 로드 실패:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const services = [
+    {
+      icon: Building2,
+      title: "건물 종합 관리",
+      description: "시설 유지보수부터 보안까지 건물 운영의 모든 것을 관리합니다.",
+      features: ["시설 점검 및 유지보수", "보안 시스템 관리", "에너지 효율 최적화", "24시간 모니터링"],
+      color: "blue",
+    },
+    {
+      icon: Users,
+      title: "청소 서비스",
+      description: "전문적인 청소 서비스로 쾌적하고 위생적인 환경을 만들어드립니다.",
+      features: ["일반 청소", "특수 청소", "카펫 및 바닥 관리", "창문 청소"],
+      color: "green",
+    },
+    {
+      icon: Shield,
+      title: "소방 안전 관리",
+      description: "화재 예방부터 안전 점검까지 건물의 안전을 책임집니다.",
+      features: ["소방시설 점검", "화재 예방 교육", "비상 대응 계획", "안전 컨설팅"],
+      color: "red",
+    },
+    {
+      icon: Wrench,
+      title: "엘리베이터 관리",
+      description: "엘리베이터의 안전한 운행과 정기 점검을 담당합니다.",
+      features: ["정기 점검", "고장 수리", "안전 검사", "성능 최적화"],
+      color: "purple",
+    },
+  ]
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 mb-6">
-              전문 서비스
-            </Badge>
-            <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              건물 관리의 모든 것을
-              <br />
-              <span className="text-blue-600">한 번에 해결</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              SKM파트너스의 전문적인 서비스로 건물의 가치를 높이고 관리의 효율성을 극대화하세요.
-            </p>
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8 py-3">
-              무료 상담 신청하기
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  전문 서비스
+                </Badge>
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                  {companyInfo.name} 서비스
+                </h1>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  건물 관리의 모든 영역에서 전문적인 서비스를 제공합니다. 청소부터 소방, 엘리베이터 관리까지 건물 관리의
+                  A부터 Z까지 책임집니다.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+                  무료 상담 신청
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="lg" className="px-8 py-3">
+                  포트폴리오 보기
+                </Button>
+              </div>
+            </div>
+            <div className="relative">
+              <SafeImage
+                src={
+                  companyInfo.site_images?.hero_services ||
+                  "/placeholder.svg?height=500&width=600&query=professional building management services"
+                }
+                alt="SKM파트너스 서비스"
+                className="w-full h-[400px] lg:h-[500px] object-cover rounded-2xl shadow-2xl"
+                fallbackText="서비스 이미지"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -99,60 +144,49 @@ export default function ServicesPage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">서비스 목록</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">주요 서비스</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              각 분야의 전문가들이 제공하는 차별화된 서비스를 경험해보세요.
+              전문성과 신뢰성을 바탕으로 고객의 건물을 최적의 상태로 관리합니다.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <Card
-                key={service.id}
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-2"
-              >
-                <div className="relative overflow-hidden rounded-t-lg">
-                  <SafeImage
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    fallbackText={service.title}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                  <div
-                    className={`absolute top-4 left-4 w-12 h-12 bg-${service.color}-100 rounded-xl flex items-center justify-center`}
-                  >
-                    <div className={`text-${service.color}-600`}>{service.icon}</div>
-                  </div>
-                </div>
-
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-semibold">{service.title}</CardTitle>
-                  <CardDescription className="text-gray-600">{service.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">주요 서비스</h4>
-                    <ul className="space-y-1">
-                      {service.features.slice(0, 3).map((feature, idx) => (
-                        <li key={idx} className="flex items-center text-sm text-gray-600">
-                          <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                          {feature}
-                        </li>
+          <div className="grid md:grid-cols-2 gap-8">
+            {services.map((service, index) => {
+              const IconComponent = service.icon
+              return (
+                <Card
+                  key={index}
+                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden"
+                >
+                  <CardHeader className="pb-4">
+                    <div
+                      className={`w-16 h-16 bg-${service.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-${service.color}-200 transition-colors`}
+                    >
+                      <IconComponent className={`h-8 w-8 text-${service.color}-600`} />
+                    </div>
+                    <CardTitle className="text-2xl font-semibold">{service.title}</CardTitle>
+                    <CardDescription className="text-gray-600 text-base">{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      {service.features.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex items-center space-x-3">
+                          <CheckCircle className={`h-5 w-5 text-${service.color}-600 flex-shrink-0`} />
+                          <span className="text-gray-700">{feature}</span>
+                        </div>
                       ))}
-                    </ul>
-                  </div>
-
-                  <Button variant="ghost" className="w-full justify-between group-hover:bg-blue-50" asChild>
-                    <Link href={`/services/${service.id}`}>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-between group-hover:bg-${service.color}-50 mt-6`}
+                    >
                       자세히 보기
                       <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -160,40 +194,53 @@ export default function ServicesPage() {
       {/* Why Choose Us */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">왜 SKM파트너스인가?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              수년간의 경험과 전문성으로 고객에게 최고의 서비스를 제공합니다.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Star className="h-8 w-8 text-blue-600" />
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+                왜 {companyInfo.name}를 선택해야 할까요?
+              </h2>
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">검증된 전문성</h3>
+                    <p className="text-gray-600">
+                      수년간의 경험과 전문 지식을 바탕으로 최고 품질의 서비스를 제공합니다.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">24시간 대응</h3>
+                    <p className="text-gray-600">긴급상황 발생 시 24시간 언제든지 신속하게 대응합니다.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">맞춤형 솔루션</h3>
+                    <p className="text-gray-600">각 건물의 특성에 맞는 최적화된 관리 솔루션을 제공합니다.</p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">전문성</h3>
-              <p className="text-gray-600">
-                각 분야별 전문가들이 최신 기술과 방법론을 적용하여 최고 품질의 서비스를 제공합니다.
-              </p>
             </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">신뢰성</h3>
-              <p className="text-gray-600">투명한 서비스 제공과 약속 이행으로 고객과의 신뢰 관계를 구축합니다.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ArrowRight className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">효율성</h3>
-              <p className="text-gray-600">
-                체계적인 관리 시스템과 프로세스로 효율적이고 경제적인 서비스를 제공합니다.
-              </p>
+            <div className="relative">
+              <SafeImage
+                src={
+                  companyInfo.site_images?.service_showcase ||
+                  "/placeholder.svg?height=500&width=600&query=professional building management showcase"
+                }
+                alt="서비스 쇼케이스"
+                className="w-full h-[400px] object-cover rounded-2xl shadow-xl"
+                fallbackText="서비스 쇼케이스"
+              />
             </div>
           </div>
         </div>
@@ -203,9 +250,9 @@ export default function ServicesPage() {
       <section className="py-20 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">지금 바로 전문 상담을 받아보세요</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">지금 바로 무료 상담을 받아보세요</h2>
             <p className="text-xl text-blue-100 mb-8">
-              건물 관리 전문가가 직접 방문하여 맞춤형 솔루션을 제안해드립니다.
+              전문가가 직접 방문하여 건물 상태를 점검하고 최적의 관리 방안을 제안해드립니다.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="px-8 py-3">
@@ -217,7 +264,7 @@ export default function ServicesPage() {
                 variant="outline"
                 className="px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600"
               >
-                서비스 문의
+                포트폴리오 보기
               </Button>
             </div>
           </div>

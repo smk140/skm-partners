@@ -507,15 +507,27 @@ export default function CompanyManagementPage() {
                 <ImageUpload label="회사 로고" value={companyInfo.logo_url} onChange={updateLogoUrl} />
 
                 <ImageUpload
-                  label="회사소개 페이지 상단 이미지"
+                  label="메인 페이지 히어로 이미지"
+                  value={companyInfo.site_images.hero_main}
+                  onChange={(url) => updateCompanyImage("hero_main", url)}
+                />
+
+                <ImageUpload
+                  label="회사소개 페이지 히어로 이미지"
                   value={companyInfo.site_images.hero_about}
                   onChange={(url) => updateCompanyImage("hero_about", url)}
                 />
 
                 <ImageUpload
-                  label="건물관리 서비스 이미지"
+                  label="서비스 페이지 히어로 이미지"
                   value={companyInfo.site_images.hero_services}
                   onChange={(url) => updateCompanyImage("hero_services", url)}
+                />
+
+                <ImageUpload
+                  label="연락처 페이지 히어로 이미지"
+                  value={companyInfo.site_images.hero_contact}
+                  onChange={(url) => updateCompanyImage("hero_contact", url)}
                 />
 
                 <ImageUpload
@@ -534,6 +546,12 @@ export default function CompanyManagementPage() {
                   label="사무실 내부 이미지"
                   value={companyInfo.site_images.office_interior}
                   onChange={(url) => updateCompanyImage("office_interior", url)}
+                />
+
+                <ImageUpload
+                  label="서비스 쇼케이스 이미지"
+                  value={companyInfo.site_images.service_showcase}
+                  onChange={(url) => updateCompanyImage("service_showcase", url)}
                 />
               </div>
 

@@ -53,11 +53,14 @@ const DEFAULT_COMPANY_DATA = {
     main_services: ["건물 종합 관리", "청소 서비스", "소방 점검", "엘리베이터 관리", "공실 임대 대행", "부동산 컨설팅"],
     certifications: ["건물관리업 등록", "청소업 신고", "소방시설관리업 등록"],
     site_images: {
-      hero_image: "",
-      about_hero: "",
-      services_hero: "",
-      contact_hero: "",
-      team_photo: "",
+      hero_main: "", // 메인 페이지 히어로 이미지
+      hero_about: "", // 회사소개 페이지 히어로 이미지
+      hero_services: "", // 서비스 페이지 히어로 이미지
+      hero_contact: "", // 연락처 페이지 히어로 이미지
+      company_building: "", // 회사 건물 외관
+      team_photo: "", // 팀 단체 사진
+      office_interior: "", // 사무실 내부
+      service_showcase: "", // 서비스 쇼케이스 이미지
     },
   },
   executives: [],
