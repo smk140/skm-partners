@@ -133,43 +133,18 @@ export default function CompanyManagementPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const data = await response.json() // API는 { info: {...}, executives: [...] } 구조를 반환
 
-      if (data.companyInfo) {
-        setCompanyInfo({
-          ...data.companyInfo,
-          business_hours: data.companyInfo.business_hours || {
-            weekday: "",
-            weekend: "",
-            holiday: "",
-            emergency: "",
-          },
-          social_media: data.companyInfo.social_media || {
-            facebook: "",
-            instagram: "",
-            linkedin: "",
-            youtube: "",
-            blog: "",
-          },
-          map_info: data.companyInfo.map_info || {
-            latitude: "",
-            longitude: "",
-            zoom_level: "",
-            map_embed_url: "",
-          },
-          main_services: data.companyInfo.main_services || [],
-          certifications: data.companyInfo.certifications || [],
-          site_images: data.companyInfo.site_images || {
-            hero_main: "",
-            hero_about: "",
-            hero_services: "",
-            hero_contact: "",
-            company_building: "",
-            team_photo: "",
-            office_interior: "",
-            service_showcase: "",
-          },
-        })
+      if (data.info) {
+        // 기본 상태와 서버에서 받은 데이터를 안전하게 병합
+        setCompanyInfo((prevInfo) => ({
+          ...prevInfo,
+          ...data.info,
+          business_hours: { ...prevInfo.business_hours, ...(data.info.business_hours || {}) },
+          social_media: { ...prevInfo.social_media, ...(data.info.social_media || {}) },
+          map_info: { ...prevInfo.map_info, ...(data.info.map_info || {}) },
+          site_images: { ...prevInfo.site_images, ...(data.info.site_images || {}) },
+        }))
       }
       if (data.executives) {
         setExecutives(data.executives)
@@ -239,11 +214,6 @@ export default function CompanyManagementPage() {
         title: "저장 완료",
         description: "회사 정보가 성공적으로 저장되었습니다.",
       })
-
-      // 저장 후 데이터 다시 로드하여 확인
-      setTimeout(() => {
-        loadCompanyData()
-      }, 1000)
     } catch (error) {
       console.error("Failed to save company info:", error)
       toast({
