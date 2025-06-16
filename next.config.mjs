@@ -10,16 +10,8 @@ const nextConfig = {
     domains: ['localhost'],
     unoptimized: true,
   },
-  // API 라우트 바디 크기 제한 증가
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-  // 실험적 기능으로 더 큰 요청 허용
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
+  // 서버 외부 패키지 설정 (최신 버전)
+  serverExternalPackages: [],
 }
 
 export default nextConfig
