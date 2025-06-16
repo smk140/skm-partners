@@ -504,52 +504,56 @@ export default function CompanyManagementPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 gap-8">
-                <ImageUpload label="회사 로고" value={companyInfo.logo_url} onChange={updateLogoUrl} />
+                <ImageUpload
+                  label="사이트 전체 > 헤더/푸터 로고"
+                  value={companyInfo.logo_url}
+                  onChange={updateLogoUrl}
+                />
 
                 <ImageUpload
-                  label="메인 페이지 히어로 이미지"
+                  label="메인 페이지 > 상단 히어로 섹션 배경 이미지"
                   value={companyInfo.site_images.hero_main}
                   onChange={(url) => updateCompanyImage("hero_main", url)}
                 />
 
                 <ImageUpload
-                  label="회사소개 페이지 히어로 이미지"
+                  label="회사소개 페이지 > 상단 히어로 섹션 배경 이미지"
                   value={companyInfo.site_images.hero_about}
                   onChange={(url) => updateCompanyImage("hero_about", url)}
                 />
 
                 <ImageUpload
-                  label="서비스 페이지 히어로 이미지"
+                  label="서비스 소개 페이지 > 상단 히어로 섹션 배경 이미지"
                   value={companyInfo.site_images.hero_services}
                   onChange={(url) => updateCompanyImage("hero_services", url)}
                 />
 
                 <ImageUpload
-                  label="연락처 페이지 히어로 이미지"
+                  label="문의하기 페이지 > 상단 히어로 섹션 배경 이미지"
                   value={companyInfo.site_images.hero_contact}
                   onChange={(url) => updateCompanyImage("hero_contact", url)}
                 />
 
                 <ImageUpload
-                  label="회사 건물 외관 이미지"
+                  label="회사소개 페이지 > 회사 연혁/소개 섹션 이미지"
                   value={companyInfo.site_images.company_building}
                   onChange={(url) => updateCompanyImage("company_building", url)}
                 />
 
                 <ImageUpload
-                  label="팀 단체 사진"
+                  label="회사소개 페이지 > 팀/조직도 섹션 이미지"
                   value={companyInfo.site_images.team_photo}
                   onChange={(url) => updateCompanyImage("team_photo", url)}
                 />
 
                 <ImageUpload
-                  label="사무실 내부 이미지"
+                  label="회사소개 페이지 > 오시는 길/사무실 환경 섹션 이미지"
                   value={companyInfo.site_images.office_interior}
                   onChange={(url) => updateCompanyImage("office_interior", url)}
                 />
 
                 <ImageUpload
-                  label="서비스 쇼케이스 이미지"
+                  label="서비스 소개 페이지 > 주요 서비스 상세 설명 이미지"
                   value={companyInfo.site_images.service_showcase}
                   onChange={(url) => updateCompanyImage("service_showcase", url)}
                 />
@@ -636,7 +640,7 @@ export default function CompanyManagementPage() {
                   </div>
                   <div>
                     <ImageUpload
-                      label="임원 사진"
+                      label="회사소개 페이지 > 임원 소개 섹션 프로필 이미지"
                       value={executive.image_url || ""}
                       onChange={(url) => {
                         const updated = executives.map((exec) =>
