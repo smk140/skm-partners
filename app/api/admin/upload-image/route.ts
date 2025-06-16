@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
+import { saveImageData } from "@/lib/file-db"
 
-// Vercel에서는 파일 시스템이 읽기 전용이므로 Base64 URL을 직접 반환
 export async function POST(request: Request) {
-  console.log("=== 이미지 업로드 API 시작 (Vercel 호환) ===")
+  console.log("=== 이미지 업로드 API 시작 (파일 DB 저장) ===")
 
   try {
     // 요청 본문 파싱
@@ -61,25 +61,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "파일 크기는 5MB 이하여야 합니다." }, { status: 400 })
     }
 
-    // Vercel에서는 파일 시스템에 저장할 수 없으므로 Base64 URL을 그대로 반환
-    // 실제 프로덕션에서는 Vercel Blob, AWS S3, Cloudinary 등을 사용해야 함
+    // 고유한 이미지 ID 생성
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 8)
     const ext = filename.split(".").pop() || "jpg"
-    const newFilename = `image-${timestamp}-${randomId}.${ext}`
+    const imageId = `img_${timestamp}_${randomId}`
+    const newFilename = `${imageId}.${ext}`
 
+    console.log("이미지 ID:", imageId)
     console.log("새 파일명:", newFilename)
-    console.log("Base64 URL 반환 (Vercel 호환)")
 
-    console.log("=== 이미지 업로드 API 성공 (Base64) ===")
+    // 파일 DB에 이미지 저장
+    const saveSuccess = saveImageData(imageId, image, {
+      filename: newFilename,
+      original_filename: filename,
+      type: type,
+      size: buffer.length,
+    })
+
+    if (!saveSuccess) {
+      console.error("파일 DB 저장 실패")
+      return NextResponse.json({ error: "이미지 저장에 실패했습니다." }, { status: 500 })
+    }
+
+    // 이미지 접근 URL 생성 (API 엔드포인트)
+    const imageUrl = `/api/images/${imageId}`
+
+    console.log("최종 이미지 URL:", imageUrl)
+    console.log("=== 이미지 업로드 API 성공 ===")
 
     return NextResponse.json({
       success: true,
-      url: image, // Base64 URL을 그대로 반환
+      url: imageUrl,
+      imageId: imageId,
       filename: newFilename,
       size: buffer.length,
       type: type,
-      note: "Vercel 환경에서는 Base64 URL을 사용합니다.",
     })
   } catch (error) {
     console.error("=== 이미지 업로드 API 오류 ===")

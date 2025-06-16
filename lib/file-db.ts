@@ -8,6 +8,7 @@ const DATA_DIR = path.join(process.cwd(), "data")
 const COMPANY_FILE = path.join(DATA_DIR, "company.json")
 const PROPERTIES_FILE = path.join(DATA_DIR, "properties.json")
 const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json")
+const IMAGES_FILE = path.join(DATA_DIR, "images.json") // 이미지 저장용 파일 추가
 
 // 기본 데이터 구조
 const DEFAULT_PROPERTIES_DATA = {
@@ -68,6 +69,12 @@ const DEFAULT_INQUIRIES_DATA = {
   last_updated: new Date().toISOString(),
 }
 
+// 이미지 저장용 기본 데이터
+const DEFAULT_IMAGES_DATA = {
+  images: {},
+  last_updated: new Date().toISOString(),
+}
+
 // 디렉토리 생성
 function ensureDataDirectory() {
   try {
@@ -99,6 +106,7 @@ function initialize() {
   initializeFile(COMPANY_FILE, DEFAULT_COMPANY_DATA)
   initializeFile(PROPERTIES_FILE, DEFAULT_PROPERTIES_DATA)
   initializeFile(INQUIRIES_FILE, DEFAULT_INQUIRIES_DATA)
+  initializeFile(IMAGES_FILE, DEFAULT_IMAGES_DATA) // 이미지 파일 초기화 추가
 }
 
 // 초기화 실행
@@ -112,6 +120,102 @@ function safeJsonParse(content: string, defaultValue: any) {
   } catch (error) {
     console.error("[FileDB] 💥 JSON 파싱 실패:", error)
     return defaultValue
+  }
+}
+
+// 이미지 관련 함수들 추가
+export function saveImageData(imageId: string, base64Data: string, metadata: any = {}) {
+  console.log(`[FileDB] 💾 이미지 저장: ${imageId}`)
+  try {
+    let imagesData = DEFAULT_IMAGES_DATA
+
+    if (fs.existsSync(IMAGES_FILE)) {
+      const content = fs.readFileSync(IMAGES_FILE, "utf8")
+      if (content.trim()) {
+        imagesData = safeJsonParse(content, DEFAULT_IMAGES_DATA)
+      }
+    }
+
+    // 이미지 데이터 저장
+    imagesData.images[imageId] = {
+      data: base64Data,
+      metadata: {
+        ...metadata,
+        created_at: new Date().toISOString(),
+        size: base64Data.length,
+      },
+    }
+    imagesData.last_updated = new Date().toISOString()
+
+    const jsonData = JSON.stringify(imagesData, null, 2)
+    fs.writeFileSync(IMAGES_FILE, jsonData, "utf8")
+
+    console.log(`[FileDB] ✅ 이미지 저장 성공: ${imageId}`)
+    return true
+  } catch (error) {
+    console.error(`[FileDB] 💥 이미지 저장 실패:`, error)
+    return false
+  }
+}
+
+export function getImageData(imageId: string) {
+  console.log(`[FileDB] 📖 이미지 읽기: ${imageId}`)
+  try {
+    if (!fs.existsSync(IMAGES_FILE)) {
+      console.log(`[FileDB] ⚠️ 이미지 파일 없음`)
+      return null
+    }
+
+    const content = fs.readFileSync(IMAGES_FILE, "utf8")
+    if (!content.trim()) {
+      console.log(`[FileDB] ⚠️ 빈 이미지 파일`)
+      return null
+    }
+
+    const imagesData = safeJsonParse(content, DEFAULT_IMAGES_DATA)
+    const imageInfo = imagesData.images[imageId]
+
+    if (!imageInfo) {
+      console.log(`[FileDB] ⚠️ 이미지 없음: ${imageId}`)
+      return null
+    }
+
+    console.log(`[FileDB] ✅ 이미지 읽기 성공: ${imageId}`)
+    return imageInfo
+  } catch (error) {
+    console.error(`[FileDB] 💥 이미지 읽기 실패:`, error)
+    return null
+  }
+}
+
+export function deleteImageData(imageId: string) {
+  console.log(`[FileDB] 🗑️ 이미지 삭제: ${imageId}`)
+  try {
+    if (!fs.existsSync(IMAGES_FILE)) {
+      return true
+    }
+
+    const content = fs.readFileSync(IMAGES_FILE, "utf8")
+    if (!content.trim()) {
+      return true
+    }
+
+    const imagesData = safeJsonParse(content, DEFAULT_IMAGES_DATA)
+
+    if (imagesData.images[imageId]) {
+      delete imagesData.images[imageId]
+      imagesData.last_updated = new Date().toISOString()
+
+      const jsonData = JSON.stringify(imagesData, null, 2)
+      fs.writeFileSync(IMAGES_FILE, jsonData, "utf8")
+
+      console.log(`[FileDB] ✅ 이미지 삭제 성공: ${imageId}`)
+    }
+
+    return true
+  } catch (error) {
+    console.error(`[FileDB] 💥 이미지 삭제 실패:`, error)
+    return false
   }
 }
 
