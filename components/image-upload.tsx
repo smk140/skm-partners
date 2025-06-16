@@ -33,7 +33,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
 
     console.log("파일 선택됨:", file.name, file.size, file.type)
 
-    // 파일 크기 제한 (5MB로 줄임)
+    // 파일 크기 제한 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("파일 크기는 5MB 이하여야 합니다.")
       return
@@ -59,8 +59,8 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       setImageUrl(base64)
 
       console.log("서버 업로드 시작...")
-      // 서버에 업로드 (기본 방법 시도)
-      let response = await fetch("/api/admin/upload-image", {
+      // 서버에 업로드
+      const response = await fetch("/api/admin/upload-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,21 +70,6 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
           filename: file.name,
         }),
       })
-
-      // 기본 방법 실패 시 임시 방법 시도
-      if (!response.ok) {
-        console.log("기본 업로드 실패, 임시 방법 시도...")
-        response = await fetch("/api/admin/upload-image-temp", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            image: base64,
-            filename: file.name,
-          }),
-        })
-      }
 
       console.log("서버 응답 상태:", response.status)
 
@@ -108,13 +93,18 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       // 성공 시 URL 업데이트
       const finalUrl = data.url
       setImageUrl(finalUrl)
-      onChange(finalUrl) // 부모 컴포넌트에 알림
+      onChange(finalUrl) // 부모 컴포넌트에 즉시 알림
 
       setSuccess(`이미지가 성공적으로 업로드되었습니다: ${data.filename}`)
       setError(null)
 
       console.log("최종 이미지 URL:", finalUrl)
       console.log("onChange 호출됨:", finalUrl)
+
+      // 성공 메시지를 3초 후 자동으로 숨김
+      setTimeout(() => {
+        setSuccess(null)
+      }, 3000)
     } catch (err) {
       console.error("업로드 실패:", err)
       setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
