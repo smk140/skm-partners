@@ -71,7 +71,7 @@ export default function CompanyManagementPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  // 회사 기본 정보
+  // 회사 기본 정보 - 기본값으로 초기화
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
     name: "",
     slogan: "",
@@ -126,39 +126,40 @@ export default function CompanyManagementPage() {
   }, [])
 
   const loadCompanyData = async () => {
+    console.log("=== 데이터 로드 시작 ===")
     setIsLoading(true)
     try {
       const response = await fetch("/api/admin/company")
+      console.log("API 응답 상태:", response.status)
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP ${response.status}`)
       }
 
-      const data = await response.json() // API는 { info: {...}, executives: [...] } 구조를 반환
+      const data = await response.json()
+      console.log("받은 데이터:", data)
 
+      // info 데이터가 있으면 설정
       if (data.info) {
-        // 기본 상태와 서버에서 받은 데이터를 안전하게 병합
-        setCompanyInfo((prevInfo) => ({
-          ...prevInfo,
-          ...data.info,
-          business_hours: { ...prevInfo.business_hours, ...(data.info.business_hours || {}) },
-          social_media: { ...prevInfo.social_media, ...(data.info.social_media || {}) },
-          map_info: { ...prevInfo.map_info, ...(data.info.map_info || {}) },
-          site_images: { ...prevInfo.site_images, ...(data.info.site_images || {}) },
-        }))
+        console.log("회사 정보 설정:", data.info)
+        setCompanyInfo(data.info)
       }
+
+      // executives 데이터가 있으면 설정
       if (data.executives) {
+        console.log("임원 정보 설정:", data.executives)
         setExecutives(data.executives)
       }
 
       toast({
-        title: "데이터 로드 완료",
-        description: "회사 정보를 성공적으로 불러왔습니다.",
+        title: "로드 완료",
+        description: "데이터를 성공적으로 불러왔습니다.",
       })
     } catch (error) {
-      console.error("Failed to load company data:", error)
+      console.error("로드 실패:", error)
       toast({
-        title: "데이터 로드 실패",
-        description: "회사 정보를 불러오는데 실패했습니다.",
+        title: "로드 실패",
+        description: "데이터를 불러오는데 실패했습니다.",
         variant: "destructive",
       })
     } finally {
@@ -166,7 +167,7 @@ export default function CompanyManagementPage() {
     }
   }
 
-  // 이미지 URL 업데이트 함수들 추가
+  // 이미지 URL 업데이트
   const updateCompanyImage = (field: keyof CompanyInfo["site_images"], url: string) => {
     console.log(`이미지 업데이트: ${field} = ${url}`)
     setCompanyInfo((prev) => ({
@@ -186,11 +187,13 @@ export default function CompanyManagementPage() {
     }))
   }
 
+  // 회사 정보 저장
   const saveCompanyInfo = async () => {
+    console.log("=== 회사 정보 저장 시작 ===")
+    console.log("저장할 데이터:", companyInfo)
+
     setIsSaving(true)
     try {
-      console.log("저장할 회사 정보:", companyInfo)
-
       const response = await fetch("/api/admin/company", {
         method: "PUT",
         headers: {
@@ -202,23 +205,28 @@ export default function CompanyManagementPage() {
         }),
       })
 
+      console.log("저장 응답 상태:", response.status)
       const result = await response.json()
+      console.log("저장 응답:", result)
 
       if (!response.ok) {
-        throw new Error(result.error || "저장에 실패했습니다.")
+        throw new Error(result.error || "저장 실패")
       }
 
-      console.log("저장 성공:", result)
-
       toast({
-        title: "저장 완료",
+        title: "저장 완료!",
         description: "회사 정보가 성공적으로 저장되었습니다.",
       })
+
+      // 저장 후 데이터 다시 로드해서 확인
+      setTimeout(() => {
+        loadCompanyData()
+      }, 500)
     } catch (error) {
-      console.error("Failed to save company info:", error)
+      console.error("저장 실패:", error)
       toast({
         title: "저장 실패",
-        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "저장 중 오류 발생",
         variant: "destructive",
       })
     } finally {
@@ -228,6 +236,9 @@ export default function CompanyManagementPage() {
 
   // 임원 정보 저장
   const saveExecutives = async () => {
+    console.log("=== 임원 정보 저장 시작 ===")
+    console.log("저장할 임원 데이터:", executives)
+
     setIsSaving(true)
     try {
       const response = await fetch("/api/admin/company", {
@@ -242,20 +253,21 @@ export default function CompanyManagementPage() {
       })
 
       const result = await response.json()
+      console.log("임원 저장 응답:", result)
 
       if (!response.ok) {
-        throw new Error(result.error || "저장에 실패했습니다.")
+        throw new Error(result.error || "저장 실패")
       }
 
       toast({
-        title: "저장 완료",
+        title: "저장 완료!",
         description: "임원 정보가 성공적으로 저장되었습니다.",
       })
     } catch (error) {
-      console.error("Failed to save executives:", error)
+      console.error("임원 저장 실패:", error)
       toast({
         title: "저장 실패",
-        description: error instanceof Error ? error.message : "저장 중 오류가 발생했습니다.",
+        description: error instanceof Error ? error.message : "저장 중 오류 발생",
         variant: "destructive",
       })
     } finally {
@@ -263,7 +275,7 @@ export default function CompanyManagementPage() {
     }
   }
 
-  // 서비스 추가/삭제
+  // 서비스 관리
   const addService = () => {
     setCompanyInfo((prev) => ({
       ...prev,
@@ -285,7 +297,7 @@ export default function CompanyManagementPage() {
     }))
   }
 
-  // 임원 추가
+  // 임원 관리
   const addExecutive = () => {
     const newExecutive: Executive = {
       id: Date.now(),
@@ -298,7 +310,6 @@ export default function CompanyManagementPage() {
     setExecutives([...executives, newExecutive])
   }
 
-  // 임원 삭제
   const removeExecutive = (id: number) => {
     setExecutives(executives.filter((exec) => exec.id !== id))
   }
@@ -308,7 +319,7 @@ export default function CompanyManagementPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">회사 정보를 불러오는 중...</p>
+          <p className="mt-4 text-gray-600">데이터 로딩 중...</p>
         </div>
       </div>
     )
@@ -468,11 +479,11 @@ export default function CompanyManagementPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
-                이미지 업로드
+                이미지 관리
               </CardTitle>
-              <CardDescription>클라우드에서 이미지를 업로드합니다</CardDescription>
+              <CardDescription>웹사이트에 사용될 이미지를 업로드하고 관리합니다</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               <div className="grid grid-cols-1 gap-8">
                 <ImageUpload
                   label="사이트 전체 > 헤더/푸터 로고"
@@ -529,10 +540,12 @@ export default function CompanyManagementPage() {
                 />
               </div>
 
-              <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                {isSaving ? "저장 중..." : "이미지 저장"}
-              </Button>
+              <div className="border-t pt-6">
+                <Button onClick={saveCompanyInfo} disabled={isSaving} className="flex items-center gap-2 w-full">
+                  <Save className="h-4 w-4" />
+                  {isSaving ? "저장 중..." : "🔥 이미지 정보 저장 🔥"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
