@@ -92,13 +92,13 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
 
       // 성공 시 URL 업데이트
       const finalUrl = data.url
-      setImageUrl(finalUrl)
-      onChange(finalUrl) // 부모 컴포넌트에 즉시 알림
+      setImageUrl(finalUrl) // 미리보기를 위해 즉시 Blob URL로 업데이트
+      onChange(finalUrl) // 부모 컴포넌트에 Blob URL 알림
 
-      setSuccess(`이미지가 성공적으로 업로드되었습니다! (${data.filename})`)
+      setSuccess(`이미지가 성공적으로 업로드되었습니다! (${data.originalFilename})`)
       setError(null)
 
-      console.log("최종 이미지 URL:", finalUrl)
+      console.log("최종 이미지 URL (Vercel Blob):", finalUrl)
       console.log("onChange 호출됨:", finalUrl)
 
       // 성공 메시지를 3초 후 자동으로 숨김

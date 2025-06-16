@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
-import memoryStorage from "@/lib/memory-storage"
+import { put } from "@vercel/blob"
 
 export async function POST(request: Request) {
-  console.log("=== 이미지 업로드 API 시작 (메모리 저장소) ===")
+  console.log("=== 이미지 업로드 API 시작 (Vercel Blob) ===")
 
   try {
     // 요청 본문 파싱
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "이미지 파일만 업로드 가능합니다." }, { status: 400 })
     }
 
-    // Buffer로 변환하여 크기 확인
+    // Buffer로 변환
     let buffer
     try {
       buffer = Buffer.from(base64Data, "base64")
@@ -61,34 +61,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "파일 크기는 10MB 이하여야 합니다." }, { status: 400 })
     }
 
-    // 고유한 이미지 ID 생성
+    // 고유한 파일명 생성
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 8)
-    const imageId = `img_${timestamp}_${randomId}`
-    const newFilename = `${imageId}.${filename.split(".").pop() || "jpg"}`
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, "_") // 안전한 파일명
+    const blobFilename = `uploads/${timestamp}-${randomId}-${safeFilename}`
 
-    console.log("이미지 ID:", imageId)
-    console.log("새 파일명:", newFilename)
+    console.log("Blob 파일명:", blobFilename)
 
-    // 메모리 저장소에 이미지 저장
-    const saveSuccess = memoryStorage.saveImage(imageId, image, {
-      filename: newFilename,
-      original_filename: filename,
-      type: type,
-      size: buffer.length,
+    // Vercel Blob에 업로드
+    console.log("Vercel Blob 업로드 시도...")
+    const blob = await put(blobFilename, buffer, {
+      access: "public",
+      contentType: type,
+      addRandomSuffix: false, // 이미 고유한 이름 사용
     })
+    console.log("Vercel Blob 업로드 성공:", blob)
 
-    if (!saveSuccess) {
-      console.error("메모리 저장소 저장 실패")
-      return NextResponse.json({ error: "이미지 저장에 실패했습니다." }, { status: 500 })
-    }
-
-    // 저장소 정보 로깅
-    const storageInfo = memoryStorage.getStorageInfo()
-    console.log("저장소 정보:", storageInfo)
-
-    // 이미지 접근 URL 생성 (API 엔드포인트)
-    const imageUrl = `/api/images/${imageId}`
+    // 이미지 접근 URL
+    const imageUrl = blob.url
 
     console.log("최종 이미지 URL:", imageUrl)
     console.log("=== 이미지 업로드 API 성공 ===")
@@ -96,12 +87,11 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       url: imageUrl,
-      imageId: imageId,
-      filename: newFilename,
+      filename: blobFilename,
+      originalFilename: filename,
       size: buffer.length,
       type: type,
       message: "이미지가 성공적으로 업로드되었습니다.",
-      storageInfo,
     })
   } catch (error) {
     console.error("=== 이미지 업로드 API 오류 ===")
