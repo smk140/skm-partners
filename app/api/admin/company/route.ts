@@ -1,103 +1,64 @@
 import { NextResponse } from "next/server"
 import { getCompanyData, saveCompanyData } from "@/lib/file-db"
 
-// 회사 정보 조회
 export async function GET() {
+  console.log("=== 회사 정보 조회 API ===")
   try {
-    const data = getCompanyData()
-    console.log("회사 정보 조회:", data)
-
-    return NextResponse.json({
-      success: true,
-      companyInfo: data.info,
-      executives: data.executives,
-      successCases: data.successCases,
-    })
+    const companyData = getCompanyData()
+    console.log("회사 정보 조회 성공")
+    return NextResponse.json(companyData)
   } catch (error) {
-    console.error("회사 정보 조회 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
+    console.error("회사 정보 조회 실패:", error)
+    return NextResponse.json({ error: "회사 정보를 불러올 수 없습니다." }, { status: 500 })
   }
 }
 
-// 회사 정보 업데이트
-export async function PUT(request: Request) {
+export async function POST(request: Request) {
+  console.log("=== 회사 정보 저장 API ===")
   try {
-    const { type, data: updateData } = await request.json()
-    console.log("업데이트 요청:", { type, updateData })
+    const body = await request.json()
+    console.log("저장할 데이터:", JSON.stringify(body, null, 2))
 
-    const companyData = getCompanyData()
+    // 기존 데이터 가져오기
+    const existingData = getCompanyData()
 
-    if (type === "company") {
-      // 회사 기본 정보 업데이트
-      companyData.info = {
-        ...companyData.info,
-        ...updateData,
-      }
-      console.log("회사 정보 업데이트됨:", companyData.info)
-    } else if (type === "executives") {
-      // 임원 정보 업데이트
-      companyData.executives = updateData.map((exec: any) => ({
-        ...exec,
-        id: exec.id > 0 ? exec.id : Date.now() + Math.random(), // 새로운 ID 생성
-      }))
-      console.log("임원 정보 업데이트됨:", companyData.executives)
-    } else if (type === "success_cases") {
-      // 성공 사례 업데이트
-      companyData.successCases = updateData.map((caseItem: any) => ({
-        ...caseItem,
-        id: caseItem.id > 0 ? caseItem.id : Date.now() + Math.random(), // 새로운 ID 생성
-      }))
-      console.log("성공 사례 업데이트됨:", companyData.successCases)
+    // 새 데이터로 업데이트 (깊은 병합)
+    const updatedData = {
+      ...existingData,
+      info: {
+        ...existingData.info,
+        ...body.info,
+        site_images: {
+          ...existingData.info.site_images,
+          ...body.info?.site_images,
+        },
+      },
+      executives: body.executives || existingData.executives,
+      successCases: body.successCases || existingData.successCases,
     }
 
-    const success = saveCompanyData(companyData)
-    console.log("저장 결과:", success)
+    console.log("업데이트된 데이터:", JSON.stringify(updatedData, null, 2))
+
+    const success = saveCompanyData(updatedData)
 
     if (!success) {
-      return NextResponse.json({ error: "데이터 저장에 실패했습니다." }, { status: 500 })
+      console.error("회사 정보 저장 실패")
+      return NextResponse.json({ error: "회사 정보 저장에 실패했습니다." }, { status: 500 })
     }
 
+    console.log("회사 정보 저장 성공")
     return NextResponse.json({
       success: true,
-      message: "저장이 완료되었습니다.",
-      data: companyData,
+      message: "회사 정보가 성공적으로 저장되었습니다.",
+      data: updatedData,
     })
   } catch (error) {
-    console.error("회사 정보 업데이트 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
-  }
-}
-
-// 개별 항목 삭제
-export async function DELETE(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get("type")
-    const id = Number.parseInt(searchParams.get("id") || "0")
-
-    if (!type || !id) {
-      return NextResponse.json({ error: "타입과 ID가 필요합니다." }, { status: 400 })
-    }
-
-    const companyData = getCompanyData()
-
-    if (type === "executive") {
-      companyData.executives = companyData.executives.filter((exec: any) => exec.id !== id)
-    } else if (type === "success-case") {
-      companyData.successCases = companyData.successCases.filter((caseItem: any) => caseItem.id !== id)
-    } else {
-      return NextResponse.json({ error: "유효하지 않은 타입입니다." }, { status: 400 })
-    }
-
-    const success = saveCompanyData(companyData)
-
-    if (!success) {
-      return NextResponse.json({ error: "삭제에 실패했습니다." }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error("항목 삭제 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
+    console.error("회사 정보 저장 API 오류:", error)
+    return NextResponse.json(
+      {
+        error: `회사 정보 저장에 실패했습니다: ${error.message}`,
+      },
+      { status: 500 },
+    )
   }
 }

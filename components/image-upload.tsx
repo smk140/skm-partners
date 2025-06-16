@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Upload, X, Loader2, AlertCircle, ImageIcon, CheckCircle } from "lucide-react"
+import { Upload, X, Loader2, AlertCircle, ImageIcon, CheckCircle, AlertTriangle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ImageUploadProps {
@@ -17,6 +17,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState(value)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -47,6 +48,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     setIsUploading(true)
     setError(null)
     setSuccess(null)
+    setWarning(null)
 
     try {
       console.log("Base64 변환 시작...")
@@ -98,16 +100,21 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       setImageUrl(finalUrl)
       onChange(finalUrl) // 부모 컴포넌트에 즉시 알림
 
-      setSuccess(`이미지가 성공적으로 업로드되었습니다: ${data.filename}`)
+      if (data.temporary) {
+        setWarning("이미지가 임시로 저장되었습니다. 새로고침 시 사라질 수 있으니 빠른 시일 내에 저장해주세요.")
+      } else {
+        setSuccess(`이미지가 성공적으로 업로드되었습니다: ${data.filename}`)
+      }
       setError(null)
 
       console.log("최종 이미지 URL:", finalUrl)
       console.log("onChange 호출됨:", finalUrl)
 
-      // 성공 메시지를 3초 후 자동으로 숨김
+      // 메시지를 5초 후 자동으로 숨김
       setTimeout(() => {
         setSuccess(null)
-      }, 3000)
+        setWarning(null)
+      }, 5000)
     } catch (err) {
       console.error("업로드 실패:", err)
       setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
@@ -142,6 +149,7 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     onChange("")
     setSuccess(null)
     setError(null)
+    setWarning(null)
     console.log("이미지 제거됨")
   }
 
@@ -239,6 +247,13 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">{success}</AlertDescription>
+        </Alert>
+      )}
+
+      {warning && (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">{warning}</AlertDescription>
         </Alert>
       )}
 

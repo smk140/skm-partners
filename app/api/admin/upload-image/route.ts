@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
-import { saveImageData } from "@/lib/file-db"
 
 export async function POST(request: Request) {
-  console.log("=== 이미지 업로드 API 시작 (파일 DB 저장) ===")
-  console.log("요청 헤더:", Object.fromEntries(request.headers.entries()))
+  console.log("=== 이미지 업로드 API 시작 (임시 Base64 저장) ===")
 
   try {
     // 요청 본문 파싱
@@ -56,57 +54,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "이미지 데이터 처리 중 오류가 발생했습니다." }, { status: 400 })
     }
 
-    // 파일 크기 확인 (5MB 제한)
-    if (buffer.length > 5 * 1024 * 1024) {
+    // 파일 크기 확인 (10MB 제한)
+    if (buffer.length > 10 * 1024 * 1024) {
       console.log("파일 크기 초과:", buffer.length)
-      return NextResponse.json({ error: "파일 크기는 5MB 이하여야 합니다." }, { status: 400 })
+      return NextResponse.json({ error: "파일 크기는 10MB 이하여야 합니다." }, { status: 400 })
     }
 
     // 고유한 이미지 ID 생성
     const timestamp = Date.now()
     const randomId = Math.random().toString(36).substring(2, 8)
-    const ext = filename.split(".").pop() || "jpg"
     const imageId = `img_${timestamp}_${randomId}`
-    const newFilename = `${imageId}.${ext}`
 
     console.log("이미지 ID:", imageId)
-    console.log("새 파일명:", newFilename)
 
-    // 파일 DB에 이미지 저장
-    console.log("파일 DB 저장 시도...")
-    const saveSuccess = saveImageData(imageId, image, {
-      filename: newFilename,
-      original_filename: filename,
-      type: type,
-      size: buffer.length,
-    })
+    // 임시 해결책: Base64 데이터를 그대로 반환
+    // 실제 프로덕션에서는 Vercel Blob이나 다른 스토리지 서비스 사용 권장
+    const imageUrl = image // Base64 데이터 URL을 그대로 사용
 
-    if (!saveSuccess) {
-      console.error("파일 DB 저장 실패 - saveImageData 함수에서 false 반환")
-      return NextResponse.json(
-        {
-          error: "이미지 저장에 실패했습니다. 파일 시스템 오류일 수 있습니다.",
-        },
-        { status: 500 },
-      )
-    }
-
-    console.log("파일 DB 저장 성공!")
-
-    // 이미지 접근 URL 생성 (API 엔드포인트)
-    const imageUrl = `/api/images/${imageId}`
-
-    console.log("최종 이미지 URL:", imageUrl)
-    console.log("=== 이미지 업로드 API 성공 ===")
+    console.log("임시 이미지 URL 생성 완료")
+    console.log("=== 이미지 업로드 API 성공 (임시) ===")
 
     return NextResponse.json({
       success: true,
       url: imageUrl,
       imageId: imageId,
-      filename: newFilename,
+      filename: filename,
       size: buffer.length,
       type: type,
-      message: "이미지가 성공적으로 업로드되었습니다.",
+      message: "이미지가 임시로 업로드되었습니다. (새로고침 시 사라질 수 있음)",
+      temporary: true,
     })
   } catch (error) {
     console.error("=== 이미지 업로드 API 오류 ===")
