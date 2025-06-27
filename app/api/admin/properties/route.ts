@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { getPropertiesData, addProperty } from "@/lib/file-db"
 
 // 메모리 기반 저장소 - 전역 변수로 관리
 const propertiesStore: any[] = [
@@ -61,89 +62,67 @@ const propertiesStore: any[] = [
 
 // 부동산 매물 목록 조회
 export async function GET() {
-  console.log("=== GET /api/admin/properties ===")
-  console.log("현재 저장된 매물:", propertiesStore.length, "개")
+  try {
+    console.log("=== 부동산 목록 조회 API 호출 ===")
 
-  // 각 매물의 ID와 제목 로깅
-  propertiesStore.forEach((property, index) => {
-    console.log(`매물 ${index + 1}: ID=${property.id}, 제목=${property.title}`)
-  })
+    const properties = await getPropertiesData()
 
-  return NextResponse.json({
-    success: true,
-    properties: propertiesStore,
-    total: propertiesStore.length,
-    timestamp: new Date().toISOString(),
-  })
+    console.log("조회된 부동산 수:", properties.length)
+
+    return NextResponse.json({
+      success: true,
+      properties: properties,
+      total: properties.length,
+    })
+  } catch (error) {
+    console.error("부동산 조회 실패:", error)
+
+    return NextResponse.json({
+      success: false,
+      properties: [],
+      total: 0,
+      error: "부동산 조회에 실패했습니다.",
+    })
+  }
 }
 
 // 부동산 매물 추가
 export async function POST(request: Request) {
-  console.log("=== POST /api/admin/properties ===")
-
   try {
+    console.log("=== 부동산 등록 API 호출 ===")
+
     const body = await request.json()
     console.log("받은 데이터:", body)
 
+    const { title, description, price, location, imageUrl } = body
+
     // 필수 필드 검증
-    if (!body.title || !body.location) {
-      console.log("필수 필드 누락")
-      return NextResponse.json(
-        {
-          success: false,
-          error: "매물명과 위치는 필수입니다.",
-        },
-        { status: 400 },
-      )
+    if (!title || !location) {
+      console.log("필수 필드 누락:", { title, location })
+      return NextResponse.json({ error: "제목과 위치는 필수입니다." }, { status: 400 })
     }
 
-    // 새 ID 생성 (기존 ID 중 최대값 + 1)
-    const maxId = propertiesStore.length > 0 ? Math.max(...propertiesStore.map((p) => p.id)) : 0
-    const newId = maxId + 1
-
-    // 새 매물 생성
-    const newProperty = {
-      id: newId,
-      title: body.title,
-      location: body.location,
-      type: body.type || "오피스",
-      size: body.size || "",
-      price: body.price || "",
-      description: body.description || "",
-      image_url: body.image_url || "",
-      status: "활성",
-      createdAt: new Date().toISOString(),
-      features: body.features || [],
-      contact: {
-        manager: "SKM파트너스",
-        phone: "02-123-4567",
-        email: "bykim@skm.kr",
-      },
-    }
-
-    console.log("생성할 매물:", newProperty)
-    console.log("새 ID:", newId)
-
-    // 메모리에 저장
-    propertiesStore.push(newProperty)
-    console.log("저장 완료. 총 매물 수:", propertiesStore.length)
-
-    return NextResponse.json({
-      success: true,
-      property: newProperty,
-      message: "매물이 성공적으로 추가되었습니다.",
-      total: propertiesStore.length,
+    // GitHub에 저장
+    const result = await addProperty({
+      title,
+      description: description || "",
+      price: Number(price) || 0,
+      location,
+      imageUrl: imageUrl || "",
     })
+
+    if (result.success) {
+      console.log("부동산 저장 성공")
+      return NextResponse.json({
+        success: true,
+        message: "부동산이 성공적으로 등록되었습니다.",
+      })
+    } else {
+      throw new Error(result.error || "저장 실패")
+    }
   } catch (error) {
-    console.error("매물 추가 오류:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: "서버 오류가 발생했습니다.",
-        details: error instanceof Error ? error.message : "알 수 없는 오류",
-      },
-      { status: 500 },
-    )
+    console.error("부동산 등록 실패:", error)
+    return NextResponse.json({ error: "부동산 등록에 실패했습니다." }, { status: 500 })
   }
 }
 

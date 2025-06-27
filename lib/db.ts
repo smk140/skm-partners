@@ -1,6 +1,18 @@
-// GitHub 파일 시스템 사용 - 모든 데이터베이스 관련 코드 제거
-import { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "./file-db"
+// GitHub 파일 시스템 사용 - 모든 데이터베이스 관련 코드 완전 제거
+import {
+  getCompanyData,
+  updateCompanyData,
+  getInquiriesData,
+  getPropertiesData,
+  addInquiry,
+  addProperty,
+  testGitHubConnection,
+  type CompanyData,
+  type InquiryData,
+  type PropertyData,
+} from "./file-db"
 
+// 레거시 인터페이스 유지 (호환성을 위해)
 export interface Inquiry {
   id: number
   name: string
@@ -56,24 +68,57 @@ export interface SuccessCase {
 }
 
 // GitHub 파일 시스템 함수들 재내보내기
-export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData }
+export {
+  getCompanyData,
+  updateCompanyData,
+  getInquiriesData,
+  getPropertiesData,
+  addInquiry,
+  addProperty,
+  testGitHubConnection,
+  type CompanyData,
+  type InquiryData,
+  type PropertyData,
+}
 
-// 레거시 호환성을 위한 더미 SQL 함수
+// 레거시 호환성을 위한 더미 SQL 함수들
 export const sql = async (query: TemplateStringsArray, ...values: any[]) => {
-  console.log("레거시 SQL 호출 (GitHub 파일 시스템으로 대체됨):", query.join(""), values)
+  console.log("⚠️ 레거시 SQL 호출 (GitHub 파일 시스템으로 대체됨):", query.join(""), values)
   return []
 }
 
-// 템플릿 리터럴 함수
 export function createSqlFunction() {
   return function sql(strings: TemplateStringsArray, ...values: any[]) {
     const query = strings.reduce((result, string, i) => {
       return result + string + (values[i] || "")
     }, "")
-    console.log("레거시 SQL 템플릿 호출 (GitHub 파일 시스템으로 대체됨):", query)
+    console.log("⚠️ 레거시 SQL 템플릿 호출 (GitHub 파일 시스템으로 대체됨):", query)
     return Promise.resolve([])
   }
 }
 
-// 기본 export
 export const sqlTemplate = createSqlFunction()
+
+// 데이터베이스 연결 함수들 (GitHub으로 대체)
+export async function connectToDatabase() {
+  return await testGitHubConnection()
+}
+
+export async function testConnection() {
+  const result = await testGitHubConnection()
+  return result.success
+}
+
+export async function executeTransaction(queries: Array<() => Promise<any>>) {
+  try {
+    const results = []
+    for (const query of queries) {
+      const result = await query()
+      results.push(result)
+    }
+    return results
+  } catch (error) {
+    console.error("Transaction failed:", error)
+    throw error
+  }
+}

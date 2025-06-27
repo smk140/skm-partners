@@ -1,44 +1,52 @@
 // GitHub 파일 시스템 사용 - neon 완전 제거
-import { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "@/lib/file-db"
+import {
+  getCompanyData,
+  updateCompanyData,
+  getInquiriesData,
+  getPropertiesData,
+  testGitHubConnection,
+} from "@/lib/file-db"
 
 export async function connectToDatabase() {
-  // GitHub API 연결 테스트
   try {
-    const token = process.env.GITHUB_TOKEN
-    if (!token) {
-      throw new Error("GITHUB_TOKEN environment variable is not set")
-    }
+    console.log("🔗 GitHub API 연결 확인 중...")
 
-    console.log("GitHub API connection established")
-    return true
+    const result = await testGitHubConnection()
+
+    if (result.success) {
+      console.log("✅ GitHub API 연결 성공")
+      return true
+    } else {
+      throw new Error(result.error || "GitHub 연결 실패")
+    }
   } catch (error) {
-    console.error("GitHub API connection failed:", error)
+    console.error("💥 GitHub API 연결 실패:", error)
     throw error
   }
 }
 
-// GitHub API 연결 테스트 함수
 export async function testConnection() {
   try {
-    await connectToDatabase()
-    return true
+    const result = await testGitHubConnection()
+    return result.success
   } catch (error) {
-    console.error("GitHub API connection test failed:", error)
+    console.error("GitHub API 연결 테스트 실패:", error)
     return false
   }
 }
 
-// 트랜잭션 실행 함수 (GitHub에서는 순차 실행)
 export async function executeTransaction(queries: Array<() => Promise<any>>) {
   try {
+    console.log("🔄 트랜잭션 실행 중... (GitHub 순차 처리)")
     const results = []
     for (const query of queries) {
       const result = await query()
       results.push(result)
     }
+    console.log("✅ 트랜잭션 완료")
     return results
   } catch (error) {
-    console.error("Transaction failed:", error)
+    console.error("💥 트랜잭션 실패:", error)
     throw error
   }
 }

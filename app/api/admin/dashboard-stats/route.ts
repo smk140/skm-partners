@@ -3,41 +3,44 @@ import { getInquiriesData, getPropertiesData } from "@/lib/file-db"
 
 export async function GET() {
   try {
-    // 실제 데이터에서 통계 계산
-    const inquiriesData = getInquiriesData()
-    const propertiesData = getPropertiesData()
+    console.log("=== 대시보드 통계 조회 API 호출 ===")
 
-    const totalInquiries = inquiriesData.inquiries?.length || 0
-    const pendingInquiries = inquiriesData.inquiries?.filter((inquiry: any) => inquiry.status === "pending").length || 0
-    const totalProperties = propertiesData.properties?.length || 0
-    const activeProperties =
-      propertiesData.properties?.filter((property: any) => property.status === "활성").length || 0
+    // GitHub에서 데이터 조회
+    const inquiries = await getInquiriesData()
+    const properties = await getPropertiesData()
 
-    // 최근 24시간 로그인 수 (임시로 랜덤 값)
-    const recentLogins = Math.floor(Math.random() * 10) + 1
+    // 통계 계산
+    const totalInquiries = inquiries.length
+    const totalProperties = properties.length
+    const recentInquiries = inquiries.filter(
+      (inquiry) => new Date(inquiry.createdAt || "").getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).length
 
     const stats = {
       totalInquiries,
       totalProperties,
-      recentLogins,
-      systemStatus: "정상",
-      pendingInquiries,
-      activeProperties,
+      recentInquiries,
+      activeProperties: properties.length, // 모든 부동산을 활성으로 간주
     }
 
-    return NextResponse.json(stats)
+    console.log("대시보드 통계 조회 성공:", stats)
+
+    return NextResponse.json({
+      success: true,
+      stats,
+    })
   } catch (error) {
-    console.error("Dashboard stats error:", error)
-    return NextResponse.json(
-      {
+    console.error("대시보드 통계 조회 실패:", error)
+
+    return NextResponse.json({
+      success: false,
+      error: "통계 조회에 실패했습니다.",
+      stats: {
         totalInquiries: 0,
         totalProperties: 0,
-        recentLogins: 0,
-        systemStatus: "오류",
-        pendingInquiries: 0,
+        recentInquiries: 0,
         activeProperties: 0,
       },
-      { status: 500 },
-    )
+    })
   }
 }

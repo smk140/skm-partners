@@ -1,251 +1,216 @@
-// GitHub 파일 기반 데이터 관리 - neon 완전 제거
-const GITHUB_API_BASE = "https://api.github.com"
-const REPO_OWNER = process.env.GITHUB_REPO_OWNER || "smk140"
-const REPO_NAME = process.env.GITHUB_REPO_NAME || "skm-partners"
-const BRANCH = process.env.GITHUB_BRANCH || "main"
+// GitHub 파일 시스템을 사용한 데이터 관리
+import { Octokit } from "@octokit/rest"
 
 export interface CompanyData {
-  id?: number
   name: string
   description: string
   address: string
   phone: string
   email: string
   website: string
-  logoUrl: string
-  heroImageUrl: string
-  aboutImageUrl: string
-  createdAt?: Date
-  updatedAt?: Date
+  logoUrl?: string
+  heroImageUrl?: string
+  aboutImageUrl?: string
 }
 
 export interface InquiryData {
-  id?: number
+  id: number
   name: string
   email: string
   phone: string
   message: string
-  createdAt?: Date
+  createdAt: string
 }
 
 export interface PropertyData {
-  id?: number
+  id: number
   title: string
   description: string
   price: number
   location: string
-  imageUrl: string
-  createdAt?: Date
-  updatedAt?: Date
+  imageUrl?: string
+  createdAt: string
 }
 
-// GitHub API 헬퍼 함수
-async function githubRequest(path: string, options: RequestInit = {}) {
+// GitHub API 클라이언트 초기화
+function getGitHubClient() {
   const token = process.env.GITHUB_TOKEN
   if (!token) {
-    throw new Error("GITHUB_TOKEN이 설정되지 않았습니다")
+    throw new Error("GITHUB_TOKEN이 설정되지 않았습니다.")
   }
-
-  const response = await fetch(`${GITHUB_API_BASE}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github.v3+json",
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`GitHub API 오류: ${response.status} ${response.statusText}`)
-  }
-
-  return response.json()
+  return new Octokit({ auth: token })
 }
 
-// 파일 읽기
-async function readGitHubFile(filePath: string) {
+// GitHub 저장소 정보
+const REPO_OWNER = process.env.GITHUB_REPO_OWNER || "smk140"
+const REPO_NAME = process.env.GITHUB_REPO_NAME || "skm-partners"
+const BRANCH = process.env.GITHUB_BRANCH || "main"
+
+// 파일 읽기 함수
+async function readFileFromGitHub(filePath: string): Promise<any> {
   try {
-    const data = await githubRequest(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${BRANCH}`)
-    const content = Buffer.from(data.content, "base64").toString("utf-8")
-    return { content: JSON.parse(content), sha: data.sha }
+    const octokit = getGitHubClient()
+    const response = await octokit.rest.repos.getContent({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      path: filePath,
+      ref: BRANCH,
+    })
+
+    if ("content" in response.data) {
+      const content = Buffer.from(response.data.content, "base64").toString("utf-8")
+      return JSON.parse(content)
+    }
+    return null
   } catch (error) {
-    console.log(`파일 ${filePath}가 존재하지 않음, 기본값 사용`)
+    console.log(`파일을 찾을 수 없습니다: ${filePath}`)
     return null
   }
 }
 
-// 파일 쓰기
-async function writeGitHubFile(filePath: string, content: any, sha?: string) {
-  const base64Content = Buffer.from(JSON.stringify(content, null, 2)).toString("base64")
-
-  const body: any = {
-    message: `Update ${filePath}`,
-    content: base64Content,
-    branch: BRANCH,
-  }
-
-  if (sha) {
-    body.sha = sha
-  }
-
-  return await githubRequest(`/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  })
-}
-
-export async function getCompanyData(): Promise<CompanyData> {
+// 파일 쓰기 함수
+async function writeFileToGitHub(
+  filePath: string,
+  data: any,
+  message: string,
+): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log("🔍 GitHub에서 회사 정보 조회 중...")
+    const octokit = getGitHubClient()
+    const content = JSON.stringify(data, null, 2)
+    const encodedContent = Buffer.from(content).toString("base64")
 
-    const result = await readGitHubFile("data/company.json")
-
-    if (!result) {
-      console.log("📝 회사 정보가 없어서 기본값 반환")
-      return {
-        name: "SKM 파트너스",
-        description: "전문적인 비즈니스 솔루션을 제공하는 파트너십 기업입니다.",
-        address: "서울특별시 강남구",
-        phone: "02-1234-5678",
-        email: "info@skm-partners.com",
-        website: "https://skm-partners.com",
-        logoUrl: "",
-        heroImageUrl: "",
-        aboutImageUrl: "",
+    // 기존 파일 확인
+    let sha: string | undefined
+    try {
+      const existingFile = await octokit.rest.repos.getContent({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: filePath,
+        ref: BRANCH,
+      })
+      if ("sha" in existingFile.data) {
+        sha = existingFile.data.sha
       }
+    } catch (error) {
+      // 파일이 없으면 새로 생성
     }
 
-    console.log("✅ 회사 정보 조회 성공:", result.content.name)
-    return result.content
+    await octokit.rest.repos.createOrUpdateFileContents({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+      path: filePath,
+      message,
+      content: encodedContent,
+      branch: BRANCH,
+      sha,
+    })
+
+    return { success: true }
   } catch (error) {
-    console.error("💥 회사 정보 조회 실패:", error)
-    throw new Error(`회사 정보 조회 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`)
+    console.error("GitHub 파일 쓰기 실패:", error)
+    return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
+}
+
+// 회사 정보 관리
+export async function getCompanyData(): Promise<CompanyData> {
+  const data = await readFileFromGitHub("data/company.json")
+  return (
+    data || {
+      name: "SKM파트너스",
+      description: "전문적인 부동산 컨설팅 서비스를 제공합니다.",
+      address: "서울시 강남구",
+      phone: "02-123-4567",
+      email: "contact@skm.kr",
+      website: "https://skm.kr",
+      logoUrl: "",
+      heroImageUrl: "",
+      aboutImageUrl: "",
+    }
+  )
 }
 
 export async function updateCompanyData(
   data: Partial<CompanyData>,
 ): Promise<{ success: boolean; data?: CompanyData; error?: string }> {
   try {
-    console.log("💾 GitHub에 회사 정보 업데이트 시작:", data)
+    const currentData = await getCompanyData()
+    const updatedData = { ...currentData, ...data }
 
-    // 기존 데이터 읽기
-    const existing = await readGitHubFile("data/company.json")
+    const result = await writeFileToGitHub("data/company.json", updatedData, "회사 정보 업데이트")
 
-    const now = new Date()
-    const updatedData = {
-      ...(existing?.content || {}),
-      ...data,
-      updatedAt: now.toISOString(),
-      createdAt: existing?.content?.createdAt || now.toISOString(),
-    }
-
-    // GitHub에 저장
-    await writeGitHubFile("data/company.json", updatedData, existing?.sha)
-
-    console.log("✅ 회사 정보 업데이트 성공:", updatedData.name)
-
-    return {
-      success: true,
-      data: updatedData,
+    if (result.success) {
+      return { success: true, data: updatedData }
+    } else {
+      return { success: false, error: result.error }
     }
   } catch (error) {
-    console.error("💥 회사 정보 업데이트 실패:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "알 수 없는 오류",
-    }
+    return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
 }
 
+// 문의 관리
 export async function getInquiriesData(): Promise<InquiryData[]> {
-  try {
-    console.log("🔍 GitHub에서 문의 목록 조회 중...")
-
-    const result = await readGitHubFile("data/inquiries.json")
-
-    if (!result) {
-      console.log("📝 문의 목록이 없음")
-      return []
-    }
-
-    const inquiries = Array.isArray(result.content) ? result.content : []
-    console.log(`✅ 문의 ${inquiries.length}건 조회 성공`)
-    return inquiries
-  } catch (error) {
-    console.error("💥 문의 조회 실패:", error)
-    return []
-  }
+  const data = await readFileFromGitHub("data/inquiries.json")
+  return data?.inquiries || []
 }
 
-export async function getPropertiesData(): Promise<PropertyData[]> {
-  try {
-    console.log("🔍 GitHub에서 부동산 목록 조회 중...")
-
-    const result = await readGitHubFile("data/properties.json")
-
-    if (!result) {
-      console.log("📝 부동산 목록이 없음")
-      return []
-    }
-
-    const properties = Array.isArray(result.content) ? result.content : []
-    console.log(`✅ 부동산 ${properties.length}건 조회 성공`)
-    return properties
-  } catch (error) {
-    console.error("💥 부동산 조회 실패:", error)
-    return []
-  }
-}
-
-// 문의 추가 함수
 export async function addInquiry(
   inquiry: Omit<InquiryData, "id" | "createdAt">,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const existing = await readGitHubFile("data/inquiries.json")
-    const inquiries = existing?.content || []
-
-    const newInquiry = {
+    const inquiries = await getInquiriesData()
+    const newInquiry: InquiryData = {
       ...inquiry,
       id: Date.now(),
       createdAt: new Date().toISOString(),
     }
 
-    inquiries.unshift(newInquiry)
+    inquiries.push(newInquiry)
 
-    await writeGitHubFile("data/inquiries.json", inquiries, existing?.sha)
-
-    return { success: true }
+    const result = await writeFileToGitHub("data/inquiries.json", { inquiries }, "새 문의 추가")
+    return result
   } catch (error) {
-    console.error("💥 문의 추가 실패:", error)
     return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
 }
 
-// 부동산 추가 함수
+// 부동산 관리
+export async function getPropertiesData(): Promise<PropertyData[]> {
+  const data = await readFileFromGitHub("data/properties.json")
+  return data?.properties || []
+}
+
 export async function addProperty(
-  property: Omit<PropertyData, "id" | "createdAt" | "updatedAt">,
+  property: Omit<PropertyData, "id" | "createdAt">,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const existing = await readGitHubFile("data/properties.json")
-    const properties = existing?.content || []
-
-    const newProperty = {
+    const properties = await getPropertiesData()
+    const newProperty: PropertyData = {
       ...property,
       id: Date.now(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }
 
-    properties.unshift(newProperty)
+    properties.push(newProperty)
 
-    await writeGitHubFile("data/properties.json", properties, existing?.sha)
+    const result = await writeFileToGitHub("data/properties.json", { properties }, "새 부동산 추가")
+    return result
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
+  }
+}
 
+// GitHub 연결 테스트
+export async function testGitHubConnection(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const octokit = getGitHubClient()
+    await octokit.rest.repos.get({
+      owner: REPO_OWNER,
+      repo: REPO_NAME,
+    })
     return { success: true }
   } catch (error) {
-    console.error("💥 부동산 추가 실패:", error)
-    return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
+    return { success: false, error: error instanceof Error ? error.message : "GitHub 연결 실패" }
   }
 }
