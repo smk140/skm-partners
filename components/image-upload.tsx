@@ -6,7 +6,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Upload, X, ImageIcon, Loader2, AlertCircle } from "lucide-react"
+import { Upload, X, ImageIcon, Loader2, AlertCircle, ExternalLink, Settings, Eye, EyeOff, Key } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
@@ -182,26 +182,184 @@ export function ImageUpload({ label, value, onChange }: ImageUploadProps) {
     }
   }
 
-  return (
-    <div className="space-y-4">
-      <Label className="text-sm font-medium">{label}</Label>
+  const renderErrorAlert = () => {
+    if (!error) return null
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error}
+    const isRepoNotFound = debugInfo?.connectionTest?.step === "REPO_NOT_FOUND"
+    const isTokenInvalid = debugInfo?.connectionTest?.step === "TOKEN_INVALID"
+    const isFineGrainedToken = debugInfo?.debugInfo?.tokenType === "fine-grained"
+    const isPrivateRepo = debugInfo?.connectionTest?.repoPrivate
+
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <div className="space-y-3">
+            <p className="font-medium">{error}</p>
+
+            {/* Fine-grained 토큰 경고 */}
+            {isFineGrainedToken && (
+              <div className="bg-orange-50 p-4 rounded-md border border-orange-200">
+                <h4 className="font-semibold text-orange-800 mb-2 flex items-center">
+                  <Key className="h-4 w-4 mr-2" />
+                  Fine-grained 토큰 감지됨
+                </h4>
+                <p className="text-sm text-orange-700 mb-3">
+                  Fine-grained 토큰은 베타 기능이며 복잡한 권한 설정이 필요합니다.{" "}
+                  <strong>Classic 토큰 사용을 강력히 권장</strong>합니다.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-orange-700 border-orange-300 hover:bg-orange-50 bg-transparent"
+                  onClick={() => window.open("https://github.com/settings/tokens/new", "_blank")}
+                >
+                  <Key className="h-3 w-3 mr-1" />
+                  Classic 토큰 생성하기
+                </Button>
+              </div>
+            )}
+
+            {/* 저장소 접근 문제 */}
+            {isRepoNotFound && !isFineGrainedToken && (
+              <div className="bg-red-50 p-4 rounded-md border border-red-200">
+                <h4 className="font-semibold text-red-800 mb-2 flex items-center">
+                  <EyeOff className="h-4 w-4 mr-2" />
+                  저장소 접근 문제
+                </h4>
+                <p className="text-sm text-red-700 mb-3">
+                  저장소 <code className="bg-red-100 px-1 rounded">smk140/skm-partners</code>에 접근할 수 없습니다.
+                </p>
+
+                <div className="space-y-3">
+                  <div className="bg-red-100 p-3 rounded border border-red-200">
+                    <p className="text-sm font-medium text-red-800 mb-2">
+                      <Eye className="h-3 w-3 inline mr-1" />
+                      해결 방법 1: 저장소를 공개로 변경 (권장)
+                    </p>
+                    <ol className="list-decimal list-inside text-sm text-red-700 space-y-1 ml-4">
+                      <li>GitHub 저장소 페이지로 이동</li>
+                      <li>Settings 탭 클릭</li>
+                      <li>하단 "Danger Zone"에서 "Change visibility"</li>
+                      <li>"Make public" 선택</li>
+                    </ol>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 text-red-700 border-red-300 hover:bg-red-50 bg-transparent"
+                      onClick={() => window.open("https://github.com/smk140/skm-partners/settings", "_blank")}
+                    >
+                      <Settings className="h-3 w-3 mr-1" />
+                      저장소 설정으로 이동
+                    </Button>
+                  </div>
+
+                  <div className="bg-red-100 p-3 rounded border border-red-200">
+                    <p className="text-sm font-medium text-red-800 mb-2">
+                      <Key className="h-3 w-3 inline mr-1" />
+                      해결 방법 2: Classic 토큰 권한 확인
+                    </p>
+                    <div className="text-sm text-red-700 space-y-2">
+                      <p>새 Classic 토큰 생성 시 다음 권한 필수:</p>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        <li>
+                          <strong>repo</strong> - Full control of private repositories
+                        </li>
+                        <li>
+                          <strong>workflow</strong> - Update GitHub Action workflows
+                        </li>
+                      </ul>
+                      <div className="bg-red-200 p-2 rounded mt-2 font-mono text-xs">
+                        <div>토큰 형식: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+                        <div>Fine-grained 토큰(github_pat_)은 사용하지 마세요!</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 text-red-700 border-red-300 hover:bg-red-50 bg-transparent"
+                      onClick={() => window.open("https://github.com/settings/tokens/new", "_blank")}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Classic 토큰 생성
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 토큰 무효 */}
+            {isTokenInvalid && (
+              <div className="bg-red-50 p-4 rounded-md border border-red-200">
+                <h4 className="font-semibold text-red-800 mb-2 flex items-center">
+                  <Key className="h-4 w-4 mr-2" />
+                  토큰 인증 실패
+                </h4>
+                <p className="text-sm text-red-700 mb-3">
+                  GitHub 토큰이 유효하지 않거나 만료되었습니다. 새로운 Classic 토큰을 생성하세요.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-700 border-red-300 hover:bg-red-50 bg-transparent"
+                  onClick={() => window.open("https://github.com/settings/tokens/new", "_blank")}
+                >
+                  <Key className="h-3 w-3 mr-1" />새 Classic 토큰 생성
+                </Button>
+              </div>
+            )}
+
+            {/* 권장사항 표시 */}
+            {debugInfo?.recommendations && debugInfo.recommendations.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">추가 권장사항:</p>
+                {debugInfo.recommendations.slice(0, 3).map((rec: any, index: number) => (
+                  <div
+                    key={index}
+                    className={`p-2 rounded text-sm border ${
+                      rec.priority === "high"
+                        ? "bg-red-50 border-red-200"
+                        : rec.priority === "medium"
+                          ? "bg-yellow-50 border-yellow-200"
+                          : "bg-blue-50 border-blue-200"
+                    }`}
+                  >
+                    <p className="font-medium">{rec.title}</p>
+                    <p className="text-gray-600 text-xs">{rec.description}</p>
+                    {rec.url && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 h-auto text-blue-600 text-xs"
+                        onClick={() => window.open(rec.url, "_blank")}
+                      >
+                        {rec.action} <ExternalLink className="h-3 w-3 ml-1" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {debugInfo && (
-              <details className="mt-2">
-                <summary className="cursor-pointer text-sm font-medium">디버깅 정보 보기</summary>
-                <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+              <details className="mt-3">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700">기술적 디버깅 정보 보기</summary>
+                <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-40 text-gray-800">
                   {JSON.stringify(debugInfo, null, 2)}
                 </pre>
               </details>
             )}
-          </AlertDescription>
-        </Alert>
-      )}
+          </div>
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <Label className="text-sm font-medium">{label}</Label>
+
+      {renderErrorAlert()}
 
       <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
         <CardContent className="p-6">
@@ -266,7 +424,7 @@ export function ImageUpload({ label, value, onChange }: ImageUploadProps) {
             {error && (
               <Button onClick={handleDebugGitHub} variant="outline" size="sm" className="w-full text-xs bg-transparent">
                 <AlertCircle className="h-3 w-3 mr-2" />
-                GitHub 설정 디버깅
+                GitHub 설정 진단
               </Button>
             )}
           </div>

@@ -1,72 +1,66 @@
 "use client"
 
 import { useState } from "react"
-import { ImageIcon } from "lucide-react"
+import Image from "next/image"
 
 interface SafeImageProps {
-  src?: string
+  src: string
   alt: string
-  className?: string
-  fallbackClassName?: string
   width?: number
   height?: number
+  className?: string
+  fallbackSrc?: string
   priority?: boolean
 }
 
 export function SafeImage({
   src,
   alt,
+  width = 400,
+  height = 300,
   className = "",
-  fallbackClassName = "",
-  width,
-  height,
+  fallbackSrc,
   priority = false,
 }: SafeImageProps) {
-  const [imageError, setImageError] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [imgSrc, setImgSrc] = useState(src)
+  const [hasError, setHasError] = useState(false)
 
-  // src가 없거나 에러가 발생한 경우 fallback 표시
-  if (!src || imageError) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-100 text-gray-400 ${fallbackClassName || className}`}
-        style={width && height ? { width, height } : undefined}
-      >
-        <div className="text-center">
-          <ImageIcon className="h-8 w-8 mx-auto mb-2" />
-          <p className="text-sm">{alt}</p>
-        </div>
-      </div>
-    )
+  const handleError = () => {
+    console.error("이미지 로드 실패:", imgSrc)
+    setHasError(true)
+
+    if (fallbackSrc && imgSrc !== fallbackSrc) {
+      setImgSrc(fallbackSrc)
+      setHasError(false)
+    } else {
+      // 최종 fallback
+      setImgSrc(`/placeholder.svg?height=${height}&width=${width}&text=${encodeURIComponent(alt)}`)
+    }
+  }
+
+  const handleLoad = () => {
+    console.log("이미지 로드 성공:", imgSrc)
+    setHasError(false)
   }
 
   return (
-    <div className="relative">
-      {isLoading && (
-        <div
-          className={`absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 ${className}`}
-          style={width && height ? { width, height } : undefined}
-        >
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400 mx-auto mb-2"></div>
-            <p className="text-sm">로딩 중...</p>
-          </div>
-        </div>
-      )}
-      <img
-        src={src || "/placeholder.svg"}
+    <div className={`relative overflow-hidden ${className}`}>
+      <Image
+        src={imgSrc || `/placeholder.svg?height=${height}&width=${width}&text=${encodeURIComponent(alt)}`}
         alt={alt}
-        className={`${className} ${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
         width={width}
         height={height}
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
-          console.error("이미지 로드 실패:", src)
-          setImageError(true)
-          setIsLoading(false)
-        }}
-        loading={priority ? "eager" : "lazy"}
+        className={`object-cover ${hasError ? "opacity-50" : ""}`}
+        onError={handleError}
+        onLoad={handleLoad}
+        priority={priority}
+        unoptimized={imgSrc.includes("placeholder.svg")}
       />
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+          이미지를 불러올 수 없습니다
+        </div>
+      )}
     </div>
   )
 }
