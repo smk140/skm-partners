@@ -147,7 +147,7 @@ export function getCompanyData() {
 
 export function saveCompanyData(data: any) {
   console.log(`[FileDB] 💾 회사 데이터 저장 시작`)
-  console.log(`[FileDB] 💾 저장할 데이터:`, JSON.stringify(data, null, 2))
+  console.log(`[FileDB] 💾 저장할 데이터 구조:`, Object.keys(data))
 
   try {
     if (!data) {
@@ -221,23 +221,68 @@ export function generateId(items: any[]) {
   return newId
 }
 
-// 다른 함수들은 기존과 동일하게 유지
+// 부동산 데이터 관련 함수들
 export function getPropertiesData() {
-  // 기존 코드 유지
-  return { properties: [], last_updated: new Date().toISOString(), version: "1.0" }
+  try {
+    if (!fs.existsSync(PROPERTIES_FILE)) {
+      const defaultData = { properties: [], last_updated: new Date().toISOString(), version: "1.0" }
+      fs.writeFileSync(PROPERTIES_FILE, JSON.stringify(defaultData, null, 2), "utf8")
+      return defaultData
+    }
+
+    const content = fs.readFileSync(PROPERTIES_FILE, "utf8")
+    return safeJsonParse(content, { properties: [], last_updated: new Date().toISOString(), version: "1.0" })
+  } catch (error) {
+    console.error("[FileDB] 부동산 데이터 읽기 실패:", error)
+    return { properties: [], last_updated: new Date().toISOString(), version: "1.0" }
+  }
 }
 
 export function savePropertiesData(dataToSave: any) {
-  // 기존 코드 유지
-  return true
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      ensureDataDirectory()
+    }
+
+    const jsonData = JSON.stringify(dataToSave, null, 2)
+    fs.writeFileSync(PROPERTIES_FILE, jsonData, "utf8")
+    console.log("[FileDB] 부동산 데이터 저장 성공")
+    return true
+  } catch (error) {
+    console.error("[FileDB] 부동산 데이터 저장 실패:", error)
+    return false
+  }
 }
 
+// 문의 데이터 관련 함수들
 export function getInquiriesData() {
-  // 기존 코드 유지
-  return { inquiries: [], last_updated: new Date().toISOString() }
+  try {
+    if (!fs.existsSync(INQUIRIES_FILE)) {
+      const defaultData = { inquiries: [], last_updated: new Date().toISOString() }
+      fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(defaultData, null, 2), "utf8")
+      return defaultData
+    }
+
+    const content = fs.readFileSync(INQUIRIES_FILE, "utf8")
+    return safeJsonParse(content, { inquiries: [], last_updated: new Date().toISOString() })
+  } catch (error) {
+    console.error("[FileDB] 문의 데이터 읽기 실패:", error)
+    return { inquiries: [], last_updated: new Date().toISOString() }
+  }
 }
 
 export function saveInquiriesData(data: any) {
-  // 기존 코드 유지
-  return true
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      ensureDataDirectory()
+    }
+
+    const jsonData = JSON.stringify(data, null, 2)
+    fs.writeFileSync(INQUIRIES_FILE, jsonData, "utf8")
+    console.log("[FileDB] 문의 데이터 저장 성공")
+    return true
+  } catch (error) {
+    console.error("[FileDB] 문의 데이터 저장 실패:", error)
+    return false
+  }
 }

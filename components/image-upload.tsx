@@ -54,8 +54,8 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
       const base64 = await convertToBase64(file)
       console.log("Base64 변환 완료, 길이:", base64.length)
 
-      console.log("서버 업로드 시작...")
-      // 서버에 업로드
+      console.log("GitHub 업로드 시작...")
+      // GitHub에 업로드
       const response = await fetch("/api/admin/upload-image", {
         method: "POST",
         headers: {
@@ -90,15 +90,15 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
         throw new Error(data.error || "업로드에 실패했습니다.")
       }
 
-      // 성공 시 URL 업데이트
+      // 성공 시 GitHub Raw URL로 업데이트
       const finalUrl = data.url
-      setImageUrl(finalUrl) // 미리보기를 위해 즉시 Blob URL로 업데이트
-      onChange(finalUrl) // 부모 컴포넌트에 Blob URL 알림
+      setImageUrl(finalUrl)
+      onChange(finalUrl)
 
-      setSuccess(`이미지가 성공적으로 업로드되었습니다! (${data.originalFilename})`)
+      setSuccess(`이미지가 GitHub에 성공적으로 업로드되었습니다! (${data.originalFilename})`)
       setError(null)
 
-      console.log("최종 이미지 URL (Vercel Blob):", finalUrl)
+      console.log("최종 이미지 URL (GitHub Raw):", finalUrl)
       console.log("onChange 호출됨:", finalUrl)
 
       // 성공 메시지를 3초 후 자동으로 숨김
@@ -208,12 +208,12 @@ export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
                 {isUploading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    업로드 중...
+                    GitHub에 업로드 중...
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4" />
-                    이미지 업로드
+                    이미지 업로드 (GitHub)
                   </>
                 )}
               </Button>

@@ -99,7 +99,7 @@ export default function HomePage() {
                   무료 상담 신청하기
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-                <Button variant="outline" size="lg" className="px-8 py-3">
+                <Button variant="outline" size="lg" className="px-8 py-3 bg-transparent">
                   서비스 둘러보기
                 </Button>
               </div>
@@ -284,7 +284,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600"
+                className="px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600 bg-transparent"
               >
                 <Mail className="mr-2 h-5 w-5" />
                 이메일 문의
