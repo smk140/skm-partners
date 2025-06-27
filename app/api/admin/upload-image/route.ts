@@ -72,12 +72,16 @@ export async function POST(request: Request) {
 
     // GitHub에 이미지 커밋
     console.log("🔥 GitHub 커밋 시작...")
-    const commitSuccess = await commitFileToGitHub(githubFilePath, buffer, `Add image: ${filename}`)
+    const commitResult = await commitFileToGitHub(githubFilePath, buffer, `Add image: ${filename}`)
 
-    if (!commitSuccess) {
-      console.error("💥 GitHub 커밋 실패")
+    if (!commitResult.success) {
+      console.error("💥 GitHub 커밋 실패:", commitResult.error)
       return NextResponse.json(
-        { error: "GitHub 커밋에 실패했습니다. 환경 변수와 토큰 권한을 확인해주세요." },
+        {
+          error: "GitHub 커밋에 실패했습니다. 환경 변수와 토큰 권한을 확인해주세요.",
+          details: commitResult.error,
+          debugInfo: commitResult.debugInfo,
+        },
         { status: 500 },
       )
     }
@@ -97,7 +101,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error("💥💥💥 GitHub 이미지 업로드 최종 실패:", error)
-    console.error("💥 오류 스택:", error.stack)
+    console.error("💥 오류 스택:", error instanceof Error ? error.stack : "스택 정보 없음")
     return NextResponse.json(
       {
         error: `이미지 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`,

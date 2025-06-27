@@ -37,12 +37,13 @@ const DEFAULT_COMPANY_DATA: CompanyData = {
 const DEFAULT_PROPERTIES_DATA = { properties: [], last_updated: new Date().toISOString(), version: "1.0" }
 const DEFAULT_INQUIRIES_DATA = { inquiries: [], last_updated: new Date().toISOString() }
 
+// 데이터 디렉토리가 없으면 생성
 async function ensureDataDir() {
   try {
     await fsPromise.access(DATA_DIR)
   } catch {
-    console.log("📁 데이터 디렉토리 생성:", DATA_DIR)
     await fsPromise.mkdir(DATA_DIR, { recursive: true })
+    console.log("📁 데이터 디렉토리 생성:", DATA_DIR)
   }
 }
 
@@ -74,6 +75,83 @@ function safeJsonParse(content: string, defaultValue: any) {
   } catch (error) {
     console.error("[FileDB] 💥 JSON 파싱 실패:", error)
     return defaultValue
+  }
+}
+
+/**
+ * JSON 파일에서 데이터를 읽습니다.
+ */
+export async function readFileDB<T>(filename: string): Promise<T | null> {
+  try {
+    await ensureDataDir()
+    const filePath = path.join(DATA_DIR, filename)
+
+    try {
+      const data = await fsPromise.readFile(filePath, "utf-8")
+      return JSON.parse(data) as T
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        console.log(`📄 파일이 존재하지 않음: ${filename}`)
+        return null
+      }
+      throw error
+    }
+  } catch (error) {
+    console.error(`💥 파일 읽기 실패 (${filename}):`, error)
+    throw error
+  }
+}
+
+/**
+ * JSON 파일에 데이터를 씁니다.
+ */
+export async function writeFileDB<T>(filename: string, data: T): Promise<void> {
+  try {
+    await ensureDataDir()
+    const filePath = path.join(DATA_DIR, filename)
+
+    const jsonData = JSON.stringify(data, null, 2)
+    await fsPromise.writeFile(filePath, jsonData, "utf-8")
+
+    console.log(`✅ 파일 저장 성공: ${filename}`)
+  } catch (error) {
+    console.error(`💥 파일 저장 실패 (${filename}):`, error)
+    throw error
+  }
+}
+
+/**
+ * 파일을 삭제합니다.
+ */
+export async function deleteFileDB(filename: string): Promise<boolean> {
+  try {
+    await ensureDataDir()
+    const filePath = path.join(DATA_DIR, filename)
+
+    await fsPromise.unlink(filePath)
+    console.log(`🗑️ 파일 삭제 성공: ${filename}`)
+    return true
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      console.log(`📄 삭제할 파일이 존재하지 않음: ${filename}`)
+      return false
+    }
+    console.error(`💥 파일 삭제 실패 (${filename}):`, error)
+    throw error
+  }
+}
+
+/**
+ * 데이터 디렉토리의 모든 파일 목록을 가져옵니다.
+ */
+export async function listFileDB(): Promise<string[]> {
+  try {
+    await ensureDataDir()
+    const files = await fsPromise.readdir(DATA_DIR)
+    return files.filter((file) => file.endsWith(".json"))
+  } catch (error) {
+    console.error("💥 파일 목록 조회 실패:", error)
+    throw error
   }
 }
 
