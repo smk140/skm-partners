@@ -1,4 +1,4 @@
-// GitHub 파일 기반 데이터 관리
+// GitHub 파일 기반 데이터 관리 - neon 완전 제거
 const GITHUB_API_BASE = "https://api.github.com"
 const REPO_OWNER = process.env.GITHUB_REPO_OWNER || "smk140"
 const REPO_NAME = process.env.GITHUB_REPO_NAME || "skm-partners"

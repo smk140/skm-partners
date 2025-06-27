@@ -53,6 +53,12 @@ export interface SuccessCase {
   image_url?: string
 }
 
+// 기존 데이터베이스 연결 파일 - GitHub 파일 시스템으로 대체
+export * from "./file-db"
+
+// 레거시 호환성을 위한 재내보내기
+export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "./file-db"
+
 // 임시 SQL 함수 (실제 데이터베이스 연결 없이)
 export const sql = async (query: TemplateStringsArray, ...values: any[]) => {
   console.log("SQL Query:", query.join(""), values)
