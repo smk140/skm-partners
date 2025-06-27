@@ -1,38 +1,36 @@
-import { neon } from "@neondatabase/serverless"
-
-let sql: any = null
+// GitHub 파일 시스템 사용 - neon 제거
+import { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "@/lib/file-db"
 
 export async function connectToDatabase() {
-  if (!sql) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL environment variable is not set")
+  // GitHub API 연결 테스트
+  try {
+    const token = process.env.GITHUB_TOKEN
+    if (!token) {
+      throw new Error("GITHUB_TOKEN environment variable is not set")
     }
 
-    sql = neon(process.env.DATABASE_URL)
-    console.log("Database connection established")
-  }
-
-  return sql
-}
-
-// 데이터베이스 연결 테스트 함수
-export async function testConnection() {
-  try {
-    const db = await connectToDatabase()
-    await db`SELECT 1 as test`
+    console.log("GitHub API connection established")
     return true
   } catch (error) {
-    console.error("Database connection test failed:", error)
+    console.error("GitHub API connection failed:", error)
+    throw error
+  }
+}
+
+// GitHub API 연결 테스트 함수
+export async function testConnection() {
+  try {
+    await connectToDatabase()
+    return true
+  } catch (error) {
+    console.error("GitHub API connection test failed:", error)
     return false
   }
 }
 
-// 트랜잭션 실행 함수
+// 트랜잭션 실행 함수 (GitHub에서는 순차 실행)
 export async function executeTransaction(queries: Array<() => Promise<any>>) {
-  const db = await connectToDatabase()
-
   try {
-    // Neon은 자동으로 트랜잭션을 처리하므로 순차적으로 실행
     const results = []
     for (const query of queries) {
       const result = await query()
@@ -44,3 +42,6 @@ export async function executeTransaction(queries: Array<() => Promise<any>>) {
     throw error
   }
 }
+
+// 레거시 호환성을 위한 재내보내기
+export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData }

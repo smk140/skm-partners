@@ -3,7 +3,7 @@ import { getCompanyData } from "@/lib/file-db"
 
 export async function GET() {
   try {
-    const companyData = getCompanyData()
+    const companyData = await getCompanyData()
     return NextResponse.json(companyData)
   } catch (error) {
     console.error("회사 정보 조회 중 오류:", error)
