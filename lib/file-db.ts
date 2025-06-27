@@ -2,6 +2,9 @@ import { neon } from "@neondatabase/serverless"
 
 const sql = neon(process.env.DATABASE_URL!)
 
+/* ────────────────
+   🔖 Type Helpers
+   ──────────────── */
 export interface CompanyData {
   id?: number
   name: string
@@ -37,18 +40,20 @@ export interface PropertyData {
   updatedAt?: Date
 }
 
+/* ────────────────────────────────
+   1) 회사 정보 조회  getCompanyData
+   ──────────────────────────────── */
 export async function getCompanyData(): Promise<CompanyData> {
   try {
-    console.log("🔍 데이터베이스에서 회사 정보 조회 중...")
-
-    const result = await sql`
-      SELECT * FROM company_info 
-      ORDER BY updated_at DESC 
+    const rows = await sql`
+      SELECT *
+      FROM company_info
+      ORDER BY updated_at DESC
       LIMIT 1
     `
 
-    if (result.length === 0) {
-      console.log("📝 회사 정보가 없어서 기본값 반환")
+    if (rows.length === 0) {
+      /* 기본값 반환 (앱 첫 실행 시) */
       return {
         name: "SKM 파트너스",
         description: "전문적인 비즈니스 솔루션을 제공하는 파트너십 기업입니다.",
@@ -62,175 +67,158 @@ export async function getCompanyData(): Promise<CompanyData> {
       }
     }
 
-    const company = result[0]
-    console.log("✅ 회사 정보 조회 성공:", company.name)
-
+    const c = rows[0]
     return {
-      id: company.id,
-      name: company.name,
-      description: company.description,
-      address: company.address,
-      phone: company.phone,
-      email: company.email,
-      website: company.website,
-      logoUrl: company.logo_url || "",
-      heroImageUrl: company.hero_image_url || "",
-      aboutImageUrl: company.about_image_url || "",
-      createdAt: company.created_at,
-      updatedAt: company.updated_at,
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      address: c.address,
+      phone: c.phone,
+      email: c.email,
+      website: c.website,
+      logoUrl: c.logo_url ?? "",
+      heroImageUrl: c.hero_image_url ?? "",
+      aboutImageUrl: c.about_image_url ?? "",
+      createdAt: c.created_at,
+      updatedAt: c.updated_at,
     }
-  } catch (error) {
-    console.error("💥 회사 정보 조회 실패:", error)
-    throw new Error(`회사 정보 조회 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`)
+  } catch (err) {
+    console.error("💥 [getCompanyData] 실패:", err)
+    throw err
   }
 }
 
+/* ───────────────────────────────────────
+   2) 회사 정보 업데이트  updateCompanyData
+   ─────────────────────────────────────── */
 export async function updateCompanyData(
   data: Partial<CompanyData>,
 ): Promise<{ success: boolean; data?: CompanyData; error?: string }> {
-  try {
-    console.log("💾 회사 정보 업데이트 시작:", data)
+  const now = new Date()
 
-    // 기존 데이터 확인
+  try {
     const existing = await sql`
-      SELECT id FROM company_info 
-      ORDER BY updated_at DESC 
+      SELECT id FROM company_info
+      ORDER BY updated_at DESC
       LIMIT 1
     `
 
-    const now = new Date()
-
-    let result
+    let row
     if (existing.length === 0) {
-      // 새로 생성
-      console.log("📝 새 회사 정보 생성")
-      result = await sql`
-        INSERT INTO company_info (
-          name, description, address, phone, email, website,
-          logo_url, hero_image_url, about_image_url,
-          created_at, updated_at
-        ) VALUES (
-          ${data.name || "SKM 파트너스"},
-          ${data.description || ""},
-          ${data.address || ""},
-          ${data.phone || ""},
-          ${data.email || ""},
-          ${data.website || ""},
-          ${data.logoUrl || ""},
-          ${data.heroImageUrl || ""},
-          ${data.aboutImageUrl || ""},
-          ${now},
-          ${now}
-        )
-        RETURNING *
-      `
+      row = (
+        await sql`
+          INSERT INTO company_info (
+            name, description, address, phone, email, website,
+            logo_url, hero_image_url, about_image_url,
+            created_at, updated_at
+          ) VALUES (
+            ${data.name ?? "SKM 파트너스"},
+            ${data.description ?? ""},
+            ${data.address ?? ""},
+            ${data.phone ?? ""},
+            ${data.email ?? ""},
+            ${data.website ?? ""},
+            ${data.logoUrl ?? ""},
+            ${data.heroImageUrl ?? ""},
+            ${data.aboutImageUrl ?? ""},
+            ${now},
+            ${now}
+          )
+          RETURNING *
+        `
+      )[0]
     } else {
-      // 업데이트
-      console.log("🔄 기존 회사 정보 업데이트")
-      result = await sql`
-        UPDATE company_info SET
-          name = ${data.name || "SKM 파트너스"},
-          description = ${data.description || ""},
-          address = ${data.address || ""},
-          phone = ${data.phone || ""},
-          email = ${data.email || ""},
-          website = ${data.website || ""},
-          logo_url = ${data.logoUrl || ""},
-          hero_image_url = ${data.heroImageUrl || ""},
-          about_image_url = ${data.aboutImageUrl || ""},
-          updated_at = ${now}
-        WHERE id = ${existing[0].id}
-        RETURNING *
-      `
+      row = (
+        await sql`
+          UPDATE company_info SET
+            name            = COALESCE(${data.name},            name),
+            description     = COALESCE(${data.description},     description),
+            address         = COALESCE(${data.address},         address),
+            phone           = COALESCE(${data.phone},           phone),
+            email           = COALESCE(${data.email},           email),
+            website         = COALESCE(${data.website},         website),
+            logo_url        = COALESCE(${data.logoUrl},         logo_url),
+            hero_image_url  = COALESCE(${data.heroImageUrl},    hero_image_url),
+            about_image_url = COALESCE(${data.aboutImageUrl},   about_image_url),
+            updated_at      = ${now}
+          WHERE id = ${existing[0].id}
+          RETURNING *
+        `
+      )[0]
     }
-
-    if (result.length === 0) {
-      throw new Error("데이터베이스 업데이트 실패")
-    }
-
-    const updated = result[0]
-    console.log("✅ 회사 정보 업데이트 성공:", updated.name)
 
     return {
       success: true,
       data: {
-        id: updated.id,
-        name: updated.name,
-        description: updated.description,
-        address: updated.address,
-        phone: updated.phone,
-        email: updated.email,
-        website: updated.website,
-        logoUrl: updated.logo_url || "",
-        heroImageUrl: updated.hero_image_url || "",
-        aboutImageUrl: updated.about_image_url || "",
-        createdAt: updated.created_at,
-        updatedAt: updated.updated_at,
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        address: row.address,
+        phone: row.phone,
+        email: row.email,
+        website: row.website,
+        logoUrl: row.logo_url ?? "",
+        heroImageUrl: row.hero_image_url ?? "",
+        aboutImageUrl: row.about_image_url ?? "",
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
       },
     }
-  } catch (error) {
-    console.error("💥 회사 정보 업데이트 실패:", error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "알 수 없는 오류",
-    }
+  } catch (err) {
+    console.error("💥 [updateCompanyData] 실패:", err)
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" }
   }
 }
 
-// 문의 목록 조회
+/* ────────────────────────────────
+   3) 문의 목록  getInquiriesData
+   ──────────────────────────────── */
 export async function getInquiriesData(): Promise<InquiryData[]> {
   try {
-    console.log("🔍 문의 목록 조회 중...")
-
     const rows = await sql`
       SELECT id, name, email, phone, message, created_at
       FROM inquiries
       ORDER BY created_at DESC
     `
 
-    const inquiries = rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      phone: row.phone,
-      message: row.message,
-      createdAt: row.created_at,
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      message: r.message,
+      createdAt: r.created_at,
     }))
-
-    console.log(`✅ 문의 ${inquiries.length}건 조회 성공`)
-    return inquiries
-  } catch (error) {
-    console.error("💥 문의 조회 실패:", error)
+  } catch (err) {
+    console.error("💥 [getInquiriesData] 실패:", err)
     return []
   }
 }
 
-// 부동산 목록 조회
+/* ─────────────────────────────────
+   4) 부동산 목록  getPropertiesData
+   ───────────────────────────────── */
 export async function getPropertiesData(): Promise<PropertyData[]> {
   try {
-    console.log("🔍 부동산 목록 조회 중...")
-
     const rows = await sql`
-      SELECT id, title, description, price, location, image_url, created_at, updated_at
+      SELECT id, title, description, price, location, image_url,
+             created_at, updated_at
       FROM properties
       ORDER BY updated_at DESC NULLS LAST
     `
 
-    const properties = rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      price: Number(row.price),
-      location: row.location,
-      imageUrl: row.image_url || "",
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      price: Number(r.price),
+      location: r.location,
+      imageUrl: r.image_url ?? "",
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
     }))
-
-    console.log(`✅ 부동산 ${properties.length}건 조회 성공`)
-    return properties
-  } catch (error) {
-    console.error("💥 부동산 조회 실패:", error)
+  } catch (err) {
+    console.error("💥 [getPropertiesData] 실패:", err)
     return []
   }
 }
