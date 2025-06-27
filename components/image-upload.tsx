@@ -1,249 +1,175 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Upload, X, Loader2, AlertCircle, ImageIcon, CheckCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent } from "@/components/ui/card"
+import { Upload, X, ImageIcon } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ImageUploadProps {
-  value: string
-  onChange: (url: string) => void
-  label?: string
+  imageType: string
+  currentImage?: string
+  onImageUploaded: (url: string) => void
+  label: string
 }
 
-export function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+export function ImageUpload({ imageType, currentImage, onImageUploaded, label }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [imageUrl, setImageUrl] = useState(value)
+  const [previewUrl, setPreviewUrl] = useState<string>(currentImage || "")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
 
-  // value prop이 변경될 때 로컬 상태 업데이트
-  useEffect(() => {
-    setImageUrl(value)
-    console.log("ImageUpload value 변경됨:", value)
-  }, [value])
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
 
-    console.log("파일 선택됨:", file.name, file.size, file.type)
-
-    // 파일 크기 제한 (10MB)
+    // 파일 크기 체크 (10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError("파일 크기는 10MB 이하여야 합니다.")
+      toast({
+        title: "파일 크기 초과",
+        description: "파일 크기는 10MB 이하여야 합니다.",
+        variant: "destructive",
+      })
       return
     }
 
-    // 이미지 파일 타입 체크
+    // 파일 타입 체크
     if (!file.type.startsWith("image/")) {
-      setError("이미지 파일만 업로드 가능합니다.")
+      toast({
+        title: "잘못된 파일 형식",
+        description: "이미지 파일만 업로드 가능합니다.",
+        variant: "destructive",
+      })
       return
     }
+
+    console.log("🔥 이미지 업로드 시작:", {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      imageType: imageType,
+    })
 
     setIsUploading(true)
-    setError(null)
-    setSuccess(null)
 
     try {
-      console.log("Base64 변환 시작...")
-      // Base64로 인코딩
-      const base64 = await convertToBase64(file)
-      console.log("Base64 변환 완료, 길이:", base64.length)
+      // 미리보기 생성
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
 
-      console.log("GitHub 업로드 시작...")
-      // GitHub에 업로드
+      // FormData 생성
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("imageType", imageType)
+
+      console.log("📤 서버로 업로드 요청 전송...")
+
+      // 서버로 업로드
       const response = await fetch("/api/admin/upload-image", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          image: base64,
-          filename: file.name,
-        }),
+        body: formData,
       })
 
-      console.log("서버 응답 상태:", response.status)
+      const result = await response.json()
+      console.log("📥 서버 응답:", result)
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error("서버 오류 응답:", errorText)
-
-        let errorData
-        try {
-          errorData = JSON.parse(errorText)
-        } catch {
-          errorData = { error: errorText }
-        }
-
-        throw new Error(errorData.error || `서버 오류: ${response.status}`)
+      if (result.success) {
+        console.log("✅ 이미지 업로드 성공:", result.url)
+        onImageUploaded(result.url)
+        toast({
+          title: "업로드 성공",
+          description: "이미지가 성공적으로 업로드되었습니다.",
+        })
+      } else {
+        console.error("❌ 이미지 업로드 실패:", result.error)
+        throw new Error(result.error || "업로드 실패")
       }
-
-      const data = await response.json()
-      console.log("업로드 성공 데이터:", data)
-
-      if (!data.success) {
-        throw new Error(data.error || "업로드에 실패했습니다.")
-      }
-
-      // 성공 시 GitHub Raw URL로 업데이트
-      const finalUrl = data.url
-      setImageUrl(finalUrl)
-      onChange(finalUrl)
-
-      setSuccess(`이미지가 GitHub에 성공적으로 업로드되었습니다! (${data.originalFilename})`)
-      setError(null)
-
-      console.log("최종 이미지 URL (GitHub Raw):", finalUrl)
-      console.log("onChange 호출됨:", finalUrl)
-
-      // 성공 메시지를 3초 후 자동으로 숨김
-      setTimeout(() => {
-        setSuccess(null)
-      }, 3000)
-    } catch (err) {
-      console.error("업로드 실패:", err)
-      setError(err instanceof Error ? err.message : "이미지 업로드 중 오류가 발생했습니다.")
+    } catch (error: any) {
+      console.error("💥 이미지 업로드 오류:", error)
+      toast({
+        title: "업로드 실패",
+        description: error.message || "이미지 업로드에 실패했습니다.",
+        variant: "destructive",
+      })
+      setPreviewUrl(currentImage || "")
     } finally {
       setIsUploading(false)
-      // 파일 입력 초기화
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
     }
   }
 
-  // 파일을 Base64로 변환
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => {
-        console.log("FileReader 성공")
-        resolve(reader.result as string)
-      }
-      reader.onerror = (error) => {
-        console.error("FileReader 오류:", error)
-        reject(error)
-      }
-    })
-  }
-
-  const handleRemove = () => {
-    setImageUrl("")
-    onChange("")
-    setSuccess(null)
-    setError(null)
-    console.log("이미지 제거됨")
+  const handleRemoveImage = () => {
+    setPreviewUrl("")
+    onImageUploaded("")
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   return (
-    <div className="space-y-4">
-      {label && <Label className="block font-medium text-sm">{label}</Label>}
+    <Card className="w-full">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">{label}</h3>
+            {previewUrl && (
+              <Button variant="outline" size="sm" onClick={handleRemoveImage} disabled={isUploading}>
+                <X className="h-4 w-4 mr-2" />
+                제거
+              </Button>
+            )}
+          </div>
 
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-        {imageUrl ? (
-          <div className="space-y-4">
+          {previewUrl ? (
             <div className="relative">
               <img
-                src={imageUrl || "/placeholder.svg"}
-                alt="업로드된 이미지"
-                className="max-h-48 max-w-full object-contain mx-auto rounded-lg"
-                onLoad={() => {
-                  console.log("이미지 로드 성공:", imageUrl)
-                }}
+                src={previewUrl || "/placeholder.svg"}
+                alt={label}
+                className="w-full h-48 object-cover rounded-lg border"
                 onError={(e) => {
-                  console.error("이미지 로드 실패:", imageUrl)
-                  e.currentTarget.src = "/placeholder.svg"
-                  setError("이미지를 불러올 수 없습니다.")
+                  console.error("이미지 로드 실패:", previewUrl)
+                  e.currentTarget.src = "/placeholder.svg?height=200&width=400"
                 }}
               />
               {isUploading && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                  <Loader2 className="h-8 w-8 animate-spin text-white" />
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p>업로드 중...</p>
+                  </div>
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                다른 이미지 선택
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleRemove}
-                className="text-red-500 hover:text-red-700"
-                disabled={isUploading}
-              >
-                <X className="h-4 w-4 mr-1" />
-                삭제
-              </Button>
+          ) : (
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">클릭하여 이미지를 선택하세요</p>
+              <p className="text-sm text-gray-500">JPG, PNG, GIF (최대 10MB)</p>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="mx-auto w-12 h-12 text-gray-400">
-              <ImageIcon className="w-full h-full" />
-            </div>
-            <div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex items-center gap-2"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    GitHub에 업로드 중...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4" />
-                    이미지 업로드 (GitHub)
-                  </>
-                )}
-              </Button>
-              <p className="text-sm text-gray-500 mt-2">JPG, PNG, GIF 파일을 선택하세요 (최대 10MB)</p>
-            </div>
-          </div>
-        )}
+          )}
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          className="hidden"
-        />
-      </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={isUploading}
+          />
 
-      {success && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">{success}</AlertDescription>
-        </Alert>
-      )}
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-    </div>
+          <Button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="w-full">
+            <Upload className="h-4 w-4 mr-2" />
+            {isUploading ? "업로드 중..." : "이미지 선택"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
