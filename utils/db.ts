@@ -1,4 +1,4 @@
-// GitHub 파일 시스템 사용 - neon 제거
+// GitHub 파일 시스템 사용 - neon 완전 제거
 import { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "@/lib/file-db"
 
 export async function connectToDatabase() {

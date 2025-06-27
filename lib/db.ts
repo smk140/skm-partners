@@ -1,4 +1,6 @@
-// 임시로 데이터베이스 연결 없이 타입만 정의
+// GitHub 파일 시스템 사용 - 모든 데이터베이스 관련 코드 제거
+import { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "./file-db"
+
 export interface Inquiry {
   id: number
   name: string
@@ -53,15 +55,12 @@ export interface SuccessCase {
   image_url?: string
 }
 
-// 기존 데이터베이스 연결 파일 - GitHub 파일 시스템으로 대체
-export * from "./file-db"
+// GitHub 파일 시스템 함수들 재내보내기
+export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData }
 
-// 레거시 호환성을 위한 재내보내기
-export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData } from "./file-db"
-
-// 임시 SQL 함수 (실제 데이터베이스 연결 없이)
+// 레거시 호환성을 위한 더미 SQL 함수
 export const sql = async (query: TemplateStringsArray, ...values: any[]) => {
-  console.log("SQL Query:", query.join(""), values)
+  console.log("레거시 SQL 호출 (GitHub 파일 시스템으로 대체됨):", query.join(""), values)
   return []
 }
 
@@ -71,7 +70,7 @@ export function createSqlFunction() {
     const query = strings.reduce((result, string, i) => {
       return result + string + (values[i] || "")
     }, "")
-    console.log("SQL Template Query:", query)
+    console.log("레거시 SQL 템플릿 호출 (GitHub 파일 시스템으로 대체됨):", query)
     return Promise.resolve([])
   }
 }

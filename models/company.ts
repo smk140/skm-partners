@@ -1,4 +1,4 @@
-// GitHub 파일 시스템 사용 - neon 타입 제거
+// GitHub 파일 시스템 사용 - neon 타입 완전 제거
 import { getCompanyData, updateCompanyData } from "@/lib/file-db"
 
 export interface CompanyInfo {
