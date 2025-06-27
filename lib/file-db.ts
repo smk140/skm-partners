@@ -47,87 +47,63 @@ const REPO_NAME = process.env.GITHUB_REPO_NAME || "skm-partners"
 const BRANCH = process.env.GITHUB_BRANCH || "main"
 
 // 파일 읽기 함수
-async function readFileFromGitHub(filePath: string): Promise<any> {
+async function readFileFromGitHub(filePath: string) {
+  const octokit = getGitHubClient()
   try {
-    const octokit = getGitHubClient()
-    const response = await octokit.rest.repos.getContent({
+    const res = await octokit.rest.repos.getContent({
       owner: REPO_OWNER,
       repo: REPO_NAME,
       path: filePath,
       ref: BRANCH,
     })
-
-    if ("content" in response.data) {
-      const content = Buffer.from(response.data.content, "base64").toString("utf-8")
-      return JSON.parse(content)
+    if ("content" in res.data) {
+      return {
+        content: JSON.parse(Buffer.from(res.data.content, "base64").toString("utf8")),
+        sha: res.data.sha,
+      }
     }
     return null
-  } catch (error) {
-    console.log(`파일을 찾을 수 없습니다: ${filePath}`)
-    return null
+  } catch (err: any) {
+    // 파일이 없으면 404 → null, 그 외 에러는 그대로 throw
+    if (err.status === 404) return null
+    throw err
   }
 }
 
 // 파일 쓰기 함수
-async function writeFileToGitHub(
-  filePath: string,
-  data: any,
-  message: string,
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const octokit = getGitHubClient()
-    const content = JSON.stringify(data, null, 2)
-    const encodedContent = Buffer.from(content).toString("base64")
-
-    // 기존 파일 확인
-    let sha: string | undefined
-    try {
-      const existingFile = await octokit.rest.repos.getContent({
-        owner: REPO_OWNER,
-        repo: REPO_NAME,
-        path: filePath,
-        ref: BRANCH,
-      })
-      if ("sha" in existingFile.data) {
-        sha = existingFile.data.sha
-      }
-    } catch (error) {
-      // 파일이 없으면 새로 생성
-    }
-
-    await octokit.rest.repos.createOrUpdateFileContents({
-      owner: REPO_OWNER,
-      repo: REPO_NAME,
-      path: filePath,
-      message,
-      content: encodedContent,
-      branch: BRANCH,
-      sha,
-    })
-
-    return { success: true }
-  } catch (error) {
-    console.error("GitHub 파일 쓰기 실패:", error)
-    return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
-  }
+async function writeFileToGitHub(filePath: string, data: any, message: string, sha?: string): Promise<void> {
+  const octokit = getGitHubClient()
+  const encoded = Buffer.from(JSON.stringify(data, null, 2)).toString("base64")
+  await octokit.rest.repos.createOrUpdateFileContents({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    path: filePath,
+    message,
+    content: encoded,
+    branch: BRANCH,
+    sha,
+  })
 }
 
 // 회사 정보 관리
 export async function getCompanyData(): Promise<CompanyData> {
-  const data = await readFileFromGitHub("data/company.json")
-  return (
-    data || {
-      name: "SKM파트너스",
-      description: "전문적인 부동산 컨설팅 서비스를 제공합니다.",
-      address: "서울시 강남구",
-      phone: "02-123-4567",
-      email: "contact@skm.kr",
-      website: "https://skm.kr",
-      logoUrl: "",
-      heroImageUrl: "",
-      aboutImageUrl: "",
-    }
-  )
+  const result = await readFileFromGitHub("data/company.json")
+  if (result) return result.content as CompanyData
+
+  // 없으면 기본값 생성 후 즉시 저장
+  const defaultData: CompanyData = {
+    name: "SKM 파트너스",
+    description: "전문적인 부동산·비즈니스 컨설팅 서비스를 제공합니다.",
+    address: "서울특별시 강남구",
+    phone: "02-1234-5678",
+    email: "info@skm-partners.com",
+    website: "https://skm-partners.com",
+    logoUrl: "",
+    heroImageUrl: "",
+    aboutImageUrl: "",
+  }
+  await writeFileToGitHub("data/company.json", defaultData, "Create default company.json")
+  return defaultData
 }
 
 export async function updateCompanyData(
@@ -137,13 +113,9 @@ export async function updateCompanyData(
     const currentData = await getCompanyData()
     const updatedData = { ...currentData, ...data }
 
-    const result = await writeFileToGitHub("data/company.json", updatedData, "회사 정보 업데이트")
+    await writeFileToGitHub("data/company.json", updatedData, "회사 정보 업데이트")
 
-    if (result.success) {
-      return { success: true, data: updatedData }
-    } else {
-      return { success: false, error: result.error }
-    }
+    return { success: true, data: updatedData }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
@@ -168,8 +140,8 @@ export async function addInquiry(
 
     inquiries.push(newInquiry)
 
-    const result = await writeFileToGitHub("data/inquiries.json", { inquiries }, "새 문의 추가")
-    return result
+    await writeFileToGitHub("data/inquiries.json", { inquiries }, "새 문의 추가")
+    return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
@@ -194,8 +166,8 @@ export async function addProperty(
 
     properties.push(newProperty)
 
-    const result = await writeFileToGitHub("data/properties.json", { properties }, "새 부동산 추가")
-    return result
+    await writeFileToGitHub("data/properties.json", { properties }, "새 부동산 추가")
+    return { success: true }
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" }
   }
