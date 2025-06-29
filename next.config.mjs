@@ -27,14 +27,16 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
-      }
+      },
     ],
-    domains: ['skm.kr', 'www.skm.kr'],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: true,
   },
   experimental: {
-    serverComponentsExternalPackages: []
-  }
+    serverComponentsExternalPackages: ['@octokit/rest'],
+  },
 }
 
 export default nextConfig

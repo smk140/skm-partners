@@ -8,6 +8,15 @@ import { SafeImage } from "@/components/safe-image"
 export default async function HomePage() {
   const companyData = await getCompanyData()
 
+  console.log("🏠 홈페이지 렌더링 - 회사 데이터:", {
+    name: companyData.name,
+    heroImageUrl: companyData.heroImageUrl,
+    buildingManagementUrl: companyData.buildingManagementUrl,
+    cleaningServiceUrl: companyData.cleaningServiceUrl,
+    fireInspectionUrl: companyData.fireInspectionUrl,
+    aboutImageUrl: companyData.aboutImageUrl,
+  })
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}

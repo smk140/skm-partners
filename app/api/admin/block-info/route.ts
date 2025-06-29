@@ -6,18 +6,16 @@ export async function GET(request: NextRequest) {
   try {
     const clientIP = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown"
 
-    const userAgent = request.headers.get("user-agent") || "unknown"
+    console.log(`🔍 Block info 요청 - IP: ${clientIP}`)
 
     return NextResponse.json({
       success: true,
-      data: {
-        ip: clientIP,
-        userAgent: userAgent,
-        timestamp: new Date().toISOString(),
-      },
+      ip: clientIP,
+      timestamp: new Date().toISOString(),
+      message: "IP 정보 조회 성공",
     })
   } catch (error) {
-    console.error("Block info error:", error)
-    return NextResponse.json({ success: false, error: "Failed to get block info" }, { status: 500 })
+    console.error("❌ Block info 오류:", error)
+    return NextResponse.json({ success: false, error: "서버 오류" }, { status: 500 })
   }
 }
