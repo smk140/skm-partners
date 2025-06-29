@@ -5,7 +5,8 @@ import Link from "next/link"
 import { getCompanyData } from "@/lib/file-db"
 import { SafeImage } from "@/components/safe-image"
 
-export const dynamic = "force-dynamic"
+// 데이터 캐시를 사용하지 않고 항상 최신 데이터를 가져오도록 설정
+export const revalidate = 0
 
 export default async function HomePage() {
   const companyData = await getCompanyData()
@@ -14,7 +15,6 @@ export default async function HomePage() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -34,14 +34,14 @@ export default async function HomePage() {
                 </Button>
               </div>
             </div>
-            <div className="relative h-[400px] lg:h-[500px]">
+            {/* 이미지 컨테이너: position: relative과 크기 지정 */}
+            <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
               <SafeImage
-                src={companyData.heroImageUrl || ""}
+                src={companyData.heroImageUrl}
                 alt="SKM파트너스 건물 관리 서비스"
-                className="rounded-2xl shadow-2xl"
                 fill
                 priority
-                fallbackSrc="/placeholder.svg?height=600&width=800&text=Hero+Image"
+                className="object-cover"
               />
             </div>
           </div>
@@ -58,6 +58,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* 건물 종합 관리 */}
             <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
@@ -66,13 +67,12 @@ export default async function HomePage() {
                 <CardTitle className="text-xl font-semibold">건물 종합 관리</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative h-48 w-full mb-4">
+                <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={companyData.buildingManagementUrl || ""}
+                    src={companyData.buildingManagementUrl}
                     alt="건물 종합 관리 서비스"
-                    className="rounded-lg"
                     fill
-                    fallbackSrc="/placeholder.svg?height=200&width=300&text=Building+Management"
+                    className="object-cover"
                   />
                 </div>
                 <Button variant="ghost" className="w-full justify-start">
@@ -80,6 +80,7 @@ export default async function HomePage() {
                 </Button>
               </CardContent>
             </Card>
+            {/* 청소 서비스 */}
             <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mb-4">
@@ -88,20 +89,15 @@ export default async function HomePage() {
                 <CardTitle className="text-xl font-semibold">청소 서비스</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative h-48 w-full mb-4">
-                  <SafeImage
-                    src={companyData.cleaningServiceUrl || ""}
-                    alt="청소 서비스"
-                    className="rounded-lg"
-                    fill
-                    fallbackSrc="/placeholder.svg?height=200&width=300&text=Cleaning+Service"
-                  />
+                <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
+                  <SafeImage src={companyData.cleaningServiceUrl} alt="청소 서비스" fill className="object-cover" />
                 </div>
                 <Button variant="ghost" className="w-full justify-start">
                   자세히 보기 <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>
+            {/* 소방 안전 관리 */}
             <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
               <CardHeader className="pb-4">
                 <div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mb-4">
@@ -110,14 +106,8 @@ export default async function HomePage() {
                 <CardTitle className="text-xl font-semibold">소방 안전 관리</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative h-48 w-full mb-4">
-                  <SafeImage
-                    src={companyData.fireInspectionUrl || ""}
-                    alt="소방 안전 관리"
-                    className="rounded-lg"
-                    fill
-                    fallbackSrc="/placeholder.svg?height=200&width=300&text=Fire+Safety"
-                  />
+                <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
+                  <SafeImage src={companyData.fireInspectionUrl} alt="소방 안전 관리" fill className="object-cover" />
                 </div>
                 <Button variant="ghost" className="w-full justify-start">
                   자세히 보기 <ArrowRight className="h-4 w-4 ml-2" />
@@ -166,14 +156,8 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="relative h-[400px]">
-              <SafeImage
-                src={companyData.aboutImageUrl || ""}
-                alt="SKM파트너스 사무실"
-                className="rounded-2xl shadow-xl"
-                fill
-                fallbackSrc="/placeholder.svg?height=500&width=600&text=Company+Building"
-              />
+            <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
+              <SafeImage src={companyData.aboutImageUrl} alt="SKM파트너스 사무실" fill className="object-cover" />
             </div>
           </div>
         </div>
