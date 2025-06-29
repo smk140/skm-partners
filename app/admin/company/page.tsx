@@ -2,107 +2,97 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { Building2, Phone, Mail, Globe, MapPin, Save, AlertCircle, CheckCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface CompanyData {
-  logo: string
-  heroImage: string
-  aboutImage: string
-  servicesHeroImage: string
-  realEstateHeroImage: string
-  contactHeroImage: string
-  buildingManagementImage: string
-  cleaningImage: string
-  fireInspectionImage: string
-  elevatorImage: string
-  teamImage: string
-  officeImage: string
-  showcaseImage: string
+  name: string
+  description: string
+  address: string
+  phone: string
+  email: string
+  website: string
+  logoUrl?: string
+  heroImageUrl?: string
+  aboutImageUrl?: string
+  servicesHeroUrl?: string
+  realEstateHeroUrl?: string
+  contactHeroUrl?: string
+  buildingManagementUrl?: string
+  cleaningServiceUrl?: string
+  fireInspectionUrl?: string
+  elevatorManagementUrl?: string
+  teamPhotoUrl?: string
+  officeInteriorUrl?: string
+  serviceShowcaseUrl?: string
 }
 
-const imageFields = [
-  { key: "logo", label: "로고", description: "사이트 헤더에 표시되는 로고" },
-  { key: "heroImage", label: "메인 히어로 이미지", description: "홈페이지 메인 배너 이미지" },
-  { key: "aboutImage", label: "회사 소개 이미지", description: "회사 소개 섹션 이미지" },
-  { key: "servicesHeroImage", label: "서비스 페이지 히어로", description: "서비스 페이지 상단 이미지" },
-  { key: "realEstateHeroImage", label: "부동산 페이지 히어로", description: "부동산 페이지 상단 이미지" },
-  { key: "contactHeroImage", label: "연락처 페이지 히어로", description: "연락처 페이지 상단 이미지" },
-  { key: "buildingManagementImage", label: "빌딩관리 서비스", description: "빌딩관리 서비스 이미지" },
-  { key: "cleaningImage", label: "청소 서비스", description: "청소 서비스 이미지" },
-  { key: "fireInspectionImage", label: "소방점검 서비스", description: "소방점검 서비스 이미지" },
-  { key: "elevatorImage", label: "엘리베이터 서비스", description: "엘리베이터 서비스 이미지" },
-  { key: "teamImage", label: "팀 사진", description: "회사 팀 사진" },
-  { key: "officeImage", label: "오피스 인테리어", description: "사무실 내부 사진" },
-  { key: "showcaseImage", label: "서비스 쇼케이스", description: "서비스 소개용 이미지" },
-]
-
-export default function CompanyManagement() {
+export default function CompanyManagementPage() {
   const [companyData, setCompanyData] = useState<CompanyData>({
-    logo: "",
-    heroImage: "",
-    aboutImage: "",
-    servicesHeroImage: "",
-    realEstateHeroImage: "",
-    contactHeroImage: "",
-    buildingManagementImage: "",
-    cleaningImage: "",
-    fireInspectionImage: "",
-    elevatorImage: "",
-    teamImage: "",
-    officeImage: "",
-    showcaseImage: "",
+    name: "",
+    description: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+    logoUrl: "",
+    heroImageUrl: "",
+    aboutImageUrl: "",
+    servicesHeroUrl: "",
+    realEstateHeroUrl: "",
+    contactHeroUrl: "",
+    buildingManagementUrl: "",
+    cleaningServiceUrl: "",
+    fireInspectionUrl: "",
+    elevatorManagementUrl: "",
+    teamPhotoUrl: "",
+    officeInteriorUrl: "",
+    serviceShowcaseUrl: "",
   })
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const { toast } = useToast()
+
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   useEffect(() => {
-    fetchCompanyData()
+    loadCompanyData()
   }, [])
 
-  const fetchCompanyData = async () => {
+  const loadCompanyData = async () => {
+    setLoading(true)
     try {
-      console.log("🔥 관리자 페이지에서 데이터 로드 시작")
+      console.log("🔄 관리자 페이지에서 회사 정보 로드 시작")
       const response = await fetch("/api/admin/company")
-      console.log("📡 응답 상태:", response.status)
+      const data = await response.json()
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log("📥 받은 데이터:", data)
-        setCompanyData(data)
-        console.log("✅ 상태 업데이트 완료")
+      console.log("📥 관리자 페이지 응답:", data)
+
+      if (data.success && data.companyInfo) {
+        setCompanyData(data.companyInfo)
+        console.log("✅ 관리자 페이지 데이터 설정 완료")
       } else {
-        console.error("❌ 응답 실패:", response.status)
+        console.error("❌ 관리자 페이지 데이터 로드 실패:", data.error)
+        setMessage({ type: "error", text: data.error || "데이터 로드 실패" })
       }
     } catch (error) {
-      console.error("💥 데이터 로드 실패:", error)
-      toast({
-        title: "오류",
-        description: "데이터를 불러오는데 실패했습니다.",
-        variant: "destructive",
-      })
+      console.error("💥 관리자 페이지 로드 오류:", error)
+      setMessage({ type: "error", text: "서버 연결 실패" })
     } finally {
-      setInitialLoading(false)
+      setLoading(false)
     }
   }
 
-  const handleImageUrlChange = (key: keyof CompanyData, value: string) => {
-    console.log(`🖼️ 이미지 URL 변경: ${key} = ${value}`)
-    setCompanyData((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
-
   const handleSave = async () => {
-    setLoading(true)
+    setSaving(true)
+    setMessage(null)
+
     try {
-      console.log("💾 저장 시작, 데이터:", companyData)
+      console.log("💾 관리자 페이지에서 저장 시작:", companyData)
 
       const response = await fetch("/api/admin/company", {
         method: "POST",
@@ -112,205 +102,198 @@ export default function CompanyManagement() {
         body: JSON.stringify(companyData),
       })
 
-      console.log("📡 저장 응답 상태:", response.status)
+      const result = await response.json()
+      console.log("📤 관리자 페이지 저장 응답:", result)
 
-      if (response.ok) {
-        const result = await response.json()
-        console.log("📥 저장 결과:", result)
-
-        toast({
-          title: "성공! 🎉",
-          description: "회사 정보가 저장되었습니다. 홈페이지를 새로고침해서 확인해보세요!",
-        })
-
-        // 저장 후 다시 데이터 로드해서 확인
-        setTimeout(() => {
-          fetchCompanyData()
-        }, 1000)
+      if (result.success) {
+        setMessage({ type: "success", text: "회사 정보가 성공적으로 저장되었습니다!" })
+        console.log("✅ 관리자 페이지 저장 성공")
       } else {
-        throw new Error(`HTTP ${response.status}`)
+        setMessage({ type: "error", text: result.error || "저장 실패" })
+        console.error("❌ 관리자 페이지 저장 실패:", result.error)
       }
     } catch (error) {
-      console.error("💥 저장 실패:", error)
-      toast({
-        title: "오류",
-        description: "저장 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
+      console.error("💥 관리자 페이지 저장 오류:", error)
+      setMessage({ type: "error", text: "서버 연결 실패" })
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  const isValidImageUrl = (url: string) => {
-    if (!url) return false
-    try {
-      new URL(url)
-      return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.includes("unsplash.com") || url.includes("placeholder.com")
-    } catch {
-      return false
-    }
+  const handleInputChange = (field: keyof CompanyData, value: string) => {
+    setCompanyData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
   }
 
-  if (initialLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-gray-600">회사 정보를 불러오는 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">🖼️ 회사 이미지 관리</h1>
-          <p className="text-muted-foreground">홈페이지에 표시될 이미지들을 관리합니다.</p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">회사 정보 관리</h1>
+          <p className="text-gray-600">회사의 기본 정보와 연락처를 관리합니다.</p>
         </div>
-        <Button onClick={handleSave} disabled={loading} size="lg" className="bg-blue-600 hover:bg-blue-700">
-          {loading ? "💾 저장 중..." : "💾 저장하기"}
-        </Button>
+
+        {message && (
+          <Alert className={`mb-6 ${message.type === "success" ? "border-green-500" : "border-red-500"}`}>
+            {message.type === "success" ? (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            )}
+            <AlertDescription className={message.type === "success" ? "text-green-700" : "text-red-700"}>
+              {message.text}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Tabs defaultValue="basic" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">기본 정보</TabsTrigger>
+            <TabsTrigger value="contact">연락처 정보</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="basic" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  기본 정보
+                </CardTitle>
+                <CardDescription>회사의 기본적인 정보를 설정합니다.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">회사명</Label>
+                  <Input
+                    id="name"
+                    value={companyData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="회사명을 입력하세요"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">회사 소개</Label>
+                  <Textarea
+                    id="description"
+                    value={companyData.description}
+                    onChange={(e) => handleInputChange("description", e.target.value)}
+                    placeholder="회사 소개를 입력하세요"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website">웹사이트</Label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 border border-r-0 border-gray-300 bg-gray-50 rounded-l-md">
+                      <Globe className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Input
+                      id="website"
+                      value={companyData.website}
+                      onChange={(e) => handleInputChange("website", e.target.value)}
+                      placeholder="https://example.com"
+                      className="rounded-l-none"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="contact" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  연락처 정보
+                </CardTitle>
+                <CardDescription>고객이 연락할 수 있는 정보를 설정합니다.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">대표 전화번호</Label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 border border-r-0 border-gray-300 bg-gray-50 rounded-l-md">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Input
+                      id="phone"
+                      value={companyData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
+                      placeholder="02-1234-5678"
+                      className="rounded-l-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">대표 이메일</Label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 border border-r-0 border-gray-300 bg-gray-50 rounded-l-md">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={companyData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
+                      placeholder="info@company.com"
+                      className="rounded-l-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">회사 주소</Label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 border border-r-0 border-gray-300 bg-gray-50 rounded-l-md">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <Input
+                      id="address"
+                      value={companyData.address}
+                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      placeholder="서울특별시 강남구..."
+                      className="rounded-l-none"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end mt-8">
+          <Button onClick={handleSave} disabled={saving} size="lg" className="px-8">
+            {saving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                저장 중...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                저장하기
+              </>
+            )}
+          </Button>
+        </div>
       </div>
-
-      <Tabs defaultValue="main" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="main">메인 이미지</TabsTrigger>
-          <TabsTrigger value="services">서비스 이미지</TabsTrigger>
-          <TabsTrigger value="additional">추가 이미지</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="main" className="space-y-6">
-          <div className="grid gap-6">
-            {imageFields.slice(0, 6).map((field) => (
-              <Card key={field.key}>
-                <CardHeader>
-                  <CardTitle>{field.label}</CardTitle>
-                  <CardDescription>{field.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor={field.key}>이미지 URL</Label>
-                    <Input
-                      id={field.key}
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={companyData[field.key as keyof CompanyData]}
-                      onChange={(e) => handleImageUrlChange(field.key as keyof CompanyData, e.target.value)}
-                    />
-                  </div>
-                  {companyData[field.key as keyof CompanyData] &&
-                    isValidImageUrl(companyData[field.key as keyof CompanyData]) && (
-                      <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-                        <Image
-                          src={companyData[field.key as keyof CompanyData] || "/placeholder.svg"}
-                          alt={field.label}
-                          fill
-                          className="object-cover"
-                          onError={() => {
-                            toast({
-                              title: "이미지 로드 실패",
-                              description: `${field.label} 이미지를 불러올 수 없습니다.`,
-                              variant: "destructive",
-                            })
-                          }}
-                        />
-                      </div>
-                    )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="services" className="space-y-6">
-          <div className="grid gap-6">
-            {imageFields.slice(6, 10).map((field) => (
-              <Card key={field.key}>
-                <CardHeader>
-                  <CardTitle>{field.label}</CardTitle>
-                  <CardDescription>{field.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor={field.key}>이미지 URL</Label>
-                    <Input
-                      id={field.key}
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={companyData[field.key as keyof CompanyData]}
-                      onChange={(e) => handleImageUrlChange(field.key as keyof CompanyData, e.target.value)}
-                    />
-                  </div>
-                  {companyData[field.key as keyof CompanyData] &&
-                    isValidImageUrl(companyData[field.key as keyof CompanyData]) && (
-                      <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-                        <Image
-                          src={companyData[field.key as keyof CompanyData] || "/placeholder.svg"}
-                          alt={field.label}
-                          fill
-                          className="object-cover"
-                          onError={() => {
-                            toast({
-                              title: "이미지 로드 실패",
-                              description: `${field.label} 이미지를 불러올 수 없습니다.`,
-                              variant: "destructive",
-                            })
-                          }}
-                        />
-                      </div>
-                    )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="additional" className="space-y-6">
-          <div className="grid gap-6">
-            {imageFields.slice(10).map((field) => (
-              <Card key={field.key}>
-                <CardHeader>
-                  <CardTitle>{field.label}</CardTitle>
-                  <CardDescription>{field.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor={field.key}>이미지 URL</Label>
-                    <Input
-                      id={field.key}
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={companyData[field.key as keyof CompanyData]}
-                      onChange={(e) => handleImageUrlChange(field.key as keyof CompanyData, e.target.value)}
-                    />
-                  </div>
-                  {companyData[field.key as keyof CompanyData] &&
-                    isValidImageUrl(companyData[field.key as keyof CompanyData]) && (
-                      <div className="relative w-full h-48 border rounded-lg overflow-hidden">
-                        <Image
-                          src={companyData[field.key as keyof CompanyData] || "/placeholder.svg"}
-                          alt={field.label}
-                          fill
-                          className="object-cover"
-                          onError={() => {
-                            toast({
-                              title: "이미지 로드 실패",
-                              description: `${field.label} 이미지를 불러올 수 없습니다.`,
-                              variant: "destructive",
-                            })
-                          }}
-                        />
-                      </div>
-                    )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }
