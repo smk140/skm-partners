@@ -7,6 +7,7 @@ import { SafeImage } from "@/components/safe-image"
 
 // 데이터 캐시를 사용하지 않고 항상 최신 데이터를 가져오도록 설정
 export const revalidate = 0
+export const dynamic = "force-dynamic"
 
 export default async function HomePage() {
   const companyData = await getCompanyData()
@@ -15,6 +16,7 @@ export default async function HomePage() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -37,7 +39,7 @@ export default async function HomePage() {
             {/* 이미지 컨테이너: position: relative과 크기 지정 */}
             <div className="relative h-[400px] lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
               <SafeImage
-                src={companyData.heroImageUrl}
+                src={companyData.heroImageUrl || ""}
                 alt="SKM파트너스 건물 관리 서비스"
                 fill
                 priority
@@ -69,7 +71,7 @@ export default async function HomePage() {
               <CardContent>
                 <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={companyData.buildingManagementUrl}
+                    src={companyData.buildingManagementUrl || ""}
                     alt="건물 종합 관리 서비스"
                     fill
                     className="object-cover"
@@ -90,7 +92,12 @@ export default async function HomePage() {
               </CardHeader>
               <CardContent>
                 <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
-                  <SafeImage src={companyData.cleaningServiceUrl} alt="청소 서비스" fill className="object-cover" />
+                  <SafeImage
+                    src={companyData.cleaningServiceUrl || ""}
+                    alt="청소 서비스"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <Button variant="ghost" className="w-full justify-start">
                   자세히 보기 <ArrowRight className="h-4 w-4 ml-2" />
@@ -107,7 +114,12 @@ export default async function HomePage() {
               </CardHeader>
               <CardContent>
                 <div className="relative h-48 w-full mb-4 rounded-lg overflow-hidden">
-                  <SafeImage src={companyData.fireInspectionUrl} alt="소방 안전 관리" fill className="object-cover" />
+                  <SafeImage
+                    src={companyData.fireInspectionUrl || ""}
+                    alt="소방 안전 관리"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <Button variant="ghost" className="w-full justify-start">
                   자세히 보기 <ArrowRight className="h-4 w-4 ml-2" />
@@ -157,7 +169,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
-              <SafeImage src={companyData.aboutImageUrl} alt="SKM파트너스 사무실" fill className="object-cover" />
+              <SafeImage src={companyData.aboutImageUrl || ""} alt="SKM파트너스 사무실" fill className="object-cover" />
             </div>
           </div>
         </div>
