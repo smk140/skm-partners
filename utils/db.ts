@@ -3,7 +3,9 @@ import {
   getCompanyData,
   updateCompanyData,
   getInquiriesData,
+  addInquiry,
   getPropertiesData,
+  addProperty,
   testGitHubConnection,
 } from "@/lib/file-db"
 
@@ -52,4 +54,4 @@ export async function executeTransaction(queries: Array<() => Promise<any>>) {
 }
 
 // 레거시 호환성을 위한 재내보내기
-export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData }
+export { getCompanyData, updateCompanyData, getInquiriesData, addInquiry, getPropertiesData, addProperty }

@@ -7,9 +7,6 @@ import {
   addInquiry,
   addProperty,
   testGitHubConnection,
-  type CompanyData,
-  type InquiryData,
-  type PropertyData,
 } from "./file-db"
 
 // 레거시 인터페이스 유지 (호환성을 위해)
@@ -68,18 +65,7 @@ export interface SuccessCase {
 }
 
 // GitHub 파일 시스템 함수들 재내보내기
-export {
-  getCompanyData,
-  updateCompanyData,
-  getInquiriesData,
-  getPropertiesData,
-  addInquiry,
-  addProperty,
-  testGitHubConnection,
-  type CompanyData,
-  type InquiryData,
-  type PropertyData,
-}
+export { getCompanyData, updateCompanyData, getInquiriesData, getPropertiesData, addInquiry, addProperty }
 
 // 레거시 호환성을 위한 더미 SQL 함수들
 export const sql = async (query: TemplateStringsArray, ...values: any[]) => {

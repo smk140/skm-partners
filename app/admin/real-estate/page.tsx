@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { ImageSelector } from "@/components/image-selector"
+import { ImageUrlInput } from "@/components/image-url-input"
 
 interface Property {
   id: number
@@ -32,7 +32,7 @@ interface Property {
   description: string
   status: string
   createdAt: string
-  image_url?: string
+  imageUrl?: string
 }
 
 export default function AdminRealEstatePage() {
@@ -129,7 +129,7 @@ export default function AdminRealEstatePage() {
         size: size.trim(),
         price: price.trim(),
         description: description.trim(),
-        image_url: imageUrl.trim(),
+        imageUrl: imageUrl.trim(),
       }
 
       console.log("전송할 데이터:", propertyData)
@@ -320,14 +320,14 @@ export default function AdminRealEstatePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <ImageSelector
+                  <ImageUrlInput
                     label="매물 대표 이미지"
                     value={imageUrl}
                     onChange={(url) => {
-                      console.log("이미지 선택됨:", url)
+                      console.log("이미지 URL 선택됨:", url)
                       setImageUrl(url)
                     }}
-                    description="매물 목록 및 상세 페이지에 사용될 대표 이미지를 선택하세요."
+                    description="매물 목록 및 상세 페이지에 사용될 대표 이미지 URL을 입력하세요."
                   />
                 </div>
               </div>
@@ -408,9 +408,9 @@ export default function AdminRealEstatePage() {
                     filteredProperties.map((property) => (
                       <TableRow key={property.id}>
                         <TableCell>
-                          {property.image_url ? (
+                          {property.imageUrl ? (
                             <img
-                              src={property.image_url || "/placeholder.svg"}
+                              src={property.imageUrl || "/placeholder.svg"}
                               alt={property.title}
                               className="object-cover rounded-md h-16 w-16"
                               onLoad={() => console.log("테이블 이미지 로드 성공:", property.title)}

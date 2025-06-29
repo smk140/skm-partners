@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ImageUpload } from "@/components/image-upload"
+import { ImageUrlInput } from "@/components/image-url-input"
 import { useToast } from "@/hooks/use-toast"
 import { Building2, Save } from "lucide-react"
 
@@ -17,14 +17,10 @@ interface CompanyInfo {
   phone: string
   email: string
   description: string
-  slogan: string
-  site_images?: {
-    hero_main?: string
-    company_building?: string
-    team_photo?: string
-    service_showcase?: string
-  }
-  main_services?: string[]
+  website: string
+  logoUrl?: string
+  heroImageUrl?: string
+  aboutImageUrl?: string
 }
 
 export default function CompanyManagementPage() {
@@ -34,9 +30,10 @@ export default function CompanyManagementPage() {
     phone: "",
     email: "",
     description: "",
-    slogan: "",
-    site_images: {},
-    main_services: [],
+    website: "",
+    logoUrl: "",
+    heroImageUrl: "",
+    aboutImageUrl: "",
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -50,18 +47,18 @@ export default function CompanyManagementPage() {
   const loadCompanyInfo = async () => {
     setIsLoading(true)
     try {
-      console.log("🔥 회사 정보 로드 시작")
+      console.log("회사 정보 로드 시작")
       const response = await fetch("/api/admin/company")
       const data = await response.json()
 
-      console.log("📥 받은 회사 정보:", data)
+      console.log("받은 회사 정보:", data)
 
       if (data.success && data.companyInfo) {
         setCompanyInfo(data.companyInfo)
-        console.log("✅ 회사 정보 설정 완료")
+        console.log("회사 정보 설정 완료")
       }
     } catch (error) {
-      console.error("💥 회사 정보 로드 실패:", error)
+      console.error("회사 정보 로드 실패:", error)
       toast({
         title: "로드 실패",
         description: "회사 정보를 불러올 수 없습니다.",
@@ -75,7 +72,7 @@ export default function CompanyManagementPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      console.log("🔥 회사 정보 저장 시작:", companyInfo)
+      console.log("회사 정보 저장 시작:", companyInfo)
 
       const response = await fetch("/api/admin/company", {
         method: "POST",
@@ -86,19 +83,19 @@ export default function CompanyManagementPage() {
       })
 
       const result = await response.json()
-      console.log("📥 저장 결과:", result)
+      console.log("저장 결과:", result)
 
       if (result.success) {
         toast({
           title: "저장 완료",
           description: "회사 정보가 성공적으로 저장되었습니다.",
         })
-        console.log("✅ 회사 정보 저장 성공")
+        console.log("회사 정보 저장 성공")
       } else {
         throw new Error(result.error || "저장 실패")
       }
     } catch (error: any) {
-      console.error("💥 회사 정보 저장 실패:", error)
+      console.error("회사 정보 저장 실패:", error)
       toast({
         title: "저장 실패",
         description: error.message || "회사 정보를 저장할 수 없습니다.",
@@ -107,17 +104,6 @@ export default function CompanyManagementPage() {
     } finally {
       setIsSaving(false)
     }
-  }
-
-  const handleImageUploaded = (imageType: string, url: string) => {
-    console.log("🖼️ 이미지 업로드 완료:", { imageType, url })
-    setCompanyInfo((prev) => ({
-      ...prev,
-      site_images: {
-        ...prev.site_images,
-        [imageType]: url,
-      },
-    }))
   }
 
   if (isLoading) {
@@ -144,7 +130,7 @@ export default function CompanyManagementPage() {
           </div>
           <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
             <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "저장 중..." : "🔥 이미지 정보 저장 🔥"}
+            {isSaving ? "저장 중..." : "저장"}
           </Button>
         </div>
 
@@ -194,23 +180,24 @@ export default function CompanyManagementPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">주소</Label>
+                    <Label htmlFor="website">웹사이트</Label>
                     <Input
-                      id="address"
-                      value={companyInfo.address}
-                      onChange={(e) => setCompanyInfo((prev) => ({ ...prev, address: e.target.value }))}
-                      placeholder="주소를 입력하세요"
+                      id="website"
+                      type="url"
+                      value={companyInfo.website}
+                      onChange={(e) => setCompanyInfo((prev) => ({ ...prev, website: e.target.value }))}
+                      placeholder="웹사이트 URL을 입력하세요"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="slogan">슬로건</Label>
+                  <Label htmlFor="address">주소</Label>
                   <Input
-                    id="slogan"
-                    value={companyInfo.slogan}
-                    onChange={(e) => setCompanyInfo((prev) => ({ ...prev, slogan: e.target.value }))}
-                    placeholder="회사 슬로건을 입력하세요"
+                    id="address"
+                    value={companyInfo.address}
+                    onChange={(e) => setCompanyInfo((prev) => ({ ...prev, address: e.target.value }))}
+                    placeholder="주소를 입력하세요"
                   />
                 </div>
 
@@ -229,33 +216,26 @@ export default function CompanyManagementPage() {
           </TabsContent>
 
           <TabsContent value="images" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ImageUpload
-                imageType="hero_main"
-                currentImage={companyInfo.site_images?.hero_main}
-                onImageUploaded={(url) => handleImageUploaded("hero_main", url)}
+            <div className="grid grid-cols-1 gap-6">
+              <ImageUrlInput
+                label="로고 이미지"
+                value={companyInfo.logoUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, logoUrl: url }))}
+                description="회사 로고 이미지 URL을 입력하세요. (권장 크기: 200x80px)"
+              />
+
+              <ImageUrlInput
                 label="메인 히어로 이미지"
+                value={companyInfo.heroImageUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, heroImageUrl: url }))}
+                description="홈페이지 메인 배너 이미지 URL을 입력하세요. (권장 크기: 1200x600px)"
               />
 
-              <ImageUpload
-                imageType="company_building"
-                currentImage={companyInfo.site_images?.company_building}
-                onImageUploaded={(url) => handleImageUploaded("company_building", url)}
-                label="회사 건물 이미지"
-              />
-
-              <ImageUpload
-                imageType="team_photo"
-                currentImage={companyInfo.site_images?.team_photo}
-                onImageUploaded={(url) => handleImageUploaded("team_photo", url)}
-                label="팀 사진"
-              />
-
-              <ImageUpload
-                imageType="service_showcase"
-                currentImage={companyInfo.site_images?.service_showcase}
-                onImageUploaded={(url) => handleImageUploaded("service_showcase", url)}
-                label="서비스 소개 이미지"
+              <ImageUrlInput
+                label="회사 소개 이미지"
+                value={companyInfo.aboutImageUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, aboutImageUrl: url }))}
+                description="회사 소개 페이지 이미지 URL을 입력하세요. (권장 크기: 800x500px)"
               />
             </div>
           </TabsContent>

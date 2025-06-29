@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { getPropertiesData, addProperty } from "@/lib/file-db"
 
 // 메모리 기반 저장소 - 전역 변수로 관리
@@ -72,22 +72,15 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       properties: properties,
-      total: properties.length,
     })
   } catch (error) {
-    console.error("부동산 조회 실패:", error)
-
-    return NextResponse.json({
-      success: false,
-      properties: [],
-      total: 0,
-      error: "부동산 조회에 실패했습니다.",
-    })
+    console.error("부동산 목록 조회 오류:", error)
+    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
   }
 }
 
 // 부동산 매물 추가
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     console.log("=== 부동산 등록 API 호출 ===")
 
@@ -97,16 +90,16 @@ export async function POST(request: Request) {
     const { title, description, price, location, imageUrl } = body
 
     // 필수 필드 검증
-    if (!title || !location) {
-      console.log("필수 필드 누락:", { title, location })
-      return NextResponse.json({ error: "제목과 위치는 필수입니다." }, { status: 400 })
+    if (!title || !description || !price || !location) {
+      console.log("필수 필드 누락:", { title, description, price, location })
+      return NextResponse.json({ error: "필수 필드가 누락되었습니다." }, { status: 400 })
     }
 
     // GitHub에 저장
     const result = await addProperty({
       title,
-      description: description || "",
-      price: Number(price) || 0,
+      description,
+      price: Number(price),
       location,
       imageUrl: imageUrl || "",
     })
@@ -118,16 +111,16 @@ export async function POST(request: Request) {
         message: "부동산이 성공적으로 등록되었습니다.",
       })
     } else {
-      throw new Error(result.error || "저장 실패")
+      return NextResponse.json({ error: result.error || "부동산 등록에 실패했습니다." }, { status: 500 })
     }
   } catch (error) {
-    console.error("부동산 등록 실패:", error)
-    return NextResponse.json({ error: "부동산 등록에 실패했습니다." }, { status: 500 })
+    console.error("부동산 등록 오류:", error)
+    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
   }
 }
 
 // 부동산 매물 삭제
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   console.log("=== DELETE /api/admin/properties ===")
 
   try {
