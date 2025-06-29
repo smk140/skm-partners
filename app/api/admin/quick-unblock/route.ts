@@ -1,3 +1,6 @@
+// Uses nextUrl.searchParams – disable static optimization
+export const dynamic = "force-dynamic"
+
 import { type NextRequest, NextResponse } from "next/server"
 import { updateBlockedIPs } from "@/middleware"
 import { sendIPBlockNotification } from "@/lib/discord"

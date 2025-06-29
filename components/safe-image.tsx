@@ -8,6 +8,7 @@ interface SafeImageProps {
   alt: string
   width?: number
   height?: number
+  fill?: boolean
   className?: string
   fallbackSrc?: string
   fallbackText?: string
@@ -19,6 +20,7 @@ export function SafeImage({
   alt,
   width = 400,
   height = 300,
+  fill = false,
   className = "",
   fallbackSrc,
   fallbackText,
@@ -29,52 +31,45 @@ export function SafeImage({
   const [isLoading, setIsLoading] = useState(true)
 
   const handleError = () => {
-    console.error("이미지 로드 실패:", imgSrc)
     setHasError(true)
     setIsLoading(false)
 
+    // One retry with fallbackSrc
     if (fallbackSrc && imgSrc !== fallbackSrc) {
       setImgSrc(fallbackSrc)
       setHasError(false)
       setIsLoading(true)
     } else {
-      // 최종 fallback
+      // Final fallback: generated placeholder
       setImgSrc(`/placeholder.svg?height=${height}&width=${width}&text=${encodeURIComponent(alt)}`)
-      setIsLoading(true)
       setHasError(false)
+      setIsLoading(true)
     }
   }
 
   const handleLoad = () => {
-    console.log("이미지 로드 성공:", imgSrc)
     setHasError(false)
     setIsLoading(false)
-  }
-
-  const handleLoadStart = () => {
-    setIsLoading(true)
   }
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
-          <div className="text-gray-400 text-sm">이미지 로딩 중...</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse text-gray-400 text-sm">
+          이미지 로딩 중...
         </div>
       )}
 
       <Image
-        src={imgSrc || `/placeholder.svg?height=${height}&width=${width}&text=${encodeURIComponent(alt)}`}
+        src={imgSrc || "/placeholder.svg"}
         alt={alt}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        {...(fill ? { fill: true, sizes: "(max-width:768px) 100vw, 50vw" } : { width, height })}
         className={`object-cover transition-opacity duration-300 ${
           isLoading ? "opacity-0" : "opacity-100"
         } ${hasError ? "opacity-50" : ""}`}
+        priority={priority}
         onError={handleError}
         onLoad={handleLoad}
-        onLoadStart={handleLoadStart}
-        priority={priority}
         unoptimized={imgSrc.includes("placeholder.svg")}
       />
 
