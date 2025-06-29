@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { getGitHubDebugInfo, testGitHubConnection } from "@/lib/github"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   console.log("🔍 GitHub 디버깅 정보 요청")
 
@@ -22,15 +24,9 @@ export async function GET() {
       recommendations,
       timestamp: new Date().toISOString(),
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("💥 GitHub 디버깅 정보 수집 실패:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류",
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
   }
 }
 

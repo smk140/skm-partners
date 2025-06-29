@@ -1,392 +1,173 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/hooks/use-toast"
-import { Loader2, Save, Building, ImageIcon, Phone, Mail, Globe, MapPin } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import type { CompanyData } from "@/lib/file-db"
 
-export default function CompanyManagementPage() {
-  const [companyData, setCompanyData] = useState<CompanyData>({
-    name: "",
-    description: "",
-    address: "",
-    phone: "",
-    email: "",
-    website: "",
-    logoUrl: "",
-    heroImageUrl: "",
-    aboutImageUrl: "",
-    servicesHeroUrl: "",
-    realEstateHeroUrl: "",
-    contactHeroUrl: "",
-    buildingManagementUrl: "",
-    cleaningServiceUrl: "",
-    fireInspectionUrl: "",
-    elevatorManagementUrl: "",
-    teamPhotoUrl: "",
-    officeInteriorUrl: "",
-    serviceShowcaseUrl: "",
-  })
+export default function CompanyAdmin() {
+  const [data, setData] = useState<CompanyData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  // 회사 정보 로드
+  /* -------------------------------------------------------------- */
+  /* Load                                                            */
+  /* -------------------------------------------------------------- */
   useEffect(() => {
-    loadCompanyData()
+    ;(async () => {
+      try {
+        const res = await fetch("/api/admin/company")
+        const json = await res.json()
+        if (json.success) setData(json.companyInfo)
+        else toast({ title: "오류", description: json.error, variant: "destructive" })
+      } catch {
+        toast({ title: "네트워크 오류", variant: "destructive" })
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
-  const loadCompanyData = async () => {
+  /* -------------------------------------------------------------- */
+  /* Save                                                            */
+  /* -------------------------------------------------------------- */
+  async function handleSave() {
+    if (!data) return
+    setSaving(true)
     try {
-      setLoading(true)
-      const response = await fetch("/api/admin/company")
-      const result = await response.json()
-
-      if (result.success) {
-        setCompanyData(result.companyInfo)
-        console.log("✅ 회사 정보 로드 성공:", result.companyInfo)
-      } else {
-        toast({
-          title: "오류",
-          description: "회사 정보를 불러오는데 실패했습니다.",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("❌ 회사 정보 로드 실패:", error)
-      toast({
-        title: "오류",
-        description: "서버 연결에 실패했습니다.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSave = async () => {
-    try {
-      setSaving(true)
-      console.log("💾 회사 정보 저장 시작:", companyData)
-
-      const response = await fetch("/api/admin/company", {
+      const res = await fetch("/api/admin/company", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(companyData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       })
-
-      const result = await response.json()
-      console.log("📤 저장 응답:", result)
-
-      if (result.success) {
-        toast({
-          title: "저장 완료",
-          description: "회사 정보가 성공적으로 저장되었습니다.",
-        })
-        // 저장된 데이터로 상태 업데이트
-        if (result.companyInfo) {
-          setCompanyData(result.companyInfo)
-        }
-      } else {
-        toast({
-          title: "저장 실패",
-          description: result.error || "저장 중 오류가 발생했습니다.",
-          variant: "destructive",
-        })
-      }
-    } catch (error) {
-      console.error("❌ 저장 실패:", error)
-      toast({
-        title: "저장 실패",
-        description: "서버 연결에 실패했습니다.",
-        variant: "destructive",
-      })
+      const json = await res.json()
+      if (json.success) toast({ title: "저장 완료" })
+      else toast({ title: "저장 실패", description: json.error, variant: "destructive" })
+    } catch {
+      toast({ title: "네트워크 오류", variant: "destructive" })
     } finally {
       setSaving(false)
     }
   }
 
-  const handleInputChange = (field: keyof CompanyData, value: string) => {
-    setCompanyData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+  function set<K extends keyof CompanyData>(key: K, value: CompanyData[K]) {
+    setData((d) => (d ? { ...d, [key]: value } : d))
   }
 
-  if (loading) {
+  /* -------------------------------------------------------------- */
+  /* Render                                                          */
+  /* -------------------------------------------------------------- */
+  if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">회사 정보를 불러오는 중...</span>
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin mr-2" />
+        로딩 중...
       </div>
     )
-  }
+
+  if (!data)
+    return (
+      <div className="h-screen flex flex-col items-center justify-center">
+        <p className="mb-4">데이터를 불러오지 못했습니다.</p>
+        <Link href="/admin/debug" className="text-blue-600 underline">
+          GitHub 연결 상태 확인
+        </Link>
+      </div>
+    )
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">회사 정보 관리</h1>
-          <p className="text-gray-600 mt-2">회사의 기본 정보와 이미지를 관리합니다.</p>
-        </div>
-        <Button onClick={handleSave} disabled={saving} size="lg">
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              저장 중...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              저장
-            </>
-          )}
+    <div className="container mx-auto py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">회사 정보 관리</h1>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          저장
         </Button>
       </div>
 
-      <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="basic" className="flex items-center gap-2">
-            <Building className="h-4 w-4" />
-            기본 정보
-          </TabsTrigger>
-          <TabsTrigger value="images" className="flex items-center gap-2">
-            <ImageIcon className="h-4 w-4" />
-            이미지 관리
-          </TabsTrigger>
+      <Tabs defaultValue="basic">
+        <TabsList>
+          <TabsTrigger value="basic">기본 정보</TabsTrigger>
+          <TabsTrigger value="images">이미지 URL</TabsTrigger>
         </TabsList>
 
-        {/* 기본 정보 탭 */}
-        <TabsContent value="basic" className="space-y-6">
+        {/* 기본 정보 ------------------------------------------------ */}
+        <TabsContent value="basic" className="pt-4 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                회사 기본 정보
-              </CardTitle>
-              <CardDescription>회사의 기본적인 정보를 설정합니다.</CardDescription>
+              <CardTitle>회사 개요</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">회사명</Label>
-                  <Input
-                    id="name"
-                    value={companyData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="SKM파트너스"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    웹사이트
-                  </Label>
-                  <Input
-                    id="website"
-                    value={companyData.website}
-                    onChange={(e) => handleInputChange("website", e.target.value)}
-                    placeholder="https://skm.kr"
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="description">회사 소개</Label>
-                <Textarea
-                  id="description"
-                  value={companyData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="전문적인 부동산 컨설팅 서비스를 제공합니다."
-                  rows={3}
-                />
+                <Label>회사명</Label>
+                <Input value={data.name} onChange={(e) => set("name", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>한 줄 소개</Label>
+                <Textarea rows={3} value={data.description} onChange={(e) => set("description", e.target.value)} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>연락처 정보</CardTitle>
-              <CardDescription>고객이 연락할 수 있는 정보를 설정합니다.</CardDescription>
+              <CardTitle>연락처</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    전화번호
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={companyData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    placeholder="02-1234-5678"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    이메일
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={companyData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="info@skm.kr"
-                  />
-                </div>
-              </div>
-
+            <CardContent className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="address" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  주소
-                </Label>
-                <Input
-                  id="address"
-                  value={companyData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="서울특별시 강남구 테헤란로 123"
-                />
+                <Label>전화번호</Label>
+                <Input value={data.phone} onChange={(e) => set("phone", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>이메일</Label>
+                <Input value={data.email} onChange={(e) => set("email", e.target.value)} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>주소</Label>
+                <Input value={data.address} onChange={(e) => set("address", e.target.value)} />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label>웹사이트</Label>
+                <Input value={data.website} onChange={(e) => set("website", e.target.value)} />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* 이미지 관리 탭 */}
-        <TabsContent value="images" className="space-y-6">
+        {/* 이미지 URL ---------------------------------------------- */}
+        <TabsContent value="images" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5" />
-                메인 이미지
-              </CardTitle>
-              <CardDescription>홈페이지의 주요 이미지들을 관리합니다.</CardDescription>
+              <CardTitle>이미지 URL</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="logoUrl">로고 이미지 URL</Label>
+            <CardContent className="grid md:grid-cols-2 gap-4">
+              {(
+                [
+                  ["logoUrl", "로고"],
+                  ["heroImageUrl", "메인 히어로"],
+                  ["aboutImageUrl", "회사 소개 이미지"],
+                  ["buildingManagementUrl", "서비스: 건물 관리"],
+                  ["cleaningServiceUrl", "서비스: 청소"],
+                  ["fireInspectionUrl", "서비스: 소방 안전"],
+                  ["elevatorManagementUrl", "서비스: 엘리베이터"],
+                ] as const
+              ).map(([key, label]) => (
+                <div key={key} className="space-y-2">
+                  <Label>{label}</Label>
                   <Input
-                    id="logoUrl"
-                    value={companyData.logoUrl || ""}
-                    onChange={(e) => handleInputChange("logoUrl", e.target.value)}
-                    placeholder="https://example.com/logo.png"
+                    value={(data[key] as string) ?? ""}
+                    placeholder="https://"
+                    onChange={(e) => set(key, e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="heroImageUrl">히어로 이미지 URL</Label>
-                  <Input
-                    id="heroImageUrl"
-                    value={companyData.heroImageUrl || ""}
-                    onChange={(e) => handleInputChange("heroImageUrl", e.target.value)}
-                    placeholder="https://example.com/hero.jpg"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="aboutImageUrl">회사 소개 이미지 URL</Label>
-                <Input
-                  id="aboutImageUrl"
-                  value={companyData.aboutImageUrl || ""}
-                  onChange={(e) => handleInputChange("aboutImageUrl", e.target.value)}
-                  placeholder="https://example.com/about.jpg"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>서비스 이미지</CardTitle>
-              <CardDescription>각 서비스별 이미지를 설정합니다.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="buildingManagementUrl">건물 관리 서비스</Label>
-                  <Input
-                    id="buildingManagementUrl"
-                    value={companyData.buildingManagementUrl || ""}
-                    onChange={(e) => handleInputChange("buildingManagementUrl", e.target.value)}
-                    placeholder="https://example.com/building.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cleaningServiceUrl">청소 서비스</Label>
-                  <Input
-                    id="cleaningServiceUrl"
-                    value={companyData.cleaningServiceUrl || ""}
-                    onChange={(e) => handleInputChange("cleaningServiceUrl", e.target.value)}
-                    placeholder="https://example.com/cleaning.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fireInspectionUrl">소방 안전 관리</Label>
-                  <Input
-                    id="fireInspectionUrl"
-                    value={companyData.fireInspectionUrl || ""}
-                    onChange={(e) => handleInputChange("fireInspectionUrl", e.target.value)}
-                    placeholder="https://example.com/fire.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="elevatorManagementUrl">엘리베이터 관리</Label>
-                  <Input
-                    id="elevatorManagementUrl"
-                    value={companyData.elevatorManagementUrl || ""}
-                    onChange={(e) => handleInputChange("elevatorManagementUrl", e.target.value)}
-                    placeholder="https://example.com/elevator.jpg"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>페이지별 히어로 이미지</CardTitle>
-              <CardDescription>각 페이지의 상단 히어로 이미지를 설정합니다.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="servicesHeroUrl">서비스 페이지</Label>
-                  <Input
-                    id="servicesHeroUrl"
-                    value={companyData.servicesHeroUrl || ""}
-                    onChange={(e) => handleInputChange("servicesHeroUrl", e.target.value)}
-                    placeholder="https://example.com/services-hero.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="realEstateHeroUrl">부동산 페이지</Label>
-                  <Input
-                    id="realEstateHeroUrl"
-                    value={companyData.realEstateHeroUrl || ""}
-                    onChange={(e) => handleInputChange("realEstateHeroUrl", e.target.value)}
-                    placeholder="https://example.com/realestate-hero.jpg"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactHeroUrl">연락처 페이지</Label>
-                  <Input
-                    id="contactHeroUrl"
-                    value={companyData.contactHeroUrl || ""}
-                    onChange={(e) => handleInputChange("contactHeroUrl", e.target.value)}
-                    placeholder="https://example.com/contact-hero.jpg"
-                  />
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
