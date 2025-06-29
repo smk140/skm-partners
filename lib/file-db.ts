@@ -42,14 +42,14 @@ export interface PropertyData {
   createdAt: string
 }
 
-// 기본 회사 데이터
+// 기본 회사 데이터 - skm.kr 도메인 사용
 const DEFAULT_COMPANY_DATA: CompanyData = {
-  name: "SKM 파트너스",
+  name: "SKM파트너스",
   description: "전문적인 부동산 컨설팅 서비스를 제공합니다.",
-  address: "서울특별시 강남구",
+  address: "서울특별시 강남구 테헤란로 123",
   phone: "02-1234-5678",
-  email: "info@skm-partners.com",
-  website: "https://skm-partners.com",
+  email: "info@skm.kr",
+  website: "https://skm.kr",
   logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=80&fit=crop",
   heroImageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop",
   aboutImageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",

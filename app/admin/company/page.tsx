@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building2, Phone, Mail, Globe, MapPin, Save, AlertCircle, CheckCircle } from "lucide-react"
+import { Building2, Phone, Mail, Globe, MapPin, Save, AlertCircle, CheckCircle, ImageIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface CompanyData {
@@ -143,7 +143,7 @@ export default function CompanyManagementPage() {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">회사 정보 관리</h1>
-          <p className="text-gray-600">회사의 기본 정보와 연락처를 관리합니다.</p>
+          <p className="text-gray-600">회사의 기본 정보와 이미지를 관리합니다.</p>
         </div>
 
         {message && (
@@ -160,9 +160,10 @@ export default function CompanyManagementPage() {
         )}
 
         <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">기본 정보</TabsTrigger>
             <TabsTrigger value="contact">연락처 정보</TabsTrigger>
+            <TabsTrigger value="images">이미지 관리</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
@@ -206,7 +207,7 @@ export default function CompanyManagementPage() {
                       id="website"
                       value={companyData.website}
                       onChange={(e) => handleInputChange("website", e.target.value)}
-                      placeholder="https://example.com"
+                      placeholder="https://skm.kr"
                       className="rounded-l-none"
                     />
                   </div>
@@ -252,7 +253,7 @@ export default function CompanyManagementPage() {
                       type="email"
                       value={companyData.email}
                       onChange={(e) => handleInputChange("email", e.target.value)}
-                      placeholder="info@company.com"
+                      placeholder="info@skm.kr"
                       className="rounded-l-none"
                     />
                   </div>
@@ -272,6 +273,111 @@ export default function CompanyManagementPage() {
                       className="rounded-l-none"
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="images" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  이미지 관리
+                </CardTitle>
+                <CardDescription>웹사이트에 사용되는 이미지들을 관리합니다.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="logoUrl">로고 이미지</Label>
+                    <Input
+                      id="logoUrl"
+                      value={companyData.logoUrl || ""}
+                      onChange={(e) => handleInputChange("logoUrl", e.target.value)}
+                      placeholder="https://example.com/logo.png"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="heroImageUrl">메인 히어로 이미지</Label>
+                    <Input
+                      id="heroImageUrl"
+                      value={companyData.heroImageUrl || ""}
+                      onChange={(e) => handleInputChange("heroImageUrl", e.target.value)}
+                      placeholder="https://example.com/hero.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="aboutImageUrl">회사 소개 이미지</Label>
+                    <Input
+                      id="aboutImageUrl"
+                      value={companyData.aboutImageUrl || ""}
+                      onChange={(e) => handleInputChange("aboutImageUrl", e.target.value)}
+                      placeholder="https://example.com/about.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="buildingManagementUrl">건물 관리 서비스 이미지</Label>
+                    <Input
+                      id="buildingManagementUrl"
+                      value={companyData.buildingManagementUrl || ""}
+                      onChange={(e) => handleInputChange("buildingManagementUrl", e.target.value)}
+                      placeholder="https://example.com/building.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cleaningServiceUrl">청소 서비스 이미지</Label>
+                    <Input
+                      id="cleaningServiceUrl"
+                      value={companyData.cleaningServiceUrl || ""}
+                      onChange={(e) => handleInputChange("cleaningServiceUrl", e.target.value)}
+                      placeholder="https://example.com/cleaning.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fireInspectionUrl">소방 안전 관리 이미지</Label>
+                    <Input
+                      id="fireInspectionUrl"
+                      value={companyData.fireInspectionUrl || ""}
+                      onChange={(e) => handleInputChange("fireInspectionUrl", e.target.value)}
+                      placeholder="https://example.com/fire.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="servicesHeroUrl">서비스 페이지 히어로 이미지</Label>
+                    <Input
+                      id="servicesHeroUrl"
+                      value={companyData.servicesHeroUrl || ""}
+                      onChange={(e) => handleInputChange("servicesHeroUrl", e.target.value)}
+                      placeholder="https://example.com/services-hero.jpg"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contactHeroUrl">연락처 페이지 히어로 이미지</Label>
+                    <Input
+                      id="contactHeroUrl"
+                      value={companyData.contactHeroUrl || ""}
+                      onChange={(e) => handleInputChange("contactHeroUrl", e.target.value)}
+                      placeholder="https://example.com/contact-hero.jpg"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">이미지 URL 가이드</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• 이미지는 HTTPS URL을 사용해주세요</li>
+                    <li>• 권장 형식: JPG, PNG, WebP</li>
+                    <li>• 히어로 이미지 권장 크기: 1200x600px</li>
+                    <li>• 서비스 이미지 권장 크기: 400x300px</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>

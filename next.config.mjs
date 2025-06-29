@@ -12,7 +12,9 @@ const nextConfig = {
       'via.placeholder.com',
       'placeholder.com',
       'picsum.photos',
-      'source.unsplash.com'
+      'source.unsplash.com',
+      'skm.kr',
+      'www.skm.kr'
     ],
     unoptimized: true,
     remotePatterns: [
@@ -37,6 +39,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'skm.kr',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.skm.kr',
         port: '',
         pathname: '/**',
       }
