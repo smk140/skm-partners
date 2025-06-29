@@ -1,0 +1,21 @@
+{
+  "name": "SKM 파트너스",
+  "description": "전문적인 부동산 컨설팅 서비스를 제공합니다.",
+  "address": "서울특별시 강남구",
+  "phone": "02-1234-5678",
+  "email": "info@skm-partners.com",
+  "website": "https://skm-partners.com",
+  "logoUrl": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=80&fit=crop",
+  "heroImageUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop",
+  "aboutImageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",
+  "servicesHeroUrl": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&h=400&fit=crop",
+  "realEstateHeroUrl": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=400&fit=crop",
+  "contactHeroUrl": "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1200&h=400&fit=crop",
+  "buildingManagementUrl": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop",
+  "cleaningServiceUrl": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop",
+  "fireInspectionUrl": "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=300&fit=crop",
+  "elevatorManagementUrl": "https://images.unsplash.com/photo-1571055107559-3e67626fa8be?w=400&h=300&fit=crop",
+  "teamPhotoUrl": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
+  "officeInteriorUrl": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=600&h=400&fit=crop",
+  "serviceShowcaseUrl": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop"
+}
