@@ -18,12 +18,8 @@ export default async function HomePage() {
             {/* Left */}
             <div className="space-y-8">
               <div className="space-y-4">
-                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                  {companyData.name || "SKM파트너스"}
-                </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  {companyData.description || "전문적인 부동산 컨설팅 서비스를 제공합니다."}
-                </p>
+                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">{companyData.name}</h1>
+                <p className="text-xl text-gray-600 leading-relaxed">{companyData.description}</p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -43,14 +39,12 @@ export default async function HomePage() {
             {/* Right – hero image */}
             <div className="relative">
               <SafeImage
-                src={
-                  companyData.heroImageUrl ||
-                  "/placeholder.svg?height=600&width=800&query=modern office building management"
-                }
+                src={companyData.heroImageUrl || ""}
                 alt="SKM파트너스 건물 관리 서비스"
                 className="w-full h-[400px] lg:h-[500px] rounded-2xl shadow-2xl"
                 fill
                 priority
+                fallbackSrc="/placeholder.svg?height=600&width=800&text=Hero+Image"
                 fallbackText="Hero Image"
               />
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-600 rounded-full opacity-20" />
@@ -84,13 +78,11 @@ export default async function HomePage() {
               </CardHeader>
               <CardContent>
                 <SafeImage
-                  src={
-                    companyData.buildingManagementUrl ||
-                    "/placeholder.svg?height=200&width=300&query=building management service"
-                  }
+                  src={companyData.buildingManagementUrl || ""}
                   alt="건물 종합 관리 서비스"
                   className="w-full h-48 rounded-lg mb-4"
                   fill
+                  fallbackSrc="/placeholder.svg?height=200&width=300&text=Building+Management"
                   fallbackText="Building Management"
                 />
                 <Button variant="ghost" className="w-full justify-between group-hover:bg-blue-50">
@@ -113,10 +105,11 @@ export default async function HomePage() {
               </CardHeader>
               <CardContent>
                 <SafeImage
-                  src={companyData.cleaningServiceUrl || "/placeholder.svg?height=200&width=300&query=cleaning service"}
+                  src={companyData.cleaningServiceUrl || ""}
                   alt="청소 서비스"
                   className="w-full h-48 rounded-lg mb-4"
                   fill
+                  fallbackSrc="/placeholder.svg?height=200&width=300&text=Cleaning+Service"
                   fallbackText="Cleaning Service"
                 />
                 <Button variant="ghost" className="w-full justify-between group-hover:bg-green-50">
@@ -139,13 +132,11 @@ export default async function HomePage() {
               </CardHeader>
               <CardContent>
                 <SafeImage
-                  src={
-                    companyData.fireInspectionUrl ||
-                    "/placeholder.svg?height=200&width=300&query=fire safety inspection"
-                  }
+                  src={companyData.fireInspectionUrl || ""}
                   alt="소방 안전 관리"
                   className="w-full h-48 rounded-lg mb-4"
                   fill
+                  fallbackSrc="/placeholder.svg?height=200&width=300&text=Fire+Safety"
                   fallbackText="Fire Safety"
                 />
                 <Button variant="ghost" className="w-full justify-between group-hover:bg-red-50">
@@ -164,9 +155,7 @@ export default async function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Text */}
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-                {companyData.name || "SKM파트너스"}와 함께하는 이유
-              </h2>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{companyData.name}와 함께하는 이유</h2>
 
               <div className="space-y-6">
                 {[
@@ -207,13 +196,11 @@ export default async function HomePage() {
 
             {/* Image */}
             <SafeImage
-              src={
-                companyData.aboutImageUrl ||
-                "/placeholder.svg?height=500&width=600&query=modern office building exterior"
-              }
+              src={companyData.aboutImageUrl || ""}
               alt="SKM파트너스 사무실"
               className="w-full h-[400px] rounded-2xl shadow-xl"
               fill
+              fallbackSrc="/placeholder.svg?height=500&width=600&text=Company+Building"
               fallbackText="Company Building"
             />
           </div>
@@ -232,7 +219,7 @@ export default async function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button size="lg" variant="secondary" className="px-8 py-3">
                 <Phone className="mr-2 h-5 w-5" />
-                {companyData.phone || "02-1234-5678"}
+                {companyData.phone}
               </Button>
               <Button
                 size="lg"
@@ -240,7 +227,7 @@ export default async function HomePage() {
                 className="px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600 bg-transparent"
               >
                 <Mail className="mr-2 h-5 w-5" />
-                {companyData.email || "이메일 문의"}
+                {companyData.email}
               </Button>
             </div>
 

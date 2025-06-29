@@ -7,57 +7,33 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: [
-      'images.unsplash.com',
-      'via.placeholder.com',
-      'placeholder.com',
-      'picsum.photos',
-      'source.unsplash.com',
-      'skm.kr',
-      'www.skm.kr'
-    ],
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placeholder.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'skm.kr',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'www.skm.kr',
-        port: '',
-        pathname: '/**',
+        hostname: '*.skm.kr',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
       }
     ],
+    domains: ['skm.kr', 'www.skm.kr'],
+    unoptimized: true,
   },
   experimental: {
-    optimizePackageImports: ['@/components/ui']
+    serverComponentsExternalPackages: []
   }
 }
 

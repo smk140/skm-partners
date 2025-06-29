@@ -11,15 +11,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "IP address is required" }, { status: 400 })
     }
 
-    // IP 차단 해제 로직 (실제 구현 필요)
-    console.log(`Quick unblocking IP: ${ip}`)
+    // 여기서 실제 IP 차단 해제 로직을 구현
+    console.log(`Quick unblock request for IP: ${ip}`)
 
     return NextResponse.json({
       success: true,
-      message: `IP ${ip} has been unblocked`,
+      message: `IP ${ip} unblocked successfully`,
     })
   } catch (error) {
-    console.error("Quick IP unblock error:", error)
+    console.error("Quick unblock error:", error)
     return NextResponse.json({ success: false, error: "Failed to unblock IP" }, { status: 500 })
   }
 }
