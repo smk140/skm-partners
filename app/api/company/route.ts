@@ -3,10 +3,13 @@ import { getCompanyData } from "@/lib/file-db"
 
 export async function GET() {
   try {
-    const companyData = await getCompanyData()
-    return NextResponse.json(companyData)
+    console.log("🔥 GET /api/company 호출됨 (홈페이지용)")
+    const data = await getCompanyData()
+    console.log("📤 홈페이지로 반환 데이터:", data)
+
+    return NextResponse.json(data)
   } catch (error) {
-    console.error("회사 정보 조회 중 오류:", error)
-    return NextResponse.json({ error: "서버 오류가 발생했습니다." }, { status: 500 })
+    console.error("💥 홈페이지 GET 오류:", error)
+    return NextResponse.json({ error: "Failed to fetch company data" }, { status: 500 })
   }
 }

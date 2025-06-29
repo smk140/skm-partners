@@ -3,59 +3,36 @@ import { getCompanyData, updateCompanyData } from "@/lib/file-db"
 
 export async function GET() {
   try {
-    console.log("회사 정보 조회 요청")
-    const companyData = await getCompanyData()
-    console.log("회사 정보 조회 성공")
+    console.log("🔥 GET /api/admin/company 호출됨")
+    const data = await getCompanyData()
+    console.log("📤 반환 데이터:", data)
 
-    return NextResponse.json({
-      success: true,
-      companyInfo: companyData,
-    })
+    return NextResponse.json(data)
   } catch (error) {
-    console.error("회사 정보 조회 실패:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류",
-      },
-      { status: 500 },
-    )
+    console.error("💥 GET 오류:", error)
+    return NextResponse.json({ error: "Failed to fetch company data" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("회사 정보 업데이트 요청")
+    console.log("🔥 POST /api/admin/company 호출됨")
     const body = await request.json()
-    console.log("업데이트 데이터:", body)
+    console.log("📥 받은 데이터:", body)
 
-    const result = await updateCompanyData(body)
+    await updateCompanyData(body)
+    console.log("✅ 데이터 업데이트 완료")
 
-    if (result.success) {
-      console.log("회사 정보 업데이트 성공")
-      return NextResponse.json({
-        success: true,
-        companyInfo: result.data,
-        message: "회사 정보가 성공적으로 업데이트되었습니다.",
-      })
-    } else {
-      console.error("회사 정보 업데이트 실패:", result.error)
-      return NextResponse.json(
-        {
-          success: false,
-          error: result.error,
-        },
-        { status: 500 },
-      )
-    }
+    const updatedData = await getCompanyData()
+    console.log("📤 업데이트된 데이터:", updatedData)
+
+    return NextResponse.json({
+      success: true,
+      data: updatedData,
+      message: "Company data updated successfully",
+    })
   } catch (error) {
-    console.error("회사 정보 업데이트 API 오류:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "알 수 없는 오류",
-      },
-      { status: 500 },
-    )
+    console.error("💥 POST 오류:", error)
+    return NextResponse.json({ error: "Failed to update company data" }, { status: 500 })
   }
 }
