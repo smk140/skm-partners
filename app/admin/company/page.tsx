@@ -21,6 +21,16 @@ interface CompanyInfo {
   logoUrl?: string
   heroImageUrl?: string
   aboutImageUrl?: string
+  servicesHeroUrl?: string
+  realEstateHeroUrl?: string
+  contactHeroUrl?: string
+  buildingManagementUrl?: string
+  cleaningServiceUrl?: string
+  fireInspectionUrl?: string
+  elevatorManagementUrl?: string
+  teamPhotoUrl?: string
+  officeInteriorUrl?: string
+  serviceShowcaseUrl?: string
 }
 
 export default function CompanyManagementPage() {
@@ -34,6 +44,16 @@ export default function CompanyManagementPage() {
     logoUrl: "",
     heroImageUrl: "",
     aboutImageUrl: "",
+    servicesHeroUrl: "",
+    realEstateHeroUrl: "",
+    contactHeroUrl: "",
+    buildingManagementUrl: "",
+    cleaningServiceUrl: "",
+    fireInspectionUrl: "",
+    elevatorManagementUrl: "",
+    teamPhotoUrl: "",
+    officeInteriorUrl: "",
+    serviceShowcaseUrl: "",
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -135,9 +155,11 @@ export default function CompanyManagementPage() {
         </div>
 
         <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">기본 정보</TabsTrigger>
-            <TabsTrigger value="images">이미지 관리</TabsTrigger>
+            <TabsTrigger value="main-images">메인 이미지</TabsTrigger>
+            <TabsTrigger value="page-images">페이지 이미지</TabsTrigger>
+            <TabsTrigger value="service-images">서비스 이미지</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-6">
@@ -215,7 +237,7 @@ export default function CompanyManagementPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="images" className="space-y-6">
+          <TabsContent value="main-images" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <ImageUrlInput
                 label="로고 이미지"
@@ -236,6 +258,84 @@ export default function CompanyManagementPage() {
                 value={companyInfo.aboutImageUrl || ""}
                 onChange={(url) => setCompanyInfo((prev) => ({ ...prev, aboutImageUrl: url }))}
                 description="회사 소개 페이지 이미지 URL을 입력하세요. (권장 크기: 800x500px)"
+              />
+
+              <ImageUrlInput
+                label="팀 사진"
+                value={companyInfo.teamPhotoUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, teamPhotoUrl: url }))}
+                description="팀 소개 사진 URL을 입력하세요. (권장 크기: 800x500px)"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="page-images" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <ImageUrlInput
+                label="서비스 페이지 히어로 이미지"
+                value={companyInfo.servicesHeroUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, servicesHeroUrl: url }))}
+                description="서비스 페이지 상단 배너 이미지 URL을 입력하세요. (권장 크기: 1200x400px)"
+              />
+
+              <ImageUrlInput
+                label="부동산 페이지 히어로 이미지"
+                value={companyInfo.realEstateHeroUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, realEstateHeroUrl: url }))}
+                description="부동산 페이지 상단 배너 이미지 URL을 입력하세요. (권장 크기: 1200x400px)"
+              />
+
+              <ImageUrlInput
+                label="연락처 페이지 히어로 이미지"
+                value={companyInfo.contactHeroUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, contactHeroUrl: url }))}
+                description="연락처 페이지 상단 배너 이미지 URL을 입력하세요. (권장 크기: 1200x400px)"
+              />
+
+              <ImageUrlInput
+                label="오피스 인테리어 이미지"
+                value={companyInfo.officeInteriorUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, officeInteriorUrl: url }))}
+                description="오피스 인테리어 이미지 URL을 입력하세요. (권장 크기: 600x400px)"
+              />
+
+              <ImageUrlInput
+                label="서비스 쇼케이스 이미지"
+                value={companyInfo.serviceShowcaseUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, serviceShowcaseUrl: url }))}
+                description="서비스 쇼케이스 이미지 URL을 입력하세요. (권장 크기: 800x500px)"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="service-images" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <ImageUrlInput
+                label="빌딩 관리 서비스 이미지"
+                value={companyInfo.buildingManagementUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, buildingManagementUrl: url }))}
+                description="빌딩 관리 서비스 이미지 URL을 입력하세요. (권장 크기: 600x400px)"
+              />
+
+              <ImageUrlInput
+                label="청소 서비스 이미지"
+                value={companyInfo.cleaningServiceUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, cleaningServiceUrl: url }))}
+                description="청소 서비스 이미지 URL을 입력하세요. (권장 크기: 600x400px)"
+              />
+
+              <ImageUrlInput
+                label="소방 점검 서비스 이미지"
+                value={companyInfo.fireInspectionUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, fireInspectionUrl: url }))}
+                description="소방 점검 서비스 이미지 URL을 입력하세요. (권장 크기: 600x400px)"
+              />
+
+              <ImageUrlInput
+                label="엘리베이터 관리 서비스 이미지"
+                value={companyInfo.elevatorManagementUrl || ""}
+                onChange={(url) => setCompanyInfo((prev) => ({ ...prev, elevatorManagementUrl: url }))}
+                description="엘리베이터 관리 서비스 이미지 URL을 입력하세요. (권장 크기: 600x400px)"
               />
             </div>
           </TabsContent>

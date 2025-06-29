@@ -8,6 +8,17 @@ export interface CompanyData {
   logoUrl?: string
   heroImageUrl?: string
   aboutImageUrl?: string
+  // 추가 이미지들
+  servicesHeroUrl?: string
+  realEstateHeroUrl?: string
+  contactHeroUrl?: string
+  buildingManagementUrl?: string
+  cleaningServiceUrl?: string
+  fireInspectionUrl?: string
+  elevatorManagementUrl?: string
+  teamPhotoUrl?: string
+  officeInteriorUrl?: string
+  serviceShowcaseUrl?: string
 }
 
 export interface InquiryData {
@@ -37,9 +48,19 @@ let companyData: CompanyData = {
   phone: "02-1234-5678",
   email: "info@skm-partners.com",
   website: "https://skm-partners.com",
-  logoUrl: "",
-  heroImageUrl: "",
-  aboutImageUrl: "",
+  logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=80&fit=crop",
+  heroImageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=600&fit=crop",
+  aboutImageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop",
+  servicesHeroUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=400&fit=crop",
+  realEstateHeroUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=400&fit=crop",
+  contactHeroUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&h=400&fit=crop",
+  buildingManagementUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop",
+  cleaningServiceUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&h=400&fit=crop",
+  fireInspectionUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop",
+  elevatorManagementUrl: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop",
+  teamPhotoUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop",
+  officeInteriorUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=600&h=400&fit=crop",
+  serviceShowcaseUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=500&fit=crop",
 }
 
 const inquiriesData: InquiryData[] = []

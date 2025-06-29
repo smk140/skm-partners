@@ -7,11 +7,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'images.unsplash.com', 'via.placeholder.com'],
     unoptimized: true,
   },
-  // 서버 외부 패키지 설정 (최신 버전)
-  serverExternalPackages: [],
 }
 
 export default nextConfig
