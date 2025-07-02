@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-import { MapPin, Phone, Mail, Clock, Send, ArrowRight } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, Send } from "lucide-react"
 import { SafeImage } from "@/components/safe-image"
 
 interface CompanyInfo {
@@ -20,10 +20,8 @@ interface CompanyInfo {
   phone: string
   email: string
   description: string
-  site_images?: {
-    hero_contact?: string
-    company_building?: string
-  }
+  contactHeroUrl?: string
+  companyBuildingUrl?: string
   business_hours?: {
     weekday: string
     weekend: string
@@ -41,7 +39,6 @@ export default function ContactPage() {
     phone: "02-123-4567",
     email: "bykim@skm.kr",
     description: "전문적인 건물 관리 서비스",
-    site_images: {},
     business_hours: {
       weekday: "평일 09:00 - 18:00",
       weekend: "토요일 09:00 - 15:00",
@@ -68,7 +65,7 @@ export default function ContactPage() {
     setIsLoading(true)
     try {
       console.log("회사 정보 로딩 시작...")
-      const response = await fetch("/api/admin/company")
+      const response = await fetch("/api/company")
       const data = await response.json()
 
       console.log("API 응답:", data)
@@ -174,20 +171,16 @@ export default function ContactPage() {
                   전화 상담 신청
                   <Phone className="ml-2 h-5 w-5" />
                 </Button>
-                <Button variant="outline" size="lg" className="px-8 py-3">
-                  카카오톡 상담
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative h-[400px] lg:h-[500px]">
               <SafeImage
                 src={
-                  companyInfo.site_images?.hero_contact ||
+                  companyInfo.contactHeroUrl ||
                   "/placeholder.svg?height=500&width=600&query=professional customer service contact"
                 }
                 alt="연락처"
-                className="w-full h-[400px] lg:h-[500px] object-cover rounded-2xl shadow-2xl"
+                className="w-full h-full object-cover rounded-2xl shadow-2xl"
                 fallbackText="연락처 이미지"
               />
             </div>
@@ -313,15 +306,17 @@ export default function ContactPage() {
                     <p className="font-medium text-gray-900">{companyInfo.address}</p>
                     <p className="text-gray-600 mt-1">지하철 2호선 강남역 3번 출구 도보 5분</p>
                   </div>
-                  <SafeImage
-                    src={
-                      companyInfo.site_images?.company_building ||
-                      "/placeholder.svg?height=200&width=400&query=office building location map"
-                    }
-                    alt="회사 위치"
-                    className="w-full h-48 object-cover rounded-lg"
-                    fallbackText="회사 위치"
-                  />
+                  <div className="relative h-48">
+                    <SafeImage
+                      src={
+                        companyInfo.companyBuildingUrl ||
+                        "/placeholder.svg?height=200&width=400&query=office building location map"
+                      }
+                      alt="회사 위치"
+                      className="w-full h-full object-cover rounded-lg"
+                      fallbackText="회사 위치"
+                    />
+                  </div>
                 </CardContent>
               </Card>
 

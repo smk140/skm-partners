@@ -13,17 +13,21 @@ export interface CompanyData {
   logoUrl?: string
   heroImageUrl?: string
   aboutImageUrl?: string
-  /* extra images */
+  /* Page-specific hero images */
   servicesHeroUrl?: string
   realEstateHeroUrl?: string
   contactHeroUrl?: string
+  /* Service-specific images */
   buildingManagementUrl?: string
   cleaningServiceUrl?: string
   fireInspectionUrl?: string
   elevatorManagementUrl?: string
+  /* About page images */
   teamPhotoUrl?: string
   officeInteriorUrl?: string
   serviceShowcaseUrl?: string
+  /* Contact page images */
+  companyBuildingUrl?: string
 }
 
 export interface InquiryData {
@@ -68,6 +72,7 @@ const DEFAULT_COMPANY_DATA: CompanyData = {
   teamPhotoUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
   officeInteriorUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=600&h=400&fit=crop",
   serviceShowcaseUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop",
+  companyBuildingUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop",
 }
 
 /* ------------------------------------------------------------------ */
