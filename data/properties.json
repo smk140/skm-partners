@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "id": 1,
+      "title": "강남 프리미엄 오피스",
+      "description": "강남역 도보 5분 거리의 프리미엄 오피스 공간입니다.",
+      "price": 5000000,
+      "location": "서울시 강남구 테헤란로",
+      "imageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",
+      "createdAt": "2025-07-02T12:46:13.600Z"
+    },
+    {
+      "id": 2,
+      "title": "홍대 상권 상가",
+      "description": "홍대 핫플레이스 중심가의 1층 상가입니다.",
+      "price": 3000000,
+      "location": "서울시 마포구 홍익로",
+      "imageUrl": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop",
+      "createdAt": "2025-07-02T12:46:13.748Z"
+    }
+  ]
+}
