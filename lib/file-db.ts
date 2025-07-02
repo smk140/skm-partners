@@ -84,35 +84,62 @@ const REPO_NAME = process.env.GITHUB_REPO_NAME
 const BRANCH = process.env.GITHUB_BRANCH || "main"
 
 function getOctokit() {
-  if (!GITHUB_TOKEN) return null
+  if (!GITHUB_TOKEN) {
+    console.error("❌ GITHUB_TOKEN is missing")
+    return null
+  }
   return new Octokit({ auth: GITHUB_TOKEN })
 }
 
 async function readJson<T>(octokit: Octokit, filePath: string): Promise<{ json: T; sha: string } | null> {
-  const res = await octokit.repos
-    .getContent({
+  try {
+    console.log(`📖 Reading file: ${filePath}`)
+    const res = await octokit.repos.getContent({
       owner: REPO_OWNER!,
       repo: REPO_NAME!,
       path: filePath,
       ref: BRANCH,
     })
-    .catch((e: any) => (e.status === 404 ? null : Promise.reject(e)))
-  if (!res || !("content" in res.data)) return null
 
-  const decoded = Buffer.from(res.data.content, "base64").toString("utf8")
-  return { json: JSON.parse(decoded) as T, sha: res.data.sha }
+    if (!("content" in res.data)) {
+      console.log(`⚠️  File ${filePath} is not a file (might be directory)`)
+      return null
+    }
+
+    const decoded = Buffer.from(res.data.content, "base64").toString("utf8")
+    const json = JSON.parse(decoded) as T
+    console.log(`✅ Successfully read file: ${filePath}`)
+    return { json, sha: res.data.sha }
+  } catch (error: any) {
+    if (error.status === 404) {
+      console.log(`📄 File ${filePath} does not exist (404)`)
+      return null
+    }
+    console.error(`❌ Error reading file ${filePath}:`, error.message)
+    throw error
+  }
 }
 
 async function writeJson(octokit: Octokit, filePath: string, data: unknown, msg: string, sha?: string) {
-  await octokit.repos.createOrUpdateFileContents({
-    owner: REPO_OWNER!,
-    repo: REPO_NAME!,
-    path: filePath,
-    branch: BRANCH,
-    message: msg,
-    content: Buffer.from(JSON.stringify(data, null, 2)).toString("base64"),
-    sha,
-  })
+  try {
+    console.log(`📝 Writing file: ${filePath}`)
+    const content = JSON.stringify(data, null, 2)
+    const base64Content = Buffer.from(content).toString("base64")
+
+    await octokit.repos.createOrUpdateFileContents({
+      owner: REPO_OWNER!,
+      repo: REPO_NAME!,
+      path: filePath,
+      branch: BRANCH,
+      message: msg,
+      content: base64Content,
+      sha,
+    })
+    console.log(`✅ Successfully wrote file: ${filePath}`)
+  } catch (error: any) {
+    console.error(`❌ Error writing file ${filePath}:`, error.message)
+    throw error
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,31 +148,61 @@ async function writeJson(octokit: Octokit, filePath: string, data: unknown, msg:
 const COMPANY_PATH = "data/company.json"
 
 export async function getCompanyData(): Promise<CompanyData> {
+  console.log("🏢 Getting company data...")
+
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return DEFAULT_COMPANY_DATA
+  if (!octokit) {
+    console.log("⚠️  No GitHub credentials, returning default data")
+    return DEFAULT_COMPANY_DATA
+  }
+
+  if (!REPO_OWNER || !REPO_NAME) {
+    console.error("❌ REPO_OWNER or REPO_NAME is missing")
+    return DEFAULT_COMPANY_DATA
+  }
 
   try {
+    // Try to read existing file
     const file = await readJson<CompanyData>(octokit, COMPANY_PATH)
-    if (file) return { ...DEFAULT_COMPANY_DATA, ...file.json }
+
+    if (file) {
+      console.log("✅ Found existing company data")
+      return { ...DEFAULT_COMPANY_DATA, ...file.json }
+    }
+
+    // File doesn't exist, create it
+    console.log("📝 Creating default company data file...")
     await writeJson(octokit, COMPANY_PATH, DEFAULT_COMPANY_DATA, "Create default company.json")
-  } catch (err) {
-    console.error("⚠️  GitHub read failed:", err)
+    console.log("✅ Default company data file created")
+    return DEFAULT_COMPANY_DATA
+  } catch (error: any) {
+    console.error("❌ Failed to get company data:", error.message)
+    console.log("🔄 Returning default data as fallback")
+    return DEFAULT_COMPANY_DATA
   }
-  return DEFAULT_COMPANY_DATA
 }
 
 export async function updateCompanyData(delta: Partial<CompanyData>) {
+  console.log("🔄 Updating company data...")
+
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return { success: false, error: "GitHub credentials missing" }
+  if (!octokit || !REPO_OWNER || !REPO_NAME) {
+    return { success: false, error: "GitHub credentials missing" }
+  }
 
   try {
+    // Get current data
     const file = await readJson<CompanyData>(octokit, COMPANY_PATH)
     const current = file?.json ?? DEFAULT_COMPANY_DATA
     const updated = { ...current, ...delta }
+
+    // Save updated data
     await writeJson(octokit, COMPANY_PATH, updated, "Update company.json", file?.sha)
+    console.log("✅ Company data updated successfully")
     return { success: true, data: updated }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (error: any) {
+    console.error("❌ Failed to update company data:", error.message)
+    return { success: false, error: error.message }
   }
 }
 
@@ -157,15 +214,23 @@ const INQUIRY_PATH = "data/inquiries.json"
 export async function getInquiriesData(): Promise<InquiryData[]> {
   const octokit = getOctokit()
   if (!octokit || !REPO_OWNER || !REPO_NAME) return []
-  const file = await readJson<{ inquiries: InquiryData[] }>(octokit, INQUIRY_PATH).catch(() => null)
-  return file?.json.inquiries ?? []
+
+  try {
+    const file = await readJson<{ inquiries: InquiryData[] }>(octokit, INQUIRY_PATH)
+    return file?.json.inquiries ?? []
+  } catch (error) {
+    console.error("Failed to get inquiries:", error)
+    return []
+  }
 }
 
 export async function addInquiry(
   inquiry: Omit<InquiryData, "id" | "createdAt">,
 ): Promise<{ success: boolean; error?: string }> {
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return { success: false, error: "GitHub credentials missing" }
+  if (!octokit || !REPO_OWNER || !REPO_NAME) {
+    return { success: false, error: "GitHub credentials missing" }
+  }
 
   try {
     const list = await getInquiriesData()
@@ -175,11 +240,12 @@ export async function addInquiry(
       createdAt: new Date().toISOString(),
     }
     list.push(newInquiry)
-    const file = await readJson<{ inquiries: InquiryData[] }>(octokit, INQUIRY_PATH).catch(() => null)
+
+    const file = await readJson<{ inquiries: InquiryData[] }>(octokit, INQUIRY_PATH)
     await writeJson(octokit, INQUIRY_PATH, { inquiries: list }, "Add inquiry", file?.sha)
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 
@@ -212,18 +278,27 @@ const DEFAULT_PROPERTIES: PropertyData[] = [
 export async function getPropertiesData(): Promise<PropertyData[]> {
   const octokit = getOctokit()
   if (!octokit || !REPO_OWNER || !REPO_NAME) return DEFAULT_PROPERTIES
-  const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH).catch(() => null)
-  if (file) return file.json.properties
-  // create default list
-  await writeJson(octokit, PROPERTY_PATH, { properties: DEFAULT_PROPERTIES }, "Create defaults")
-  return DEFAULT_PROPERTIES
+
+  try {
+    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH)
+    if (file) return file.json.properties
+
+    // Create default properties file
+    await writeJson(octokit, PROPERTY_PATH, { properties: DEFAULT_PROPERTIES }, "Create default properties")
+    return DEFAULT_PROPERTIES
+  } catch (error) {
+    console.error("Failed to get properties:", error)
+    return DEFAULT_PROPERTIES
+  }
 }
 
 export async function addProperty(
   prop: Omit<PropertyData, "id" | "createdAt">,
 ): Promise<{ success: boolean; error?: string }> {
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return { success: false, error: "GitHub credentials missing" }
+  if (!octokit || !REPO_OWNER || !REPO_NAME) {
+    return { success: false, error: "GitHub credentials missing" }
+  }
 
   try {
     const list = await getPropertiesData()
@@ -233,11 +308,12 @@ export async function addProperty(
       createdAt: new Date().toISOString(),
     }
     list.push(newProp)
-    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH).catch(() => null)
+
+    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH)
     await writeJson(octokit, PROPERTY_PATH, { properties: list }, "Add property", file?.sha)
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 
@@ -246,32 +322,37 @@ export async function updateProperty(
   updates: Partial<PropertyData>,
 ): Promise<{ success: boolean; error?: string }> {
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return { success: false, error: "GitHub credentials missing" }
+  if (!octokit || !REPO_OWNER || !REPO_NAME) {
+    return { success: false, error: "GitHub credentials missing" }
+  }
 
   try {
     const list = await getPropertiesData()
     const idx = list.findIndex((p) => p.id.toString() === id)
     if (idx === -1) return { success: false, error: "Property not found" }
+
     list[idx] = { ...list[idx], ...updates }
-    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH).catch(() => null)
+    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH)
     await writeJson(octokit, PROPERTY_PATH, { properties: list }, "Update property", file?.sha)
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 
 export async function deleteProperty(id: string): Promise<{ success: boolean; error?: string }> {
   const octokit = getOctokit()
-  if (!octokit || !REPO_OWNER || !REPO_NAME) return { success: false, error: "GitHub credentials missing" }
+  if (!octokit || !REPO_OWNER || !REPO_NAME) {
+    return { success: false, error: "GitHub credentials missing" }
+  }
 
   try {
     const list = (await getPropertiesData()).filter((p) => p.id.toString() !== id)
-    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH).catch(() => null)
+    const file = await readJson<{ properties: PropertyData[] }>(octokit, PROPERTY_PATH)
     await writeJson(octokit, PROPERTY_PATH, { properties: list }, "Delete property", file?.sha)
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 
@@ -279,19 +360,42 @@ export async function deleteProperty(id: string): Promise<{ success: boolean; er
 /* GitHub connection test                                             */
 /* ------------------------------------------------------------------ */
 export async function testGitHubConnection() {
-  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) return { success: false, message: "Missing GitHub env vars" }
+  console.log("🔍 Testing GitHub connection...")
+
+  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) {
+    const missing = []
+    if (!GITHUB_TOKEN) missing.push("GITHUB_TOKEN")
+    if (!REPO_OWNER) missing.push("GITHUB_REPO_OWNER")
+    if (!REPO_NAME) missing.push("GITHUB_REPO_NAME")
+    return {
+      success: false,
+      message: `Missing environment variables: ${missing.join(", ")}`,
+    }
+  }
 
   const octokit = getOctokit()
-  if (!octokit) return { success: false, message: "Could not init Octokit" }
+  if (!octokit) {
+    return { success: false, message: "Could not initialize Octokit" }
+  }
 
   try {
     const res = await octokit.repos.get({ owner: REPO_OWNER, repo: REPO_NAME })
+    console.log("✅ GitHub connection successful")
     return {
       success: true,
       message: `Connected to ${res.data.full_name}`,
-      data: { private: res.data.private, permissions: res.data.permissions },
+      details: {
+        private: res.data.private,
+        permissions: res.data.permissions,
+        default_branch: res.data.default_branch,
+      },
     }
-  } catch (err: any) {
-    return { success: false, message: err.message }
+  } catch (error: any) {
+    console.error("❌ GitHub connection failed:", error.message)
+    return {
+      success: false,
+      message: `GitHub API Error: ${error.message}`,
+      details: { status: error.status, response: error.response?.data },
+    }
   }
 }
