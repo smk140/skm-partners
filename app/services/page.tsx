@@ -1,30 +1,24 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, Shield, Wrench, ArrowRight, CheckCircle } from "lucide-react"
+import { Building2, Users, Shield, Scale, MapPin, Building, TrendingUp, CheckCircle, ArrowRight } from "lucide-react"
 import { SafeImage } from "@/components/safe-image"
 import { useEffect, useState } from "react"
+import Section from "@/components/section" // Declare the Section variable
 
-interface CompanyInfo {
-  name: string
-  description: string
-  site_images?: {
-    hero_services?: string
-    service_showcase?: string
-    company_building?: string
-  }
-  main_services?: string[]
+interface CompanyData {
+  servicesHeroUrl?: string
+  serviceShowcaseUrl?: string
+  buildingManagementUrl?: string
+  cleaningServiceUrl?: string
+  fireInspectionUrl?: string
+  elevatorManagementUrl?: string
 }
 
 export default function ServicesPage() {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: "SKM파트너스",
-    description: "전문적인 건물 관리 서비스",
-    site_images: {},
-    main_services: ["건물 종합 관리", "청소 서비스", "소방 안전 관리", "엘리베이터 관리"],
-  })
+  const [companyData, setCompanyData] = useState<CompanyData>({})
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -32,23 +26,21 @@ export default function ServicesPage() {
   }, [])
 
   const loadCompanyData = async () => {
-    setIsLoading(true)
     try {
-      console.log("회사 정보 로딩 시작...")
-      const response = await fetch("/api/admin/company")
+      const response = await fetch(`/api/company?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      })
       const data = await response.json()
-
-      console.log("API 응답:", data)
-
-      if (data.success && data.companyInfo) {
-        setCompanyInfo((prev) => ({
-          ...prev,
-          ...data.companyInfo,
-        }))
-        console.log("회사 정보 설정됨:", data.companyInfo)
+      if (data) {
+        setCompanyData(data)
       }
     } catch (error) {
-      console.error("회사 정보 로드 실패:", error)
+      console.error("회사 데이터 로드 실패:", error)
     } finally {
       setIsLoading(false)
     }
@@ -65,211 +57,273 @@ export default function ServicesPage() {
     )
   }
 
-  const services = [
-    {
-      icon: Building2,
-      title: "건물 종합 관리",
-      description: "시설 유지보수부터 보안까지 건물 운영의 모든 것을 관리합니다.",
-      features: ["시설 점검 및 유지보수", "보안 시스템 관리", "에너지 효율 최적화", "24시간 모니터링"],
-      color: "blue",
-    },
-    {
-      icon: Users,
-      title: "청소 서비스",
-      description: "전문적인 청소 서비스로 쾌적하고 위생적인 환경을 만들어드립니다.",
-      features: ["일반 청소", "특수 청소", "카펫 및 바닥 관리", "창문 청소"],
-      color: "green",
-    },
-    {
-      icon: Shield,
-      title: "소방 안전 관리",
-      description: "화재 예방부터 안전 점검까지 건물의 안전을 책임집니다.",
-      features: ["소방시설 점검", "화재 예방 교육", "비상 대응 계획", "안전 컨설팅"],
-      color: "red",
-    },
-    {
-      icon: Wrench,
-      title: "엘리베이터 관리",
-      description: "엘리베이터의 안전한 운행과 정기 점검을 담당합니다.",
-      features: ["정기 점검", "고장 수리", "안전 검사", "성능 최적화"],
-      color: "purple",
-    },
-  ]
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
+      <Section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  전문 서비스
+                  2장 서비스 소개
                 </Badge>
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                  {companyInfo.name} 서비스
-                </h1>
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">주요 서비스</h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  건물 관리의 모든 영역에서 전문적인 서비스를 제공합니다. 청소부터 소방, 엘리베이터 관리까지 건물 관리의
-                  A부터 Z까지 책임집니다.
+                  SKM파트너스는 차별화된 전문 인력을 통해 신속하고 효과적인 문제 해결을 제공합니다.
                 </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
-                  무료 상담 신청
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button variant="outline" size="lg" className="px-8 py-3">
-                  포트폴리오 보기
-                </Button>
               </div>
             </div>
             <div className="relative">
               <SafeImage
                 src={
-                  companyInfo.site_images?.hero_services ||
-                  "/placeholder.svg?height=500&width=600&query=professional building management services"
+                  companyData.servicesHeroUrl ||
+                  "/placeholder.svg?height=500&width=600&query=professional building services"
                 }
-                alt="SKM파트너스 서비스"
+                alt="서비스 소개"
                 className="w-full h-[400px] lg:h-[500px] object-cover rounded-2xl shadow-2xl"
-                fallbackText="서비스 이미지"
+                fallbackText="서비스 소개 이미지"
               />
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Services Grid */}
-      <section className="py-20 bg-white">
+      {/* Main Services */}
+      <Section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">주요 서비스</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              전문성과 신뢰성을 바탕으로 고객의 건물을 최적의 상태로 관리합니다.
-            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Building2 className="h-8 w-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg font-semibold">1. 종합건설 출신 이사진 구성</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-gray-600 text-sm space-y-2 text-left">
+                  <p>• 수전, LED, 가스 경보기 등 간단한 수리</p>
+                  <p>• 도배, 몰딩, 타일 등 인테리어 공사</p>
+                  <p>• 누수 등 골조 관련 수리까지 가능한 건축 인프라 전문가 보유</p>
+                  <p>• 리노베이션 및 긴급 보수까지 원스톱 지원 가능</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Scale className="h-8 w-8 text-green-600" />
+                </div>
+                <CardTitle className="text-lg font-semibold">2. 부동산 전문 법률대리인 협업</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-gray-600 text-sm space-y-2 text-left">
+                  <p>• 임대차 분쟁 발생 시 임대인 중심의 법률 지원 제공</p>
+                  <p>• 다수의 임대 관련 소송 및 실무 경험 보유</p>
+                  <p>• 계약서 작성, 계약 갱신 시 법적 리스크 최소화</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="h-8 w-8 text-purple-600" />
+                </div>
+                <CardTitle className="text-lg font-semibold">3. 전국 어디든 가능</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-gray-600 text-sm space-y-2 text-left">
+                  <p>• 서울, 경기, 인천은 물론 전국 모든 지역의 부동산 대상</p>
+                  <p>• 위치 제약 없이 신속 대응, 실질적 수익 창출 지원</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Building className="h-8 w-8 text-orange-600" />
+                </div>
+                <CardTitle className="text-lg font-semibold">4. 법인 시스템 운영</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-gray-600 text-sm space-y-2 text-left">
+                  <p>• 자금 운용과 회계 처리를 투명하고 체계적으로 관리</p>
+                  <p>• 법인 명의의 계약 및 정산으로 신뢰성 확보</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Section>
+
+      {/* Expected Effects */}
+      <Section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">기대 효과</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {services.map((service, index) => {
-              const IconComponent = service.icon
-              return (
-                <Card
-                  key={index}
-                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden"
-                >
-                  <CardHeader className="pb-4">
-                    <div
-                      className={`w-16 h-16 bg-${service.color}-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-${service.color}-200 transition-colors`}
-                    >
-                      <IconComponent className={`h-8 w-8 text-${service.color}-600`} />
-                    </div>
-                    <CardTitle className="text-2xl font-semibold">{service.title}</CardTitle>
-                    <CardDescription className="text-gray-600 text-base">{service.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      {service.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="flex items-center space-x-3">
-                          <CheckCircle className={`h-5 w-5 text-${service.color}-600 flex-shrink-0`} />
-                          <span className="text-gray-700">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      className={`w-full justify-between group-hover:bg-${service.color}-50 mt-6`}
-                    >
-                      자세히 보기
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              )
-            })}
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-xl">1. 임대인의 자산 가치 보호 및 수익 극대화</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-gray-600">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>건물 외관 및 내부 상태 개선을 통해 부동산 가치 상승 유도</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>불필요한 공실 기간 제거로 임대 수익 극대화 실현</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>공실 세대의 신속한 정비 및 임차인 유치를 통해 수익 회복 가속화</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-red-600" />
+                  </div>
+                  <CardTitle className="text-xl">2. 불법 임대 방지 및 관리비 체납 리스크 감소</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-gray-600">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>법률 전문가와 협업을 통해 깔세 등 불법 임대 구조를 사전에 차단</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>거주자 확인 및 계약서 정비를 통해 관리비 체납 가능성 최소화</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Users className="h-6 w-6 text-green-600" />
+                  </div>
+                  <CardTitle className="text-xl">3. 관리업체의 업무 부담 경감</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-gray-600">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>입주자 확인/공실 정비/수리 등 복잡한 과정을 SKM파트너스가 직접 수행</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>관리업체는 핵심 업무에 집중 가능, 운영 효율성 증가</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Scale className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <CardTitle className="text-xl">4. 법률 대리인을 통한 안전한 자산 관리</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-gray-600">
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>임대인 중심의 법률 대리인이 계약 및 분쟁 예방·대응</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>자산의 법적 안정성과 신뢰도를 높임</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Why Choose Us */}
-      <section className="py-20 bg-gray-50">
+      {/* Service Showcase */}
+      <Section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-                왜 {companyInfo.name}를 선택해야 할까요?
-              </h2>
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">검증된 전문성</h3>
-                    <p className="text-gray-600">
-                      수년간의 경험과 전문 지식을 바탕으로 최고 품질의 서비스를 제공합니다.
-                    </p>
-                  </div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">전문성과 신뢰성</h2>
+              <p className="text-xl text-gray-600 mb-8">
+                종합건설 출신의 전문 인력과 부동산 법률 전문가가 함께하는 차별화된 서비스를 경험하세요.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <span className="text-gray-700">건축 인프라 전문가 보유</span>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">24시간 대응</h3>
-                    <p className="text-gray-600">긴급상황 발생 시 24시간 언제든지 신속하게 대응합니다.</p>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <span className="text-gray-700">다수의 임대 관련 소송 및 실무 경험</span>
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">맞춤형 솔루션</h3>
-                    <p className="text-gray-600">각 건물의 특성에 맞는 최적화된 관리 솔루션을 제공합니다.</p>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <span className="text-gray-700">투명하고 체계적인 법인 시스템</span>
                 </div>
               </div>
             </div>
             <div className="relative">
               <SafeImage
                 src={
-                  companyInfo.site_images?.service_showcase ||
-                  "/placeholder.svg?height=500&width=600&query=professional building management showcase"
+                  companyData.serviceShowcaseUrl ||
+                  "/placeholder.svg?height=400&width=600&query=professional service showcase"
                 }
                 alt="서비스 쇼케이스"
-                className="w-full h-[400px] object-cover rounded-2xl shadow-xl"
+                className="w-full h-[400px] object-cover rounded-xl shadow-lg"
                 fallbackText="서비스 쇼케이스"
               />
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600">
+      <Section className="py-20 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">지금 바로 무료 상담을 받아보세요</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">지금 바로 시작하세요</h2>
             <p className="text-xl text-blue-100 mb-8">
-              전문가가 직접 방문하여 건물 상태를 점검하고 최적의 관리 방안을 제안해드립니다.
+              공실 문제 해결과 임대수입 극대화를 위한 전문적인 상담을 받아보세요.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="px-8 py-3">
-                무료 상담 신청
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 py-3 text-white border-white hover:bg-white hover:text-blue-600"
-              >
-                포트폴리오 보기
-              </Button>
-            </div>
+            <Button size="lg" variant="secondary" className="px-8 py-3">
+              무료 상담 신청하기
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
           </div>
         </div>
-      </section>
+      </Section>
     </div>
   )
 }

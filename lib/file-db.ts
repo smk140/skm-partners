@@ -94,12 +94,14 @@ function getOctokit() {
 async function readJson<T>(octokit: Octokit, filePath: string): Promise<{ json: T; sha: string } | null> {
   try {
     console.log(`📖 Reading file: ${filePath}`)
-    const res = await octokit.repos.getContent({
+    const params: any = {
       owner: REPO_OWNER!,
       repo: REPO_NAME!,
       path: filePath,
-      ref: BRANCH,
-    })
+    }
+    if (BRANCH) params.ref = BRANCH // only add if explicitly provided
+
+    const res = await octokit.repos.getContent(params)
 
     if (!("content" in res.data)) {
       console.log(`⚠️  File ${filePath} is not a file (might be directory)`)
@@ -126,15 +128,17 @@ async function writeJson(octokit: Octokit, filePath: string, data: unknown, msg:
     const content = JSON.stringify(data, null, 2)
     const base64Content = Buffer.from(content).toString("base64")
 
-    await octokit.repos.createOrUpdateFileContents({
+    const params: any = {
       owner: REPO_OWNER!,
       repo: REPO_NAME!,
       path: filePath,
-      branch: BRANCH,
       message: msg,
       content: base64Content,
-      sha,
-    })
+    }
+    if (BRANCH) params.branch = BRANCH // only add if explicitly provided
+    if (sha) params.sha = sha
+
+    await octokit.repos.createOrUpdateFileContents(params)
     console.log(`✅ Successfully wrote file: ${filePath}`)
   } catch (error: any) {
     console.error(`❌ Error writing file ${filePath}:`, error.message)

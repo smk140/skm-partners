@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react"
 import { SafeImage } from "@/components/safe-image"
@@ -65,17 +65,24 @@ export default function ContactPage() {
     setIsLoading(true)
     try {
       console.log("회사 정보 로딩 시작...")
-      const response = await fetch("/api/company")
+      const response = await fetch(`/api/company?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      })
       const data = await response.json()
 
       console.log("API 응답:", data)
 
-      if (data.success && data.companyInfo) {
+      if (data) {
         setCompanyInfo((prev) => ({
           ...prev,
-          ...data.companyInfo,
+          ...data,
         }))
-        console.log("회사 정보 설정됨:", data.companyInfo)
+        console.log("회사 정보 설정됨:", data)
       }
     } catch (error) {
       console.error("회사 정보 로드 실패:", error)

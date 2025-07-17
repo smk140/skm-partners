@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Phone, MessageCircle, X, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,11 +10,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
-export function ConsultationButton() {
+interface ConsultationButtonProps {
+  autoOpen?: boolean
+  onClose?: () => void
+}
+
+export function ConsultationButton({ autoOpen = false, onClose }: ConsultationButtonProps) {
   const { toast } = useToast()
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(autoOpen)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastSubmitTime, setLastSubmitTime] = useState(0)
   const [formData, setFormData] = useState({
@@ -23,6 +28,13 @@ export function ConsultationButton() {
     service: "",
     message: "",
   })
+
+  // autoOpen이 true면 자동으로 모달 열기
+  useEffect(() => {
+    if (autoOpen) {
+      setIsOpen(true)
+    }
+  }, [autoOpen])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -36,7 +48,7 @@ export function ConsultationButton() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 5초 쿨타임 체크
+    // 10초 쿨타임 체크
     const now = Date.now()
     const timeSinceLastSubmit = now - lastSubmitTime
     const cooldownTime = 10000 // 10초
@@ -98,6 +110,9 @@ export function ConsultationButton() {
           message: "",
         })
         setIsOpen(false)
+        if (onClose) {
+          onClose()
+        }
       } else {
         throw new Error("상담 신청에 실패했습니다.")
       }
@@ -112,28 +127,34 @@ export function ConsultationButton() {
     }
   }
 
+  const handleClose = () => {
+    setIsOpen(false)
+    if (onClose) {
+      onClose()
+    }
+  }
+
   return (
     <>
-      {/* 플로팅 버튼 */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
-          size="icon"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-      </div>
+      {/* 플로팅 버튼 - autoOpen이 false일 때만 표시 */}
+      {!autoOpen && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            onClick={() => setIsOpen(true)}
+            className="h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
+            size="icon"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
 
       {/* 상담 신청 모달 */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md bg-white shadow-2xl">
             <CardHeader className="relative">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
-              >
+              <button onClick={handleClose} className="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
               <CardTitle className="flex items-center gap-2 text-slate-900">
@@ -202,14 +223,6 @@ export function ConsultationButton() {
                     onChange={handleChange}
                     rows={3}
                   />
-                </div>
-
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    💡 <strong>빠른 상담을 위한 팁:</strong>
-                    <br />
-                    건물 위치, 규모, 현재 상황을 함께 알려주시면 더 정확한 상담이 가능합니다.
-                  </p>
                 </div>
 
                 <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
