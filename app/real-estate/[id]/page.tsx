@@ -338,7 +338,7 @@ export default function PropertyDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* 관련 매물 */}
+              {/* 관련 매물 - 항상 고정 메시지 표시 */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4">관련 매물</h3>
