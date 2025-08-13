@@ -311,7 +311,7 @@ export default function ContactPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <p className="font-medium text-gray-900">{companyInfo.address}</p>
-                    <p className="text-gray-600 mt-1">지하철 2호선 강남역 3번 출구 도보 5분</p>
+                    <p className="text-gray-600 mt-1">2호선 구로디지털단지역 6번 출구 도보 7분</p>
                   </div>
                   <div className="relative h-48">
                     <SafeImage

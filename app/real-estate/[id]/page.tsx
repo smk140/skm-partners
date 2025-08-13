@@ -320,7 +320,7 @@ export default function PropertyDetailPage() {
                       <Phone className="h-4 w-4 mr-2" />
                       상담 신청
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full bg-transparent">
                       <Mail className="h-4 w-4 mr-2" />
                       이메일 문의
                     </Button>
@@ -342,17 +342,9 @@ export default function PropertyDetailPage() {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4">관련 매물</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <h4 className="font-medium text-sm">서초 신축 오피스</h4>
-                      <p className="text-xs text-gray-500">서울시 서초구</p>
-                      <p className="text-sm text-blue-600 font-medium">월 400만원</p>
-                    </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <h4 className="font-medium text-sm">역삼동 상가</h4>
-                      <p className="text-xs text-gray-500">서울시 강남구</p>
-                      <p className="text-sm text-blue-600 font-medium">월 300만원</p>
-                    </div>
+                  <div className="text-center py-8">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500">매물 정보는 현재 제공되지 않습니다.</p>
                   </div>
                 </CardContent>
               </Card>
