@@ -20,20 +20,20 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur">
-      <div className="container flex h-16 items-center justify-between px-4">
+      <div className="w-full flex h-16 items-center px-4 relative">
         {/* Logo */}
-        <Link href="/" className="text-lg font-bold tracking-tight text-gray-900">
+        <Link href="/" className="text-lg font-bold tracking-tight text-gray-900 flex-shrink-0">
           SKM&nbsp;<span className="font-normal text-gray-700">Partners</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden gap-6 md:flex">
+        {/* Desktop nav - 완전 가운데 정렬 */}
+        <nav className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 gap-8">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "text-sm font-medium transition-colors hover:text-blue-600",
+                "text-base font-medium transition-colors hover:text-blue-600 whitespace-nowrap",
                 pathname === item.href ? "text-blue-600" : "text-gray-700",
               )}
             >
@@ -42,15 +42,15 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
-        <div className="hidden md:block">
+        {/* Desktop CTA - 완전히 오른쪽 끝에 붙임 */}
+        <div className="hidden md:flex ml-auto">
           <Button asChild size="sm">
             <Link href="/contact">무료 상담</Link>
           </Button>
         </div>
 
         {/* Mobile menu button */}
-        <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <button className="md:hidden ml-auto p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X className="h-6 w-6 text-gray-600" /> : <Menu className="h-6 w-6 text-gray-600" />}
         </button>
       </div>

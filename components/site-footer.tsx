@@ -107,7 +107,7 @@ function SiteFooter() {
                 <Clock className="h-4 w-4 text-blue-400" />
                 <div className="text-gray-300 text-sm">
                   <div>평일: 10:00 - 17:00</div>
-                  <div>토/일/공휴일: 휴무</div>
+                  <div>주말, 공휴일: 휴무</div>
                   <div className="text-blue-400 mt-1">문의: 언제든지 가능</div>
                 </div>
               </div>
