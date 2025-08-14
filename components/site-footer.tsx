@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Building2, Phone, Mail, MapPin, Clock } from "lucide-react"
+import { Phone, Mail, MapPin, Clock } from "lucide-react"
 
 interface CompanyInfo {
   name?: string
@@ -20,7 +20,12 @@ function SiteFooter() {
     email: "info@skm.kr",
   })
 
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
+
   useEffect(() => {
+    // 현재 연도 업데이트
+    setCurrentYear(new Date().getFullYear())
+
     const loadCompanyData = async () => {
       try {
         const timestamp = Date.now()
@@ -67,10 +72,7 @@ function SiteFooter() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <Building2 className="h-6 w-6 text-blue-400" />
-              <h3 className="text-xl font-bold">{companyInfo.name}</h3>
-            </div>
+            <h3 className="text-xl font-bold mb-4">{companyInfo.name}</h3>
             <p className="text-gray-300 mb-6 leading-relaxed">{companyInfo.description}</p>
           </div>
 
@@ -107,7 +109,7 @@ function SiteFooter() {
                 <Clock className="h-4 w-4 text-blue-400" />
                 <div className="text-gray-300 text-sm">
                   <div>평일: 10:00 - 17:00</div>
-                  <div>주말, 공휴일: 휴무</div>
+                  <div>토요일, 일요일, 공휴일: 휴무</div>
                   <div className="text-blue-400 mt-1">문의: 언제든지 가능</div>
                 </div>
               </div>
@@ -116,7 +118,9 @@ function SiteFooter() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400 text-sm">© 2024 {companyInfo.name}. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">
+            © {currentYear} {companyInfo.name}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

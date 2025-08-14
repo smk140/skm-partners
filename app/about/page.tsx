@@ -1,118 +1,39 @@
-"use client"
-
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Target, Eye, Heart, ArrowRight } from "lucide-react"
-import { SafeImage } from "@/components/safe-image"
-import { useEffect, useState } from "react"
-
-interface CompanyInfo {
-  name: string
-  address: string
-  phone: string
-  email: string
-  description: string
-  aboutImageUrl?: string
-  teamPhotoUrl?: string
-  officeInteriorUrl?: string
-  main_services?: string[]
-}
-
-interface Executive {
-  id: number
-  name: string
-  position: string
-  bio: string
-  order_index: number
-  image_url?: string
-}
+import { Users, Award, Shield } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 export default function AboutPage() {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-    name: "SKM파트너스",
-    description:
-      "SKM파트너스는 부동산 가치의 지속 가능성을 위해, 신뢰를 바탕으로 공실 문제를 해결하고 임대수입 극대화를 지원합니다.",
-    address: "",
-    phone: "",
-    email: "",
-    main_services: ["부동산 임대 및 관리 지원", "공실 세대 관리", "리노베이션 컨설팅", "법률 지원"],
-  })
-  const [executives, setExecutives] = useState<Executive[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    loadCompanyData()
-  }, [])
-
-  const loadCompanyData = async () => {
-    setIsLoading(true)
-    try {
-      console.log("회사 정보 로딩 시작...")
-      const response = await fetch(`/api/company?t=${Date.now()}`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      })
-      const data = await response.json()
-
-      console.log("API 응답:", data)
-
-      if (data) {
-        setCompanyInfo((prev) => ({
-          ...prev,
-          ...data,
-        }))
-        console.log("회사 정보 설정됨:", data)
-      }
-    } catch (error) {
-      console.error("회사 정보 로드 실패:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-white">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  1장 회사 소개
-                </Badge>
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">{companyInfo.name}</h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  SKM파트너스는 부동산 가치의 지속 가능성을 위해, 신뢰를 바탕으로 공실 문제를 해결하고 임대수입 극대화를
-                  지원합니다.
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">SKM파트너스</h1>
+              <div className="text-lg text-gray-600 space-y-4 mb-8">
+                <p>
+                  SKM파트너스는 수많은 건축 경험을 통해 축적된 실무 노하우를 바탕으로, 시행부터 시공, 관리까지 원스톱
+                  서비스를 제공하는 부동산 통합 솔루션 기업입니다.
+                </p>
+                <p>
+                  단순한 건물 관리가 아닌, 공간의 기획부터 운영까지 전 과정을 아우르는 맞춤형 서비스를 통해 고객의 자산
+                  가치를 극대화하고, 사업이 안정적이고 지속 가능한 방향으로 성장할 수 있도록 함께 하겠습니다.
                 </p>
               </div>
+              <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Link href="/contact">무료 상담 신청</Link>
+              </Button>
             </div>
             <div className="relative">
-              <SafeImage
-                src={
-                  companyInfo.aboutImageUrl ||
-                  "/placeholder.svg?height=500&width=600&query=professional building management team"
-                }
-                alt="SKM파트너스 소개"
-                className="w-full h-[400px] lg:h-[500px] object-cover rounded-2xl shadow-2xl"
-                fallbackText="회사 소개 이미지"
+              <Image
+                src="/modern-office-building.png"
+                alt="Modern office building"
+                width={600}
+                height={400}
+                className="rounded-lg shadow-lg"
               />
             </div>
           </div>
@@ -120,139 +41,86 @@ export default function AboutPage() {
       </section>
 
       {/* 우리의 가치 Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">우리의 가치</h2>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
+              "설계부터 관리까지, 고객의 니즈를 이해하고 실행하는 파트너"
+            </p>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto">
+              SKM파트너스는 2025년 설립되었지만, 그 이전 10년 이상의 건축 및 부동산 운영 경험을 바탕으로 임대인의 자산을
+              더 가치 있게, 더 안전하게 만들기 위한 솔루션을 지속적으로 제공해오고 있습니다.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="h-8 w-8 text-blue-600" />
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Award className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl font-semibold">1. 업종</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">부동산 임대 및 관리 지원 전문업체</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">01 최고의 서비스 구현</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  설계, 시공, 운영, 리노베이션, 법률 자문까지 부동산의 전 생애주기를 아우르는 통합 서비스를 통해
+                  임대인의 니즈를 정확히 파악하고, 현실적이고 실행 가능한 대안을 제시합니다.
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Eye className="h-8 w-8 text-green-600" />
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl font-semibold">2. 주요업무</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-gray-600 text-sm space-y-2 text-left">
-                  <p>• 임대인-임차인-관리업체 간 원활한 커뮤니케이션 및 연결</p>
-                  <p>• 공실 세대 관리 및 임차인 유치</p>
-                  <p>• 불법 임대(깔세) 점검 및 해소</p>
-                  <p>• 임대 가능 세대의 리노베이션 컨설팅 및 시공 지원</p>
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">02 안전한 건물 관리</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  건축 및 시공 분야에서 축적한 현장 경험과 기술 노하우를 바탕으로 건물 하자 및 유지보수 이슈에
+                  선제적으로 대응하여 리스크를 최소화합니다.
+                </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center border-0 shadow-lg">
-              <CardHeader>
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Heart className="h-8 w-8 text-purple-600" />
+            <Card className="text-center p-8 hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl font-semibold">3. 회사비전</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 font-medium">"공실 없는 건물, 신뢰받는 전문 파트너"</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">03 고객의 만족 추구</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  우리는 단순한 관리 대행을 넘어 공실 없는 건물과 안정적인 임대 수익 실현을 함께 고민하는 신뢰받는
+                  파트너가 되겠습니다.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
-      {executives.length > 0 && (
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">경영진</h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                풍부한 경험과 전문성을 갖춘 경영진이 SKM파트너스를 이끌어갑니다.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {executives
-                .sort((a, b) => a.order_index - b.order_index)
-                .map((executive) => (
-                  <Card key={executive.id} className="text-center border-0 shadow-lg">
-                    <CardHeader>
-                      <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
-                        <SafeImage
-                          src={
-                            executive.image_url ||
-                            "/placeholder.svg?height=128&width=128&query=professional executive portrait"
-                          }
-                          alt={executive.name}
-                          className="w-full h-full object-cover"
-                          fallbackText="임원 사진"
-                        />
-                      </div>
-                      <CardTitle className="text-xl font-semibold">{executive.name}</CardTitle>
-                      <CardDescription className="text-blue-600 font-medium">{executive.position}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 text-sm leading-relaxed">{executive.bio}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Company Image Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative">
+              <Image
+                src="/professional-office-workspace.png"
+                alt="Professional office workspace"
+                width={600}
+                height={400}
+                className="rounded-lg shadow-lg"
+              />
+            </div>
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">전문적인 업무환경</h2>
-              <p className="text-xl text-gray-600 mb-8">
-                종합건설 출신 이사진과 부동산 전문 법률대리인이 협업하여 최적의 솔루션을 제공합니다.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <span className="text-gray-700">종합건설 출신 전문 인력</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <span className="text-gray-700">부동산 전문 법률대리인 협업</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <span className="text-gray-700">전국 어디든 신속 대응</span>
-                </div>
+              <div className="text-lg text-gray-600 space-y-4 mb-8">
+                <p>
+                  최신 기술과 체계적인 프로세스를 바탕으로 고객에게 최고의 서비스를 제공합니다. 전문성과 신뢰성을
+                  바탕으로 한 파트너십을 통해 고객의 성공을 함께 만들어갑니다.
+                </p>
               </div>
-            </div>
-            <div className="space-y-6">
-              <SafeImage
-                src={
-                  companyInfo.officeInteriorUrl || "/placeholder.svg?height=300&width=500&query=modern office interior"
-                }
-                alt="사무실 내부"
-                className="w-full h-64 object-cover rounded-xl shadow-lg"
-                fallbackText="사무실 내부"
-              />
-              <SafeImage
-                src={
-                  companyInfo.teamPhotoUrl || "/placeholder.svg?height=300&width=500&query=professional team meeting"
-                }
-                alt="팀 미팅"
-                className="w-full h-64 object-cover rounded-xl shadow-lg"
-                fallbackText="팀 사진"
-              />
+              <Button asChild variant="outline" size="lg">
+                <Link href="/services">서비스 자세히 보기</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -261,16 +129,13 @@ export default function AboutPage() {
       {/* CTA Section */}
       <section className="py-20 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">SKM파트너스와 함께 시작하세요</h2>
-            <p className="text-xl text-blue-100 mb-8">
-              공실 문제 해결과 임대수입 극대화를 위한 전문적인 서비스를 제공합니다.
-            </p>
-            <Button size="lg" variant="secondary" className="px-8 py-3">
-              무료 상담 신청하기
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">지금 바로 무료 상담을 받아보세요</h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            전문가와의 상담을 통해 귀하의 부동산 프로젝트에 최적화된 솔루션을 찾아보세요.
+          </p>
+          <Button asChild size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+            <Link href="/contact">무료 상담 신청</Link>
+          </Button>
         </div>
       </section>
     </div>
