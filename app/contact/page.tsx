@@ -239,7 +239,9 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold mb-2">주소</h3>
-                          <p className="text-gray-600">{companyData?.address || "서울특별시 강남구 테헤란로 123"}</p>
+                          <p className="text-gray-600">
+                            {companyData?.address || "서울시 관악구 조원로6길 47, 에스케이엠 1층"}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -253,7 +255,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold mb-2">전화번호</h3>
-                          <p className="text-gray-600">{companyData?.phone || "02-1234-5678"}</p>
+                          <p className="text-gray-600">{companyData?.phone || "02-853-7715"}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -267,7 +269,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold mb-2">이메일</h3>
-                          <p className="text-gray-600">{companyData?.email || "info@skm.kr"}</p>
+                          <p className="text-gray-600">{companyData?.email || "bykim@skm.kr"}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -358,6 +360,7 @@ export default function ContactPage() {
               <div>Company Building: {companyData.companyBuildingUrl ? "Set" : "Not Set"}</div>
               <div>Phone: {companyData.phone}</div>
               <div>Email: {companyData.email}</div>
+              <div>Address: {companyData.address}</div>
             </div>
           )}
         </div>

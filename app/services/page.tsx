@@ -294,11 +294,11 @@ export default function ServicesPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <div className="flex items-center gap-2 text-blue-100">
               <Phone className="h-5 w-5" />
-              <span>{companyData?.phone || "02-1234-5678"}</span>
+              <span>{companyData?.phone || "02-853-7715"}</span>
             </div>
             <div className="flex items-center gap-2 text-blue-100">
               <Mail className="h-5 w-5" />
-              <span>{companyData?.email || "info@skm.kr"}</span>
+              <span>{companyData?.email || "bykim@skm.kr"}</span>
             </div>
           </div>
           <Button asChild size="lg" variant="secondary">
@@ -323,6 +323,8 @@ export default function ServicesPage() {
               <div>Cleaning: {companyData.cleaningServiceUrl ? "Set" : "Not Set"}</div>
               <div>Fire: {companyData.fireInspectionUrl ? "Set" : "Not Set"}</div>
               <div>Elevator: {companyData.elevatorManagementUrl ? "Set" : "Not Set"}</div>
+              <div>Phone: {companyData.phone}</div>
+              <div>Email: {companyData.email}</div>
             </div>
           )}
         </div>

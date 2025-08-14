@@ -218,11 +218,11 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <div className="flex items-center gap-2 text-blue-100">
               <Phone className="h-5 w-5" />
-              <span>{companyData?.phone || "02-1234-5678"}</span>
+              <span>{companyData?.phone || "02-853-7715"}</span>
             </div>
             <div className="flex items-center gap-2 text-blue-100">
               <Mail className="h-5 w-5" />
-              <span>{companyData?.email || "info@skm.kr"}</span>
+              <span>{companyData?.email || "bykim@skm.kr"}</span>
             </div>
           </div>
           <div className="mt-8">
@@ -246,6 +246,8 @@ export default function HomePage() {
               <div>Hero Image: {companyData.heroImageUrl ? "Set" : "Not Set"}</div>
               <div>Name: {companyData.name}</div>
               <div>Phone: {companyData.phone}</div>
+              <div>Email: {companyData.email}</div>
+              <div>Address: {companyData.address}</div>
             </div>
           )}
         </div>
