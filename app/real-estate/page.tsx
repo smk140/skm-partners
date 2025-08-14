@@ -1,35 +1,20 @@
-"use client"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Home, ArrowLeft } from "lucide-react"
-import Link from "next/link"
+import { Clock } from "lucide-react"
 
 export default function RealEstatePage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Home className="h-8 w-8 text-gray-400" />
-          </div>
-          <CardTitle className="text-xl font-semibold text-gray-900">부동산 서비스</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-gray-600">현재 지원하지 않는 서비스입니다.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild variant="outline">
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                홈으로 돌아가기
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/contact">문의하기</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="p-4 bg-blue-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+          <Clock className="h-10 w-10 text-blue-600" />
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">서비스 준비중입니다</h1>
+        <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+          더 나은 서비스를 제공하기 위해 준비 중입니다.
+          <br />
+          빠른 시일 내에 만나뵙겠습니다.
+        </p>
+        <div className="text-sm text-gray-500">문의사항이 있으시면 언제든지 연락주세요.</div>
+      </div>
     </div>
   )
 }

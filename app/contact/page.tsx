@@ -41,8 +41,8 @@ export default function ContactPage() {
     description: "전문적인 건물 관리 서비스",
     business_hours: {
       weekday: "평일 09:00 - 18:00",
-      weekend: "토요일 09:00 - 15:00",
-      holiday: "일요일 및 공휴일 휴무",
+      weekend: "주말, 공휴일: 휴무",
+      holiday: "주말, 공휴일: 휴무",
       emergency: "긴급상황 시 24시간 대응",
     },
   })
@@ -362,18 +362,14 @@ export default function ContactPage() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">평일</span>
-                    <span className="font-medium">{companyInfo.business_hours?.weekday}</span>
+                    <span className="font-medium">10:00 - 17:00</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">토요일</span>
-                    <span className="font-medium">{companyInfo.business_hours?.weekend}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">일요일/공휴일</span>
-                    <span className="font-medium text-red-600">{companyInfo.business_hours?.holiday}</span>
+                    <span className="text-gray-600">주말, 공휴일</span>
+                    <span className="font-medium text-red-600">휴무</span>
                   </div>
                   <div className="pt-2 border-t">
-                    <p className="text-sm text-blue-600 font-medium">{companyInfo.business_hours?.emergency}</p>
+                    <p className="text-sm text-blue-600 font-medium">문의: 언제든지 가능</p>
                   </div>
                 </CardContent>
               </Card>
