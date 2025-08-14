@@ -1,89 +1,90 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
-
-const navigation = [
-  { name: "회사소개", href: "/about" },
-  { name: "서비스", href: "/services" },
-  { name: "부동산", href: "/real-estate" },
-  { name: "문의하기", href: "/contact" },
-]
+import { useState } from "react"
+import { Menu, X, Phone, Mail } from "lucide-react"
 
 export function SiteHeader() {
-  const pathname = usePathname()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur">
-      <div className="w-full flex h-16 items-center px-4 relative">
-        {/* Logo */}
-        <Link href="/" className="text-lg font-bold tracking-tight text-gray-900 flex-shrink-0">
-          SKM&nbsp;<span className="font-normal text-gray-700">Partners</span>
-        </Link>
-
-        {/* Desktop nav - 완전 가운데 정렬 */}
-        <nav className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 gap-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "text-base font-medium transition-colors hover:text-blue-600 whitespace-nowrap",
-                pathname === item.href ? "text-blue-600" : "text-gray-700",
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Desktop CTA - 완전히 오른쪽 끝에 붙임 */}
-        <div className="hidden md:flex ml-auto">
-          <Button asChild size="sm">
-            <Link href="/contact">무료 상담</Link>
-          </Button>
-        </div>
-
-        {/* Mobile menu button */}
-        <button className="md:hidden ml-auto p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="h-6 w-6 text-gray-600" /> : <Menu className="h-6 w-6 text-gray-600" />}
-        </button>
-      </div>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-white">
-          <div className="px-4 py-2 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "block px-3 py-2 text-base font-medium transition-colors hover:text-blue-600 hover:bg-gray-50 rounded-md",
-                  pathname === item.href ? "text-blue-600 bg-blue-50" : "text-gray-700",
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
-            <div className="px-3 py-2">
-              <Button asChild size="sm" className="w-full">
-                <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>
-                  무료 상담
-                </Link>
-              </Button>
+    <header className="bg-white shadow-sm border-b">
+      {/* Top contact bar */}
+      <div className="bg-gray-50 py-2">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                <Phone className="h-4 w-4" />
+                <span>02-853-7715</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Mail className="h-4 w-4" />
+                <span>bykim@skm.kr</span>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <span>서울시 관악구 조원로6길 47, 에스케이엠 1층</span>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Main navigation */}
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center py-4">
+          <Link href="/" className="text-2xl font-bold text-blue-600">
+            SKM파트너스
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+              홈
+            </Link>
+            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              회사소개
+            </Link>
+            <Link href="/services" className="text-gray-700 hover:text-blue-600 transition-colors">
+              서비스
+            </Link>
+            <Link href="/real-estate" className="text-gray-700 hover:text-blue-600 transition-colors">
+              부동산
+            </Link>
+            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
+              문의하기
+            </Link>
+          </nav>
+
+          {/* Mobile menu button */}
+          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <nav className="md:hidden py-4 border-t">
+            <div className="flex flex-col space-y-4">
+              <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+                홈
+              </Link>
+              <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+                회사소개
+              </Link>
+              <Link href="/services" className="text-gray-700 hover:text-blue-600 transition-colors">
+                서비스
+              </Link>
+              <Link href="/real-estate" className="text-gray-700 hover:text-blue-600 transition-colors">
+                부동산
+              </Link>
+              <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors">
+                문의하기
+              </Link>
+            </div>
+          </nav>
+        )}
+      </div>
     </header>
   )
 }
-
-export default SiteHeader
