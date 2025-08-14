@@ -124,11 +124,10 @@ export default function AboutPage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={
-                    companyData?.teamPhotoUrl || "/placeholder.svg?height=500&width=600&query=professional team meeting"
-                  }
+                  src={companyData?.teamPhotoUrl}
                   alt="SKM파트너스 팀"
                   className="w-full h-[500px] object-cover"
+                  fallbackSrc="/professional-team-meeting.png"
                   fallbackText="SKM파트너스 팀"
                 />
               </div>
@@ -144,12 +143,10 @@ export default function AboutPage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={
-                    companyData?.officeInteriorUrl ||
-                    "/placeholder.svg?height=500&width=600&query=modern office interior"
-                  }
+                  src={companyData?.officeInteriorUrl}
                   alt="SKM파트너스 사무실"
                   className="w-full h-[500px] object-cover"
+                  fallbackSrc="/modern-office-interior.png"
                   fallbackText="SKM파트너스 사무실"
                 />
               </div>
@@ -199,6 +196,7 @@ export default function AboutPage() {
             <div>
               <div>Team Photo: {companyData.teamPhotoUrl ? "Set" : "Not Set"}</div>
               <div>Office Interior: {companyData.officeInteriorUrl ? "Set" : "Not Set"}</div>
+              <div>About Image: {companyData.aboutImageUrl ? "Set" : "Not Set"}</div>
             </div>
           )}
         </div>

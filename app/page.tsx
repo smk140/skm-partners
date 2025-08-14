@@ -85,12 +85,10 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={
-                    companyData?.heroImageUrl ||
-                    "/placeholder.svg?height=600&width=800&query=modern office building exterior"
-                  }
+                  src={companyData?.heroImageUrl}
                   alt="SKM파트너스 메인 이미지"
                   className="w-full h-[400px] lg:h-[500px] object-cover"
+                  fallbackSrc="/professional-office-workspace.png"
                   fallbackText="SKM파트너스 메인 이미지"
                 />
               </div>
@@ -120,7 +118,7 @@ export default function HomePage() {
                   체계적인 시설 관리와 정기적인 점검을 통해 건물의 가치를 유지하고 향상시킵니다.
                 </p>
                 <Button asChild variant="ghost" className="group-hover:bg-blue-50">
-                  <Link href="/services/building-management">
+                  <Link href="/services">
                     자세히 보기
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -139,7 +137,7 @@ export default function HomePage() {
                   시장 분석과 투자 전략을 바탕으로 최적의 부동산 투자 방향을 제시합니다.
                 </p>
                 <Button asChild variant="ghost" className="group-hover:bg-green-50">
-                  <Link href="/services/consulting">
+                  <Link href="/services">
                     자세히 보기
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -158,7 +156,7 @@ export default function HomePage() {
                   프로젝트 기획부터 완공까지 체계적인 관리로 성공적인 결과를 보장합니다.
                 </p>
                 <Button asChild variant="ghost" className="group-hover:bg-purple-50">
-                  <Link href="/services/project-management">
+                  <Link href="/services">
                     자세히 보기
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

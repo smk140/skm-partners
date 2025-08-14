@@ -221,12 +221,10 @@ export default function ContactPage() {
                 {/* Company Building Image */}
                 <div className="relative rounded-2xl overflow-hidden shadow-lg">
                   <SafeImage
-                    src={
-                      companyData?.companyBuildingUrl ||
-                      "/placeholder.svg?height=300&width=500&query=modern office building"
-                    }
+                    src={companyData?.companyBuildingUrl}
                     alt="SKM파트너스 사무실"
                     className="w-full h-64 object-cover"
+                    fallbackSrc="/modern-office-building.png"
                     fallbackText="SKM파트너스 사무실"
                   />
                 </div>

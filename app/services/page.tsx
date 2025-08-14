@@ -58,7 +58,7 @@ export default function ServicesPage() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
           style={{
-            backgroundImage: `url(${companyData?.servicesHeroUrl || "/professional-office-workspace.png"})`,
+            backgroundImage: `url(${companyData?.servicesHeroUrl || "/professional-services-teamwork.png"})`,
           }}
         />
         <div className="relative container mx-auto px-4">
@@ -99,12 +99,10 @@ export default function ServicesPage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={
-                    companyData?.serviceShowcaseUrl ||
-                    "/placeholder.svg?height=500&width=600&query=professional building services"
-                  }
+                  src={companyData?.serviceShowcaseUrl}
                   alt="서비스 쇼케이스"
                   className="w-full h-[400px] object-cover"
+                  fallbackSrc="/professional-building-services.png"
                   fallbackText="서비스 쇼케이스"
                 />
               </div>
@@ -129,12 +127,10 @@ export default function ServicesPage() {
               <CardHeader className="text-center">
                 <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={
-                      companyData?.buildingManagementUrl ||
-                      "/placeholder.svg?height=200&width=300&query=building management"
-                    }
+                    src={companyData?.buildingManagementUrl}
                     alt="건물 관리"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fallbackSrc="/placeholder-x8sa4.png"
                     fallbackText="건물 관리"
                   />
                 </div>
@@ -160,12 +156,10 @@ export default function ServicesPage() {
               <CardHeader className="text-center">
                 <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={
-                      companyData?.cleaningServiceUrl ||
-                      "/placeholder.svg?height=200&width=300&query=professional cleaning service"
-                    }
+                    src={companyData?.cleaningServiceUrl}
                     alt="청소 서비스"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fallbackSrc="/professional-cleaning-service.png"
                     fallbackText="청소 서비스"
                   />
                 </div>
@@ -191,12 +185,10 @@ export default function ServicesPage() {
               <CardHeader className="text-center">
                 <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={
-                      companyData?.fireInspectionUrl ||
-                      "/placeholder.svg?height=200&width=300&query=fire safety inspection"
-                    }
+                    src={companyData?.fireInspectionUrl}
                     alt="소방 안전 관리"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fallbackSrc="/fire-safety-inspection.png"
                     fallbackText="소방 안전 관리"
                   />
                 </div>
@@ -222,12 +214,10 @@ export default function ServicesPage() {
               <CardHeader className="text-center">
                 <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
                   <SafeImage
-                    src={
-                      companyData?.elevatorManagementUrl ||
-                      "/placeholder.svg?height=200&width=300&query=elevator maintenance"
-                    }
+                    src={companyData?.elevatorManagementUrl}
                     alt="엘리베이터 관리"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fallbackSrc="/elevator-maintenance.png"
                     fallbackText="엘리베이터 관리"
                   />
                 </div>
@@ -328,8 +318,11 @@ export default function ServicesPage() {
           {companyData && (
             <div>
               <div>Services Hero: {companyData.servicesHeroUrl ? "Set" : "Not Set"}</div>
+              <div>Service Showcase: {companyData.serviceShowcaseUrl ? "Set" : "Not Set"}</div>
               <div>Building Mgmt: {companyData.buildingManagementUrl ? "Set" : "Not Set"}</div>
               <div>Cleaning: {companyData.cleaningServiceUrl ? "Set" : "Not Set"}</div>
+              <div>Fire: {companyData.fireInspectionUrl ? "Set" : "Not Set"}</div>
+              <div>Elevator: {companyData.elevatorManagementUrl ? "Set" : "Not Set"}</div>
             </div>
           )}
         </div>
