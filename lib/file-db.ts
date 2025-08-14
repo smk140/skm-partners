@@ -61,7 +61,7 @@ const DEFAULT_COMPANY_DATA: CompanyData = {
   website: "https://skm.kr",
   logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=80&fit=crop",
   heroImageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop",
-  aboutImageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",
+  aboutImageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&h=400&fit=crop",
   servicesHeroUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&h=400&fit=crop",
   realEstateHeroUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=400&fit=crop",
   contactHeroUrl: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1200&h=400&fit=crop",
@@ -99,7 +99,7 @@ async function readJson<T>(octokit: Octokit, filePath: string): Promise<{ json: 
       repo: REPO_NAME!,
       path: filePath,
     }
-    if (BRANCH) params.ref = BRANCH // only add if explicitly provided
+    if (BRANCH) params.ref = BRANCH
 
     const res = await octokit.repos.getContent(params)
 
@@ -135,7 +135,7 @@ async function writeJson(octokit: Octokit, filePath: string, data: unknown, msg:
       message: msg,
       content: base64Content,
     }
-    if (BRANCH) params.branch = BRANCH // only add if explicitly provided
+    if (BRANCH) params.branch = BRANCH
     if (sha) params.sha = sha
 
     await octokit.repos.createOrUpdateFileContents(params)
@@ -221,7 +221,12 @@ export async function getInquiriesData(): Promise<InquiryData[]> {
 
   try {
     const file = await readJson<{ inquiries: InquiryData[] }>(octokit, INQUIRY_PATH)
-    return file?.json.inquiries ?? []
+    if (file) return file.json.inquiries
+
+    // File doesn't exist, create empty file
+    console.log("📝 Creating empty inquiries file...")
+    await writeJson(octokit, INQUIRY_PATH, { inquiries: [] }, "Create empty inquiries.json")
+    return []
   } catch (error) {
     console.error("Failed to get inquiries:", error)
     return []
@@ -265,7 +270,7 @@ const DEFAULT_PROPERTIES: PropertyData[] = [
     description: "강남역 도보 5분 거리의 프리미엄 오피스 공간입니다.",
     price: 5_000_000,
     location: "서울시 강남구 테헤란로",
-    imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&h=400&fit=crop",
     createdAt: new Date().toISOString(),
   },
   {

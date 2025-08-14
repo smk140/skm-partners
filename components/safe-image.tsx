@@ -13,6 +13,9 @@ interface SafeImageProps {
   height?: number
   priority?: boolean
   fallbackSrc?: string
+  fallbackText?: string
+  onLoad?: () => void
+  onError?: () => void
 }
 
 export function SafeImage({
@@ -24,6 +27,9 @@ export function SafeImage({
   height,
   priority = false,
   fallbackSrc,
+  fallbackText,
+  onLoad,
+  onError,
 }: SafeImageProps) {
   const [imgSrc, setImgSrc] = useState(src || "")
   const [hasError, setHasError] = useState(!src)
@@ -34,18 +40,27 @@ export function SafeImage({
   }, [src])
 
   const handleError = () => {
+    console.log(`❌ Image failed to load: ${imgSrc}`)
     if (fallbackSrc && imgSrc !== fallbackSrc) {
+      console.log(`🔄 Trying fallback image: ${fallbackSrc}`)
       setImgSrc(fallbackSrc)
     } else {
       setHasError(true)
     }
+    onError?.()
   }
 
-  if (hasError) {
+  const handleLoad = () => {
+    console.log(`✅ Image loaded successfully: ${imgSrc}`)
+    setHasError(false)
+    onLoad?.()
+  }
+
+  if (hasError || !imgSrc) {
     return (
       <div className={`flex flex-col items-center justify-center bg-gray-100 text-gray-400 rounded-lg ${className}`}>
         <ImageIcon className="h-8 w-8 mb-2" />
-        <span className="text-xs text-center">이미지 없음</span>
+        <span className="text-xs text-center px-2">{fallbackText || "이미지 없음"}</span>
       </div>
     )
   }
@@ -60,6 +75,7 @@ export function SafeImage({
       height={fill ? undefined : height}
       priority={priority}
       onError={handleError}
+      onLoad={handleLoad}
       unoptimized // 외부 URL 최적화 비활성화
     />
   )
