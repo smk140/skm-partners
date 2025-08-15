@@ -356,8 +356,8 @@ export default function ContactPage() {
           <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
           {companyData && (
             <div>
-              <div>Contact Hero: {companyData.contactHeroUrl ? "Set" : "Not Set"}</div>
-              <div>Company Building: {companyData.companyBuildingUrl ? "Set" : "Not Set"}</div>
+              <div>Contact Hero: {companyData.contactHeroUrl || "Not Set"}</div>
+              <div>Company Building: {companyData.companyBuildingUrl || "Not Set"}</div>
               <div>Phone: {companyData.phone}</div>
               <div>Email: {companyData.email}</div>
               <div>Address: {companyData.address}</div>

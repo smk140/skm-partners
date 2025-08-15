@@ -265,6 +265,23 @@ export default function ServicesPage() {
           </Button>
         </div>
       </section>
+
+      {/* Debug Info */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm">
+          <div>Services Page Debug:</div>
+          <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
+          {companyData && (
+            <div>
+              <div>Services Hero: {companyData.servicesHeroUrl || "Not Set"}</div>
+              <div>Service Showcase: {companyData.serviceShowcaseUrl || "Not Set"}</div>
+              <div>Phone: {companyData.phone}</div>
+              <div>Email: {companyData.email}</div>
+              <div>Address: {companyData.address}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

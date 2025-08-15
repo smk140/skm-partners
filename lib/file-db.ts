@@ -12,22 +12,13 @@ export interface CompanyData {
   website: string
   logoUrl?: string
   heroImageUrl?: string
-  aboutImageUrl?: string
-  /* Page-specific hero images */
+  aboutHeroUrl?: string
   servicesHeroUrl?: string
-  realEstateHeroUrl?: string
   contactHeroUrl?: string
-  /* Service-specific images */
-  buildingManagementUrl?: string
-  cleaningServiceUrl?: string
-  fireInspectionUrl?: string
-  elevatorManagementUrl?: string
-  /* About page images */
-  teamPhotoUrl?: string
-  officeInteriorUrl?: string
-  serviceShowcaseUrl?: string
-  /* Contact page images */
+  teamImageUrl?: string
+  officeImageUrl?: string
   companyBuildingUrl?: string
+  serviceShowcaseUrl?: string
 }
 
 export interface InquiryData {
@@ -59,20 +50,6 @@ const DEFAULT_COMPANY_DATA: CompanyData = {
   phone: "02-853-7715",
   email: "bykim@skm.kr",
   website: "https://skm.kr",
-  logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=80&fit=crop",
-  heroImageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop",
-  aboutImageUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=600&h=400&fit=crop",
-  servicesHeroUrl: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1200&h=400&fit=crop",
-  realEstateHeroUrl: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&h=400&fit=crop",
-  contactHeroUrl: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1200&h=400&fit=crop",
-  buildingManagementUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop",
-  cleaningServiceUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop",
-  fireInspectionUrl: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=300&fit=crop",
-  elevatorManagementUrl: "https://images.unsplash.com/photo-1571055107559-3e67626fa8be?w=400&h=300&fit=crop",
-  teamPhotoUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=400&fit=crop",
-  officeInteriorUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=600&h=400&fit=crop",
-  serviceShowcaseUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop",
-  companyBuildingUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=400&fit=crop",
 }
 
 /* ------------------------------------------------------------------ */

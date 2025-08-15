@@ -243,7 +243,7 @@ export default function HomePage() {
           <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
           {companyData && (
             <div>
-              <div>Hero Image: {companyData.heroImageUrl ? "Set" : "Not Set"}</div>
+              <div>Hero Image: {companyData.heroImageUrl || "Not Set"}</div>
               <div>Name: {companyData.name}</div>
               <div>Phone: {companyData.phone}</div>
               <div>Email: {companyData.email}</div>

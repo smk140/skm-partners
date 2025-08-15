@@ -255,9 +255,9 @@ export default function AboutPage() {
           <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
           {companyData && (
             <div>
-              <div>About Hero: {companyData.aboutHeroUrl ? "Set" : "Not Set"}</div>
-              <div>Team Image: {companyData.teamImageUrl ? "Set" : "Not Set"}</div>
-              <div>Office Image: {companyData.officeImageUrl ? "Set" : "Not Set"}</div>
+              <div>About Hero: {companyData.aboutHeroUrl || "Not Set"}</div>
+              <div>Team Image: {companyData.teamImageUrl || "Not Set"}</div>
+              <div>Office Image: {companyData.officeImageUrl || "Not Set"}</div>
               <div>Phone: {companyData.phone}</div>
               <div>Email: {companyData.email}</div>
               <div>Address: {companyData.address}</div>
