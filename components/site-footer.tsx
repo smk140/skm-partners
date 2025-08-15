@@ -1,16 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Building2, Phone, Mail, MapPin } from "lucide-react"
+import { MapPin, Phone, Mail, Clock } from "lucide-react"
 
-export default function SiteFooter() {
-  const [currentYear, setCurrentYear] = useState(2024)
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear())
-  }, [])
-
+export function SiteFooter() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -18,24 +11,29 @@ export default function SiteFooter() {
           {/* Company Info */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Building2 className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold">SKM파트너스</span>
+              <span className="text-2xl font-bold text-blue-400">SKM</span>
+              <span className="text-xl font-semibold">Partners</span>
             </div>
-            <p className="text-gray-300 mb-4 leading-relaxed">
-              전문적인 부동산 관리 및 컨설팅 서비스를 제공하는 신뢰할 수 있는 파트너입니다.
+            <p className="text-gray-300 mb-6 leading-relaxed">
+              전문적인 부동산 컨설팅 서비스를 제공하는 SKM파트너스입니다. 고객의 성공적인 부동산 투자를 위해 최선을
+              다하겠습니다.
             </p>
-            <div className="space-y-2 text-sm text-gray-400">
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4" />
-                <span>02-853-7715</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                <span className="text-gray-300">서울시 관악구 조원로6길 47, 에스케이엠 1층</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4" />
-                <span>bykim@skm.kr</span>
+              <div className="flex items-center gap-3">
+                <Phone className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                <span className="text-gray-300">02-853-7715</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span>서울시 관악구 조원로6길 47, 에스케이엠 1층</span>
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                <span className="text-gray-300">bykim@skm.kr</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                <span className="text-gray-300">평일 09:00 - 18:00</span>
               </div>
             </div>
           </div>
@@ -43,56 +41,54 @@ export default function SiteFooter() {
           {/* Quick Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">빠른 링크</h3>
-            <ul className="space-y-2 text-gray-300">
+            <ul className="space-y-2">
               <li>
-                <Link href="/about" className="hover:text-blue-400 transition-colors">
+                <Link href="/about" className="text-gray-300 hover:text-blue-400 transition-colors">
                   회사소개
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-blue-400 transition-colors">
+                <Link href="/services" className="text-gray-300 hover:text-blue-400 transition-colors">
                   서비스
                 </Link>
               </li>
               <li>
-                <Link href="/real-estate" className="hover:text-blue-400 transition-colors">
+                <Link href="/real-estate" className="text-gray-300 hover:text-blue-400 transition-colors">
                   부동산
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-blue-400 transition-colors">
+                <Link href="/contact" className="text-gray-300 hover:text-blue-400 transition-colors">
                   문의하기
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Business Hours */}
+          {/* Services */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">운영시간</h3>
-            <div className="space-y-2 text-gray-300 text-sm">
-              <div>
-                <div className="font-medium">평일</div>
-                <div>10:00 - 17:00</div>
-              </div>
-              <div>
-                <div className="font-medium">주말, 공휴일</div>
-                <div className="text-red-400">휴무</div>
-              </div>
-              <div className="pt-2 border-t border-gray-700">
-                <div className="text-blue-400 font-medium">문의: 언제든지 가능</div>
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold mb-4">서비스</h3>
+            <ul className="space-y-2">
+              <li>
+                <span className="text-gray-300">부동산 투자</span>
+              </li>
+              <li>
+                <span className="text-gray-300">시장 분석</span>
+              </li>
+              <li>
+                <span className="text-gray-300">전문 컨설팅</span>
+              </li>
+              <li>
+                <span className="text-gray-300">서류 대행</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-          <p>&copy; {currentYear} SKM파트너스. All rights reserved.</p>
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p className="text-gray-400">© 2024 SKM Partners. All rights reserved.</p>
         </div>
       </div>
     </footer>
   )
 }
-
-export { SiteFooter }
