@@ -4,7 +4,7 @@
   "phone": "02-853-7715",
   "email": "bykim@skm.kr",
   "address": "서울시 관악구 조원로6길 47, 에스케이엠 1층",
-  "heroImageUrl": "/professional-office-workspace.png",
+  "heroImageUrl": "https://i.ibb.co/tps54x9M/001-4.jpg",
   "aboutHeroUrl": "/professional-team-meeting.png",
   "servicesHeroUrl": "/professional-services-teamwork.png",
   "contactHeroUrl": "/contact-us-professional.png",
@@ -15,5 +15,6 @@
   "elevatorManagementUrl": "/elevator-maintenance.png",
   "companyBuildingUrl": "/modern-office-building.png",
   "teamImageUrl": "/professional-team-meeting.png",
-  "officeImageUrl": "/modern-office-interior.png"
+  "officeImageUrl": "/modern-office-interior.png",
+  "website": "https://skm.kr"
 }
