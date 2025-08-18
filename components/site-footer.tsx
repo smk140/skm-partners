@@ -35,9 +35,9 @@ export function SiteFooter() {
               <div className="flex items-start gap-3">
                 <Clock className="h-5 w-5 text-blue-400 flex-shrink-0" />
                 <div className="text-gray-300 leading-tight">
-                  <p>평일 10:00 - 18:00</p>
-                  <p>주말 및 공휴일 휴무</p>
-                  <p>문의 언제든지 가능</p>
+                  <p>평일: 10:00 - 18:00</p>
+                  <p>주말 및 공휴일: 휴무</p>
+                  <p>문의: 언제든지 가능</p>
                 </div>
               </div>
             </div>
