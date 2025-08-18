@@ -284,8 +284,9 @@ export default function ContactPage() {
                         <div>
                           <h3 className="text-lg font-semibold mb-2">운영시간</h3>
                           <div className="text-gray-600 space-y-1">
-                            <p>평일: 오전 9시 - 오후 6시</p>
-                            <p>주말 및 공휴일: 오전 9시 - 오후 1시</p>
+                            <p>평일: 오전 10시 - 오후 6시</p>
+                            <p>주말 및 공휴일: 휴무</p>
+                            <p>문의: 언제든지 가능</p>
                           </div>
                         </div>
                       </div>
