@@ -31,15 +31,14 @@ export function SiteFooter() {
                 <Mail className="h-5 w-5 text-blue-400 flex-shrink-0" />
                 <span className="text-gray-300">bykim@skm.kr</span>
               </div>
-              <div className="flex items-center gap-3">
+              {/* 운영시간 블록 통합 */}
+              <div className="flex items-start gap-3">
                 <Clock className="h-5 w-5 text-blue-400 flex-shrink-0" />
-                <span className="text-gray-300">평일 10:00 - 18:00</span>
-              </div>
-              <div className="flex items-center gap-3 pl-8">
-                <span className="text-gray-300">주말 및 공휴일 휴무</span>
-              </div>
-              <div className="flex items-center gap-3 pl-8">
-                <span className="text-gray-300">문의 언제든지 가능</span>
+                <div className="text-gray-300 leading-tight">
+                  <p>평일 10:00 - 18:00</p>
+                  <p>주말 및 공휴일 휴무</p>
+                  <p>문의 언제든지 가능</p>
+                </div>
               </div>
             </div>
           </div>
@@ -92,7 +91,7 @@ export function SiteFooter() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400">© 2024 SKM Partners. All rights reserved.</p>
+          <p className="text-gray-400">© {new Date().getFullYear()} SKM Partners. All rights reserved.</p>
         </div>
       </div>
     </footer>
