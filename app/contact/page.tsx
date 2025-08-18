@@ -285,8 +285,7 @@ export default function ContactPage() {
                           <h3 className="text-lg font-semibold mb-2">운영시간</h3>
                           <div className="text-gray-600 space-y-1">
                             <p>평일: 오전 9시 - 오후 6시</p>
-                            <p>토요일: 오전 9시 - 오후 1시</p>
-                            <p>일요일 및 공휴일: 휴무</p>
+                            <p>주말 및 공휴일: 오전 9시 - 오후 1시</p>
                           </div>
                         </div>
                       </div>
@@ -351,16 +350,16 @@ export default function ContactPage() {
 
       {/* Debug Info */}
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm">
-          <div>Contact Page Debug:</div>
-          <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
+        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm z-50">
+          <div className="font-bold mb-2">Contact Page Debug:</div>
+          <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
-            <div>
-              <div>Contact Hero: {companyData.contactHeroUrl || "Not Set"}</div>
-              <div>Company Building: {companyData.companyBuildingUrl || "Not Set"}</div>
-              <div>Phone: {companyData.phone}</div>
-              <div>Email: {companyData.email}</div>
-              <div>Address: {companyData.address}</div>
+            <div className="mt-2 space-y-1">
+              <div>Contact Hero: {companyData.contactHeroUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Company Building: {companyData.companyBuildingUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Phone: {companyData.phone || "❌ Not Set"}</div>
+              <div>Email: {companyData.email || "❌ Not Set"}</div>
+              <div>Address: {companyData.address || "❌ Not Set"}</div>
             </div>
           )}
         </div>

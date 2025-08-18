@@ -79,3 +79,6 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>
 }
+
+// AuthCheck as a named export (alias for AdminAuthCheck)
+export const AuthCheck = AdminAuthCheck

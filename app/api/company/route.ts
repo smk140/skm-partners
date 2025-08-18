@@ -7,7 +7,7 @@ export async function GET() {
   try {
     console.log("🏢 Company API called")
     const companyData = await getCompanyData()
-    console.log("✅ Company data retrieved:", companyData)
+    console.log("✅ Company data retrieved:", JSON.stringify(companyData, null, 2))
 
     return NextResponse.json({
       success: true,

@@ -250,17 +250,17 @@ export default function AboutPage() {
 
       {/* Debug Info */}
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 left-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm">
-          <div>About Page Debug:</div>
-          <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
+        <div className="fixed bottom-4 left-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm z-50">
+          <div className="font-bold mb-2">About Page Debug:</div>
+          <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
-            <div>
-              <div>About Hero: {companyData.aboutHeroUrl || "Not Set"}</div>
-              <div>Team Image: {companyData.teamImageUrl || "Not Set"}</div>
-              <div>Office Image: {companyData.officeImageUrl || "Not Set"}</div>
-              <div>Phone: {companyData.phone}</div>
-              <div>Email: {companyData.email}</div>
-              <div>Address: {companyData.address}</div>
+            <div className="mt-2 space-y-1">
+              <div>About Hero: {companyData.aboutHeroUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Team Image: {companyData.teamImageUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Office Image: {companyData.officeImageUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Phone: {companyData.phone || "❌ Not Set"}</div>
+              <div>Email: {companyData.email || "❌ Not Set"}</div>
+              <div>Address: {companyData.address || "❌ Not Set"}</div>
             </div>
           )}
         </div>

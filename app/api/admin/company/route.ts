@@ -1,16 +1,38 @@
-import { NextResponse } from "next/server"
-import { getCompanyData, updateCompanyData } from "@/lib/file-db"
+import { type NextRequest, NextResponse } from "next/server"
+import { updateCompanyData } from "@/lib/file-db"
 
-export const dynamic = "force-dynamic"
+export async function POST(request: NextRequest) {
+  try {
+    console.log("🏢 Admin company API called")
+    const companyData = await request.json()
+    console.log("📥 Received company data:", JSON.stringify(companyData, null, 2))
 
-export async function GET() {
-  const companyInfo = await getCompanyData()
-  return NextResponse.json({ success: true, companyInfo })
-}
+    const result = await updateCompanyData(companyData)
+    console.log("💾 Update result:", result)
 
-export async function POST(req: Request) {
-  const body = (await req.json()) as Partial<Awaited<ReturnType<typeof getCompanyData>>>
-  const result = await updateCompanyData(body)
-  const status = result.success ? 200 : 400
-  return NextResponse.json(result, { status })
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        message: "Company data updated successfully",
+        data: result.data,
+      })
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error || "Failed to update company data",
+        },
+        { status: 500 },
+      )
+    }
+  } catch (error: any) {
+    console.error("❌ Admin company API error:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message || "Internal server error",
+      },
+      { status: 500 },
+    )
+  }
 }

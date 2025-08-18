@@ -238,16 +238,19 @@ export default function HomePage() {
 
       {/* Debug Info */}
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm">
-          <div>Home Page Debug:</div>
-          <div>Company Data: {companyData ? "Loaded" : "Not Loaded"}</div>
+        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded text-xs max-w-sm z-50">
+          <div className="font-bold mb-2">Home Page Debug:</div>
+          <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
-            <div>
-              <div>Hero Image: {companyData.heroImageUrl || "Not Set"}</div>
-              <div>Name: {companyData.name}</div>
-              <div>Phone: {companyData.phone}</div>
-              <div>Email: {companyData.email}</div>
-              <div>Address: {companyData.address}</div>
+            <div className="mt-2 space-y-1">
+              <div>Hero Image: {companyData.heroImageUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Name: {companyData.name || "❌ Not Set"}</div>
+              <div>Phone: {companyData.phone || "❌ Not Set"}</div>
+              <div>Email: {companyData.email || "❌ Not Set"}</div>
+              <div>Address: {companyData.address || "❌ Not Set"}</div>
+              {companyData.heroImageUrl && (
+                <div className="mt-2 text-xs break-all">Hero URL: {companyData.heroImageUrl.substring(0, 50)}...</div>
+              )}
             </div>
           )}
         </div>
