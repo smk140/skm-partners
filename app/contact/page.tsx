@@ -223,7 +223,7 @@ export default function ContactPage() {
                   <SafeImage
                     src="https://i.ibb.co/dwYXWNKq/image.jpg"
                     alt="SKM파트너스 사무실"
-                    className="w-full h-64 object-cover"
+                    className="w-full h-auto aspect-video object-cover"
                     fallbackSrc="/modern-office-building.png"
                     fallbackText="SKM파트너스 사무실"
                   />
