@@ -115,7 +115,7 @@ export default function ContactPage() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
           style={{
-            backgroundImage: `url(${companyData?.contactHeroUrl || "/contact-us-professional.png"})`,
+            backgroundImage: `url("https://i.ibb.co/v60DPh2f/contact-us-professional.png")`,
           }}
         />
         <div className="relative container mx-auto px-4">
@@ -221,7 +221,7 @@ export default function ContactPage() {
                 {/* Company Building Image */}
                 <div className="relative rounded-2xl overflow-hidden shadow-lg">
                   <SafeImage
-                    src={companyData?.companyBuildingUrl}
+                    src="https://i.ibb.co/dwYXWNKq/image.jpg"
                     alt="SKM파트너스 사무실"
                     className="w-full h-64 object-cover"
                     fallbackSrc="/modern-office-building.png"
@@ -356,8 +356,8 @@ export default function ContactPage() {
           <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
             <div className="mt-2 space-y-1">
-              <div>Contact Hero: {companyData.contactHeroUrl ? "✅ Set" : "❌ Not Set"}</div>
-              <div>Company Building: {companyData.companyBuildingUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Contact Hero: Fixed URL</div>
+              <div>Company Building: Fixed URL</div>
               <div>Phone: {companyData.phone || "❌ Not Set"}</div>
               <div>Email: {companyData.email || "❌ Not Set"}</div>
               <div>Address: {companyData.address || "❌ Not Set"}</div>

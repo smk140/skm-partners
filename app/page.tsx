@@ -85,7 +85,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={companyData?.heroImageUrl}
+                  src="https://i.ibb.co/tPBsYNpx/image.jpg"
                   alt="SKM파트너스 메인 이미지"
                   className="w-full h-[400px] lg:h-[500px] object-cover"
                   fallbackSrc="/professional-office-workspace.png"
@@ -243,14 +243,11 @@ export default function HomePage() {
           <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
             <div className="mt-2 space-y-1">
-              <div>Hero Image: {companyData.heroImageUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>Hero Image: Fixed URL</div>
               <div>Name: {companyData.name || "❌ Not Set"}</div>
               <div>Phone: {companyData.phone || "❌ Not Set"}</div>
               <div>Email: {companyData.email || "❌ Not Set"}</div>
               <div>Address: {companyData.address || "❌ Not Set"}</div>
-              {companyData.heroImageUrl && (
-                <div className="mt-2 text-xs break-all">Hero URL: {companyData.heroImageUrl.substring(0, 50)}...</div>
-              )}
             </div>
           )}
         </div>

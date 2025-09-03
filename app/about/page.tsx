@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, Award, Target, CheckCircle, ArrowRight, Phone, Mail } from "lucide-react"
+import { CheckCircle, ArrowRight, Phone, Mail, Briefcase, ShieldCheck, UserCheck } from "lucide-react"
 import { SafeImage } from "@/components/safe-image"
 import type { CompanyData } from "@/lib/file-db"
 
@@ -59,7 +59,7 @@ export default function AboutPage() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
           style={{
-            backgroundImage: `url(${companyData?.aboutHeroUrl || "/professional-team-meeting.png"})`,
+            backgroundImage: `url("https://i.ibb.co/39q09R2b/professional-team-meeting.png")`,
           }}
         />
         <div className="relative container mx-auto px-4">
@@ -82,12 +82,13 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-8">우리의 이야기</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                SKM파트너스는 부동산 업계에서 축적된 풍부한 경험과 전문성을 바탕으로 고객에게 최고의 서비스를 제공하고
-                있습니다.
+                SKM파트너스는 수많은 건축 경험과 부동산 관리 경험을 통해 축적된 실무 노하우를 바탕으로, 부동산 가치의
+                지속 가능성을 위해 신뢰를 바탕으로 공실 문제를 해결하고 임대수입 극대화를 지원합니다.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed mb-8">
-                우리는 단순한 서비스 제공을 넘어서, 고객의 자산 가치를 극대화하고 지속 가능한 성장을 돕는 진정한
-                파트너가 되고자 합니다.
+                단순한 건물 임대 관리가 아닌, 공간의 기획부터 운영까지 전 과정을 아우르는 맞춤형 서비스를 통해 고객의
+                자산 가치를 극대화하고, 고객의 임대 사업이 안정적이고 지속 가능한 방향으로 성장할 수 있도록 함께
+                하겠습니다.
               </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -107,7 +108,7 @@ export default function AboutPage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <SafeImage
-                  src={companyData?.teamImageUrl}
+                  src="https://i.ibb.co/8DhXjTW7/image.jpg"
                   alt="SKM파트너스 팀"
                   className="w-full h-[400px] object-cover"
                   fallbackSrc="/professional-team-meeting.png"
@@ -122,18 +123,20 @@ export default function AboutPage() {
       {/* Mission & Vision */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">미션 & 비전</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              우리의 사명과 비전을 통해 더 나은 미래를 만들어갑니다.
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">우리의 가치</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+              "설계부터 관리까지, 고객의 니즈를 이해하고 실행하는 파트너" SKM파트너스는 2025년 설립되었지만, 그 이전
+              10년 이상의 건축 및 부동산 운영 경험을 바탕으로 임대인의 자산을 더 가치 있게, 더 안전하게 만들기 위한
+              솔루션을 지속적으로 제공해오고 있습니다.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             <Card className="text-center">
               <CardHeader>
-                <Target className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-                <CardTitle className="text-2xl">미션</CardTitle>
+                <Briefcase className="h-16 w-16 text-blue-600 mx-auto mb-4" />
+                <CardTitle className="text-2xl">최고의 서비스 구현</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-lg leading-relaxed">
@@ -145,79 +148,29 @@ export default function AboutPage() {
 
             <Card className="text-center">
               <CardHeader>
-                <Award className="h-16 w-16 text-purple-600 mx-auto mb-4" />
-                <CardTitle className="text-2xl">비전</CardTitle>
+                <ShieldCheck className="h-16 w-16 text-purple-600 mx-auto mb-4" />
+                <CardTitle className="text-2xl">안전한 건물 관리</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  부동산 업계의 선도적인 기업으로서 혁신적인 서비스와 최고의 품질을 통해 고객과 사회에 가치를 창출하는
-                  글로벌 파트너가 되겠습니다.
+                  건축 및 시공 분야에서 축적한 현장 경험과 기술 노하우를 바탕으로 건물 하자 및 유지보수 이슈에
+                  선제적으로 대응, 리스크를 최소화합니다.
                 </p>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
 
-      {/* Core Values */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">핵심 가치</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              우리가 추구하는 가치들이 모든 업무의 기준이 됩니다.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Building2 className="h-10 w-10 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">전문성</h3>
-              <p className="text-gray-600">
-                깊이 있는 전문 지식과 풍부한 경험을 바탕으로 최고 수준의 서비스를 제공합니다.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="h-10 w-10 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">신뢰</h3>
-              <p className="text-gray-600">투명하고 정직한 소통을 통해 고객과의 신뢰 관계를 구축하고 유지합니다.</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Award className="h-10 w-10 text-purple-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-4">혁신</h3>
-              <p className="text-gray-600">끊임없는 연구와 개발을 통해 더 나은 서비스와 솔루션을 제공합니다.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Office Image */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">우리의 공간</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              현대적이고 전문적인 환경에서 최고의 서비스를 제공합니다.
-            </p>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <SafeImage
-                src={companyData?.officeImageUrl}
-                alt="SKM파트너스 사무실"
-                className="w-full h-[500px] object-cover"
-                fallbackSrc="/modern-office-interior.png"
-                fallbackText="SKM파트너스 사무실"
-              />
-            </div>
+            <Card className="text-center">
+              <CardHeader>
+                <UserCheck className="h-16 w-16 text-green-300 mx-auto mb-4" />
+                <CardTitle className="text-2xl">고객의 만족 추구</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 text-lg leading-relaxed">
+                  우리는 단순한 관리 대행을 넘어 공실 없는 건물과 안정적인 임대 수익 실현을 함께 고민하는 신뢰받는
+                  파트너가 되겠습니다.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -255,9 +208,9 @@ export default function AboutPage() {
           <div>Company Data: {companyData ? "✅ Loaded" : "❌ Not Loaded"}</div>
           {companyData && (
             <div className="mt-2 space-y-1">
-              <div>About Hero: {companyData.aboutHeroUrl ? "✅ Set" : "❌ Not Set"}</div>
-              <div>Team Image: {companyData.teamImageUrl ? "✅ Set" : "❌ Not Set"}</div>
-              <div>Office Image: {companyData.officeImageUrl ? "✅ Set" : "❌ Not Set"}</div>
+              <div>About Hero: Fixed URL</div>
+              <div>Team Image: Fixed URL</div>
+              <div>Office Image: Fixed URL</div>
               <div>Phone: {companyData.phone || "❌ Not Set"}</div>
               <div>Email: {companyData.email || "❌ Not Set"}</div>
               <div>Address: {companyData.address || "❌ Not Set"}</div>
